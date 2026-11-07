@@ -1,5 +1,6 @@
 <resources>
 <string name="app_name">OdontoLivreVal</string>
 <string name="home">Início</string><string name="patients">Pacientes</string><string name="schedule">Agenda</string><string name="odontogram">Odontograma</string><string name="settings">Configurações</string><string name="about">Sobre</string>
-<string name="welcome">Odontologia livre e offline</string><string name="intro">Aplicativo livre e gratuito, preparado para um único cirurgião-dentista por dispositivo. Nesta etapa, apenas navegação e preferências estão disponíveis.</string><string name="development">Em desenvolvimento</string><string name="no_clinical_data">Nenhum dado clínico é cadastrado ou armazenado nesta etapa.</string><string name="version">Versão %1$s</string><string name="license">Licença: GPL-3.0-or-later</string><string name="back">Voltar</string>
+<string name="welcome">Odontologia livre e offline</string><string name="intro">Aplicativo livre e gratuito, preparado para um único cirurgião-dentista por dispositivo. O cadastro de pacientes está disponível para testes com nomes fictícios.</string><string name="development">Em desenvolvimento</string><string name="no_clinical_data">Nenhum dado clínico é cadastrado ou armazenado nesta etapa.</string><string name="version">Versão %1$s</string><string name="license">Licença: GPL-3.0-or-later</string><string name="back">Voltar</string>
+<string name="icon_attribution">Emoji do ícone adaptado de Twemoji (Twitter e colaboradores), CC BY 4.0.</string>
 </resources>

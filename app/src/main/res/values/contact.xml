@@ -1,1 +1,1 @@
-<resources><!-- Configure apenas um contato público autorizado. Vazio por padrão. --><string name="public_contact" translatable="false"></string></resources>
+<resources><!-- Contato público autorizado exibido na tela Sobre. --><string name="public_contact" translatable="false">Valdenor Tavares — valdenor.sa@proton.me</string></resources>

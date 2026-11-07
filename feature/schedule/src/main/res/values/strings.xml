@@ -1,0 +1,27 @@
+<resources>
+    <string name="schedule_title">Agenda de teste</string>
+    <string name="schedule_demo_notice">Use apenas pacientes fictícios.</string>
+    <string name="schedule_previous">Dia anterior</string>
+    <string name="schedule_next">Dia seguinte</string>
+    <string name="schedule_loading">Carregando agenda…</string>
+    <string name="schedule_load_error">Não foi possível carregar a agenda.</string>
+    <string name="schedule_retry">Tentar novamente</string>
+    <string name="schedule_need_patient">Cadastre um paciente fictício antes de agendar.</string>
+    <string name="schedule_open_patients">Abrir Pacientes</string>
+    <string name="schedule_new">Nova consulta</string>
+    <string name="schedule_empty">Nenhuma consulta neste dia.</string>
+    <string name="schedule_entry">%1$s · %2$s</string>
+    <string name="schedule_cancelled">Cancelada</string>
+    <string name="schedule_edit">Editar consulta</string>
+    <string name="schedule_cancel_appointment">Cancelar consulta</string>
+    <string name="schedule_confirm_cancel">Cancelar esta consulta?</string>
+    <string name="schedule_cancel_error">Não foi possível cancelar a consulta.</string>
+    <string name="schedule_choose_patient">Escolher paciente</string>
+    <string name="schedule_date">Data: %1$s</string>
+    <string name="schedule_time">Horário: %1$s</string>
+    <string name="schedule_occupied">Já existe uma consulta nesse horário.</string>
+    <string name="schedule_save_error">Não foi possível salvar a consulta.</string>
+    <string name="schedule_save">Salvar consulta</string>
+    <string name="schedule_back">Voltar</string>
+    <string name="schedule_view_record">Ver ficha do paciente</string>
+</resources>

@@ -12,23 +12,55 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import br.com.odontolivreval.core.model.ThemeMode
+import br.com.odontolivreval.core.demo.DemoClinicStore
+import br.com.odontolivreval.core.demo.DemoPatient
+import br.com.odontolivreval.feature.patients.PatientRecordScreen
+import br.com.odontolivreval.feature.patients.PatientsScreen
+import br.com.odontolivreval.feature.schedule.ScheduleScreen
 import br.com.odontolivreval.feature.settings.*
 
 private enum class Destination(@param:StringRes val label: Int) {
     HOME(R.string.home), PATIENTS(R.string.patients), SCHEDULE(R.string.schedule),
-    ODONTOGRAM(R.string.odontogram), SETTINGS(R.string.settings)
+    SETTINGS(R.string.settings)
 }
 
 @Composable
-fun OdontoApp(state: SettingsState, onTheme: (ThemeMode) -> Unit) {
+fun OdontoApp(
+    state: SettingsState,
+    onTheme: (ThemeMode) -> Unit,
+    demoClinic: DemoClinicStore,
+    backupRevision: Int,
+    protection: @Composable () -> Unit,
+) {
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route ?: Destination.HOME.name
+    var selectedPatient by remember { mutableStateOf<DemoPatient?>(null) }
+    val onPatientClick: (DemoPatient) -> Unit = { selectedPatient = it }
     fun navigate(destination: Destination) {
         nav.navigate(destination.name) {
             popUpTo(Destination.HOME.name) { saveState = true }
             launchSingleTop = true
             restoreState = true
+        }
+    }
+    // Navega para o prontuário quando um paciente é selecionado
+    LaunchedEffect(selectedPatient) {
+        if (selectedPatient != null) {
+            nav.navigate("patient_record") { launchSingleTop = true }
+        }
+    }
+    LaunchedEffect(backupRevision) {
+        if (backupRevision > 0) {
+            nav.clearBackStack(Destination.PATIENTS.name)
+            nav.clearBackStack(Destination.SCHEDULE.name)
+        }
+    }
+    // Limpa a seleção de paciente quando o usuário sai da tela de prontuário
+    // (via navegação ou botão Voltar), evitando que ela fique "grudada".
+    LaunchedEffect(entry?.destination?.route) {
+        if (entry?.destination?.route != "patient_record") {
+            selectedPatient = null
         }
     }
     Scaffold { padding ->
@@ -43,38 +75,66 @@ fun OdontoApp(state: SettingsState, onTheme: (ThemeMode) -> Unit) {
                     }
                 }
                 Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-                    Column(Modifier.widthIn(max = if (wide) 840.dp else 600.dp).fillMaxWidth()
-                        .verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        NavHost(navController = nav, startDestination = Destination.HOME.name) {
-                            composable(Destination.HOME.name) {
-                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge)
-                                    Text(stringResource(R.string.welcome), style = MaterialTheme.typography.titleLarge)
-                                    Text(stringResource(R.string.intro))
-                                    Destination.entries.filter { it != Destination.HOME }.forEach { destination ->
-                                        OutlinedButton(onClick = { navigate(destination) }) { Text(stringResource(destination.label)) }
-                                    }
+                    NavHost(
+                        navController = nav,
+                        startDestination = Destination.HOME.name,
+                        modifier = Modifier.widthIn(max = if (wide) 840.dp else 600.dp).fillMaxWidth(),
+                    ) {
+                        composable(Destination.HOME.name) {
+                            ScreenContent {
+                                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge)
+                                Text(stringResource(R.string.welcome), style = MaterialTheme.typography.titleLarge)
+                                Text(stringResource(R.string.intro))
+                                Destination.entries.filter { it != Destination.HOME }.forEach { destination ->
+                                    OutlinedButton(onClick = { navigate(destination) }) { Text(stringResource(destination.label)) }
                                 }
                             }
-                            Destination.entries.filter { it != Destination.HOME && it != Destination.SETTINGS }.forEach { destination ->
-                                composable(destination.name) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                        Text(stringResource(destination.label), style = MaterialTheme.typography.headlineLarge)
-                                        Text(stringResource(R.string.development), style = MaterialTheme.typography.titleLarge)
-                                        Text(stringResource(R.string.no_clinical_data))
+                        }
+                        composable(Destination.PATIENTS.name) {
+                            PatientsScreen(demoClinic) { onPatientClick(it) }
+                        }
+                        composable(Destination.SCHEDULE.name) {
+                            ScheduleScreen(demoClinic, onPatientClick) { }
+                        }
+                        composable(Destination.SETTINGS.name) {
+                            ScreenContent {
+                                SettingsScreen(state, onTheme) { nav.navigate("about") { launchSingleTop = true } }
+                                    OutlinedButton(onClick = { nav.navigate("protection") { launchSingleTop = true } }) {
+                                        Text(stringResource(R.string.security_title))
                                     }
-                                }
                             }
-                            composable(Destination.SETTINGS.name) { SettingsScreen(state, onTheme) { nav.navigate("about") { launchSingleTop = true } } }
-                            composable("about") {
-                                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                    Text(stringResource(R.string.about), style = MaterialTheme.typography.headlineLarge)
-                                    Text(stringResource(R.string.app_name))
-                                    Text(stringResource(R.string.version, BuildConfig.VERSION_NAME))
-                                    Text(stringResource(R.string.license))
-                                    val contact = stringResource(R.string.public_contact)
-                                    if (contact.isNotBlank()) Text(contact)
-                                    OutlinedButton(onClick = { nav.popBackStack() }) { Text(stringResource(R.string.back)) }
+                        }
+                        composable("protection") {
+                            ScreenContent {
+                                protection()
+                                OutlinedButton(onClick = { nav.popBackStack() }) { Text(stringResource(R.string.back)) }
+                            }
+                        }
+                        composable("about") {
+                            ScreenContent {
+                                Text(stringResource(R.string.about), style = MaterialTheme.typography.headlineLarge)
+                                Text(stringResource(R.string.app_name))
+                                Text(stringResource(R.string.version, BuildConfig.VERSION_NAME))
+                                Text(stringResource(R.string.license))
+                                Text(stringResource(R.string.icon_attribution))
+                                val contact = stringResource(R.string.public_contact)
+                                if (contact.isNotBlank()) Text(contact)
+                                OutlinedButton(onClick = { nav.popBackStack() }) { Text(stringResource(R.string.back)) }
+                            }
+                        }
+                        composable("patient_record") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    PatientRecordScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        onClose = { selectedPatient = null; nav.popBackStack() },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
                                 }
                             }
                         }
@@ -83,4 +143,13 @@ fun OdontoApp(state: SettingsState, onTheme: (ThemeMode) -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun ScreenContent(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        content = content,
+    )
 }

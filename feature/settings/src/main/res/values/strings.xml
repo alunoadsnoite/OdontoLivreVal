@@ -1,3 +1,7 @@
 <resources>
 <string name="appearance">Aparência</string><string name="system">Sistema</string><string name="light">Claro</string><string name="dark">Escuro</string><string name="about">Sobre</string><string name="save_failed">Não foi possível salvar. Tente novamente.</string>
+<string name="contact_title">Contato</string>
+<string name="contact_developer">Valdenor Tavares — valdenor.sa@proton.me</string>
+<string name="contact_email">valdenor.sa@proton.me</string>
+<string name="contact_send_email">Enviar e-mail</string>
 </resources>
