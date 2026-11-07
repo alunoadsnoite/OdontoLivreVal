@@ -1,0 +1,1 @@
+<resources><!-- Configure apenas um contato público autorizado. Vazio por padrão. --><string name="public_contact" translatable="false"></string></resources>
