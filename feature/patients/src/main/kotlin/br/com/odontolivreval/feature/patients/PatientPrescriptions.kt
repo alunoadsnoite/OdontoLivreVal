@@ -27,6 +27,7 @@ fun PatientPrescriptions(
     patientId: Long,
     revision: Int,
     busy: Boolean,
+    archivedDocuments: Boolean = false,
     transferFailed: Boolean,
     copied: Boolean,
     onImport: () -> Unit,
@@ -37,26 +38,26 @@ fun PatientPrescriptions(
     var deleting by remember(patientId) { mutableStateOf(false) }
     var error by remember(patientId) { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    LaunchedEffect(store, patientId, revision) {
+    LaunchedEffect(store, patientId, archivedDocuments, revision) {
         try {
-            files = store.listPrescriptions(patientId)
+            files = store.listPrescriptions(patientId, archivedDocuments)
             error = false
         } catch (_: ClinicStorageException) {
             error = true
         }
     }
 
-    Text(stringResource(R.string.prescriptions_title), style = MaterialTheme.typography.titleMedium)
-    Text(stringResource(R.string.prescriptions_hint), style = MaterialTheme.typography.bodySmall)
+    Text(stringResource(if (archivedDocuments) R.string.archive_title else R.string.prescriptions_title), style = MaterialTheme.typography.titleMedium)
+    Text(stringResource(if (archivedDocuments) R.string.archive_hint else R.string.prescriptions_hint), style = MaterialTheme.typography.bodySmall)
     OutlinedButton(onClick = onImport, enabled = !busy && !deleting) {
-        Text(stringResource(R.string.prescriptions_import))
+        Text(stringResource(if (archivedDocuments) R.string.archive_import else R.string.prescriptions_import))
     }
-    if (copied) Text(stringResource(R.string.prescriptions_copied))
-    if (busy) Text(stringResource(R.string.prescriptions_working))
+    if (copied) Text(stringResource(if (archivedDocuments) R.string.archive_copied else R.string.prescriptions_copied))
+    if (busy) Text(stringResource(if (archivedDocuments) R.string.archive_working else R.string.prescriptions_working))
     if (transferFailed || error) {
-        Text(stringResource(R.string.prescriptions_error), color = MaterialTheme.colorScheme.error)
+        Text(stringResource(if (archivedDocuments) R.string.archive_error else R.string.prescriptions_error), color = MaterialTheme.colorScheme.error)
     }
-    if (files?.isEmpty() == true) Text(stringResource(R.string.prescriptions_empty))
+    if (files?.isEmpty() == true) Text(stringResource(if (archivedDocuments) R.string.archive_empty else R.string.prescriptions_empty))
     files.orEmpty().forEach { file ->
         Text(file.name, style = MaterialTheme.typography.bodyMedium)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -64,14 +65,14 @@ fun PatientPrescriptions(
                 Text(stringResource(R.string.prescriptions_copy))
             }
             TextButton(onClick = { removing = file }, enabled = !busy && !deleting) {
-                Text(stringResource(R.string.prescriptions_remove))
+                Text(stringResource(if (archivedDocuments) R.string.archive_remove else R.string.prescriptions_remove))
             }
         }
     }
     removing?.let { file ->
         AlertDialog(
             onDismissRequest = { removing = null },
-            title = { Text(stringResource(R.string.prescriptions_confirm_remove)) },
+            title = { Text(stringResource(if (archivedDocuments) R.string.archive_confirm_remove else R.string.prescriptions_confirm_remove)) },
             text = { Text(file.name) },
             confirmButton = {
                 TextButton(onClick = {
@@ -88,7 +89,7 @@ fun PatientPrescriptions(
                             deleting = false
                         }
                     }
-                }) { Text(stringResource(R.string.prescriptions_remove)) }
+                }) { Text(stringResource(if (archivedDocuments) R.string.archive_remove else R.string.prescriptions_remove)) }
             },
             dismissButton = {
                 TextButton(onClick = { removing = null }) { Text(stringResource(R.string.demo_patients_cancel)) }

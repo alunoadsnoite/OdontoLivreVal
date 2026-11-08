@@ -119,4 +119,14 @@
     <string name="document_photos_remove">Remover foto</string>
     <string name="document_photos_confirm_remove">Remover esta foto do prontuário?</string>
     <string name="document_photos_error">Não foi possível acessar a foto.</string>
+    <string name="archive_title">PDFs arquivados</string>
+    <string name="archive_hint">Importe o PDF baixado do assinador. O arquivo é guardado como recebido. A validação da assinatura é feita no portal do ITI.</string>
+    <string name="archive_import">Importar PDF do assinador</string>
+    <string name="archive_empty">Nenhum PDF arquivado.</string>
+    <string name="archive_confirm_remove">Remover este PDF do prontuário?</string>
+    <string name="archive_remove">Remover PDF</string>
+    <string name="archive_copied">Cópia do PDF salva.</string>
+    <string name="archive_working">Processando PDF…</string>
+    <string name="archive_error">Não foi possível acessar ou salvar o PDF.</string>
+    <string name="pdf_professional">Profissional: %1$s · CRO %2$s</string>
 </resources>

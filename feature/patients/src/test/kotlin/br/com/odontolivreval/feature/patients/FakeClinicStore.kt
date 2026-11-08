@@ -100,9 +100,9 @@ internal class FakeClinicStore : ClinicStore {
 
     override suspend fun removeRadiograph(patientId: Long, id: Long) = error("Not used")
 
-    override suspend fun listPrescriptions(patientId: Long): List<PrescriptionFile> = error("Not used")
+    override suspend fun listPrescriptions(patientId: Long, archivedDocuments: Boolean): List<PrescriptionFile> = error("Not used")
 
-    override suspend fun addPrescription(patientId: Long, uri: Uri) = error("Not used")
+    override suspend fun addPrescription(patientId: Long, uri: Uri, archivedDocument: Boolean) = error("Not used")
 
     override suspend fun copyPrescription(patientId: Long, id: Long, uri: Uri) = error("Not used")
 

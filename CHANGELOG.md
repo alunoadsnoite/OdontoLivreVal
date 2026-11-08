@@ -2,6 +2,13 @@
 
 ## 0.10.0 — 2026-11-08
 
+- Perfil profissional com CRO, painel de próximas consultas e lembretes locais.
+- Documentos em PDF para receitas, atestados, orçamentos e consentimentos.
+- Fluxo de assinatura eletrônica externa, com exportação do PDF sem assinatura, atalhos para GOV.BR, CFO e VALIDAR e arquivo criptografado do PDF retornado.
+- Correção na abertura de Documentos e na atualização do perfil ao voltar ao prontuário.
+- O PDF do odontograma inclui nome e CRO do perfil quando preenchidos.
+- Os lembretes omitem o nome do paciente e conferem o horário vigente antes de notificar.
+- Gradle Wrapper usa espelho com SHA-256 oficial e timeout ampliado.
 - Duração de 1 a 240 minutos e exibição do intervalo na agenda.
 - Prevenção de consultas sobrepostas, com horários consecutivos permitidos.
 - Retornos vinculados à consulta original e ao mesmo paciente.

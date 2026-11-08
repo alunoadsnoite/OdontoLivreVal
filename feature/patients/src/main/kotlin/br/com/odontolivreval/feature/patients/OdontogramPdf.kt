@@ -11,6 +11,7 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import androidx.core.graphics.withTranslation
+import br.com.odontolivreval.core.demo.ProfessionalProfile
 import br.com.odontolivreval.core.demo.VisitRecord
 import java.io.OutputStream
 import java.time.LocalDate
@@ -25,7 +26,13 @@ object OdontogramPdf {
     private const val ink = 0xff241b2d.toInt()
     private const val muted = 0xff51475a.toInt()
 
-    fun write(context: Context, patientName: String, visit: VisitRecord, output: OutputStream) {
+    fun write(
+        context: Context,
+        patientName: String,
+        visit: VisitRecord,
+        output: OutputStream,
+        profile: ProfessionalProfile? = null,
+    ) {
         val document = PdfDocument()
         try {
             val dentitions = Dentition.entries.filter { it.hasMarks(visit.odontogram) }
@@ -34,7 +41,7 @@ object OdontogramPdf {
                 val pageNumber = index + 1
                 val page = document.startPage(PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create())
                 try {
-                    drawPage(context, page.canvas, patientName, visit, dentition, pageNumber, dentitions.size)
+                    drawPage(context, page.canvas, patientName, visit, dentition, pageNumber, dentitions.size, profile)
                 } finally {
                     document.finishPage(page)
                 }
@@ -53,6 +60,7 @@ object OdontogramPdf {
         dentition: Dentition,
         pageNumber: Int,
         pageCount: Int,
+        profile: ProfessionalProfile?,
     ) {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         canvas.drawColor(Color.WHITE)
@@ -94,6 +102,14 @@ object OdontogramPdf {
             val y = 667f + (index / 3) * 20f
             canvas.label(surface.code, x, y, 10f, purple, true)
             canvas.label(context.getString(surface.label), x + 20f, y, 10f, ink)
+        }
+        if (profile != null && profile.name.isNotBlank() && profile.cro.isNotBlank()) {
+            val professional = context.getString(R.string.pdf_professional, profile.name, profile.cro)
+            val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 10f; color = muted }
+            val layout = StaticLayout.Builder.obtain(
+                professional, 0, professional.length, textPaint, (pageWidth - 2 * margin).toInt(),
+            ).setIncludePad(false).setMaxLines(2).setEllipsize(TextUtils.TruncateAt.END).build()
+            canvas.withTranslation(margin, 712f) { layout.draw(this) }
         }
         paint.color = 0xffddd2e4.toInt()
         canvas.drawRect(margin, 747f, pageWidth - margin, 748f, paint)

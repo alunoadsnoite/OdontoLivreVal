@@ -14,6 +14,7 @@ data class PrescriptionFile(
     val patientId: Long,
     val name: String,
     val format: PrescriptionFormat,
+    val archivedDocument: Boolean = false,
 )
 
 internal data class StoredPrescription(val file: PrescriptionFile, val content: AttachmentContent)

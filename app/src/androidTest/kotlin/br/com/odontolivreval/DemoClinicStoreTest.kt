@@ -166,12 +166,16 @@ class DemoClinicStoreTest {
             store.addPrescription(patient.id, Uri.fromFile(pdf))
             val recipe = store.listPrescriptions(patient.id).single()
             assertEquals(PrescriptionFormat.PDF, recipe.format)
+            store.addPrescription(patient.id, Uri.fromFile(pdf), archivedDocument = true)
+            val archived = store.listPrescriptions(patient.id, archivedDocuments = true).single()
+            assertEquals(recipe.id, store.listPrescriptions(patient.id).single().id)
 
             val backupFile = directory.resolve("anexos.odl")
             val backup = Uri.fromFile(backupFile)
             val password = "senha-de-teste-longa".toCharArray()
             store.exportBackup(backup, password)
             store.removePrescription(patient.id, recipe.id)
+            store.removePrescription(patient.id, archived.id)
             store.removeRadiograph(patient.id, store.listRadiographs(patient.id).single().id)
             val truncated = directory.resolve("incompleto.odl")
             truncated.writeBytes(backupFile.readBytes().dropLast(1).toByteArray())
@@ -185,6 +189,10 @@ class DemoClinicStoreTest {
             val copy = directory.resolve("copia.pdf")
             store.copyPrescription(patient.id, recipe.id, Uri.fromFile(copy))
             assertTrue(copy.readBytes().contentEquals(pdf.readBytes()))
+            assertEquals(archived.id, store.listPrescriptions(patient.id, archivedDocuments = true).single().id)
+            val archivedCopy = directory.resolve("copia-arquivada.pdf")
+            store.copyPrescription(patient.id, archived.id, Uri.fromFile(archivedCopy))
+            assertTrue(archivedCopy.readBytes().contentEquals(pdf.readBytes()))
         } finally {
             directory.deleteRecursively()
         }

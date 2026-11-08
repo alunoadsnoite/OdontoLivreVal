@@ -34,10 +34,11 @@ internal class OdontogramExportViewModel : ViewModel() {
                     ?: throw IOException("Patient missing")
                 val visit = store.listVisits(request.patientId).firstOrNull { it.id == request.visitId }
                     ?: throw IOException("Visit missing")
+                val profile = store.getProfessionalProfile()
                 withContext(Dispatchers.IO) {
                     val stream = context.contentResolver.openOutputStream(uri, "wt")
                         ?: throw IOException("Cannot open PDF destination")
-                    stream.use { OdontogramPdf.write(context, patient.name, visit, it) }
+                    stream.use { OdontogramPdf.write(context, patient.name, visit, it, profile) }
                 }
                 mutableState.value = OdontogramExport(request.patientId, OdontogramResult.EXPORTED)
             } catch (_: ClinicStorageException) {

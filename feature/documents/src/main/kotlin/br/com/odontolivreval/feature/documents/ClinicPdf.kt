@@ -1,16 +1,25 @@
 package br.com.odontolivreval.feature.documents
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.PatientRecord
 import br.com.odontolivreval.core.demo.ProfessionalProfile
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.nio.charset.StandardCharsets
+import java.security.SecureRandom
+import java.util.Arrays
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.PBEKeySpec
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Gera o PDF de um documento clínico simples, com cabeçalho do profissional,
@@ -23,17 +32,8 @@ object ClinicPdf {
     private const val CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN
     private val dateFormat = DateTimeFormatter.ofPattern("dd/MM/uuuu")
 
-    fun write(
-        context: Context,
-        type: DocumentType,
-        patient: DemoPatient,
-        record: PatientRecord?,
-        profile: ProfessionalProfile,
-        content: String,
-        title: String,
-        labels: PdfLabels,
-        signatureBitmap: Bitmap? = null,
-    ): File {
+    fun writeTo(request: DocumentPdfRequest, output: OutputStream) {
+        val (_, patient, record, profile, content, title, labels) = request
         val document = PdfDocument()
         val writer = Writer(document)
         try {
@@ -80,14 +80,6 @@ object ClinicPdf {
             }
             writer.paragraph(content.trim().ifBlank { " " }, contentPaint, 24f)
 
-            // Draw signature image if provided
-            if (signatureBitmap != null) {
-                val sigWidth = minOf(CONTENT_WIDTH, signatureBitmap.width.toFloat() * 0.6f)
-                val sigHeight = sigWidth * signatureBitmap.height.toFloat() / signatureBitmap.width.toFloat()
-                writer.ensureSpace(sigHeight + 30f)
-                writer.drawImage(signatureBitmap, sigWidth, sigHeight)
-            }
-
             writer.ensureSpace(40f)
             writer.paragraph("______________________________________", body, 4f)
             writer.paragraph(profile.name, body, 2f)
@@ -96,10 +88,7 @@ object ClinicPdf {
             }
             writer.finish()
 
-            val directory = File(context.cacheDir, "documents").apply { mkdirs() }
-            val file = File(directory, "${type.filePrefix}-${sanitize(patient.name)}-${System.currentTimeMillis()}.pdf")
-            FileOutputStream(file).use { document.writeTo(it) }
-            return file
+            document.writeTo(output)
         } finally {
             document.close()
         }
@@ -113,13 +102,21 @@ object ClinicPdf {
         val date: String,
     )
 
-    private fun sanitize(value: String): String = value
-        .lowercase()
-        .map { if (it.isLetterOrDigit()) it else '-' }
-        .joinToString("")
-        .trim('-')
-        .take(40)
-        .ifBlank { "documento" }
+    fun shareFile(context: Context, request: DocumentPdfRequest): File {
+        val directory = File(context.cacheDir, "documents")
+        if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Cannot prepare PDF directory")
+        val expiredBefore = System.currentTimeMillis() - 24L * 60 * 60 * 1000
+        directory.listFiles()?.filter { it.extension == "pdf" && it.lastModified() < expiredBefore }
+            ?.forEach { it.delete() }
+        val file = File.createTempFile(request.type.filePrefix + "-", ".pdf", directory)
+        try {
+            file.outputStream().use { writeTo(request, it) }
+            return file
+        } catch (error: Exception) {
+            file.delete()
+            throw error
+        }
+    }
 
     private class Writer(private val document: PdfDocument) {
         private var pageNumber = 1
@@ -168,14 +165,6 @@ object ClinicPdf {
             y += 16f
         }
 
-        fun drawImage(bitmap: Bitmap, width: Float, height: Float) {
-            ensureSpace(height)
-            val left = MARGIN
-            val top = y
-            canvas.drawBitmap(bitmap, null, android.graphics.RectF(left, top, left + width, top + height), null)
-            y += height
-        }
-
         fun finish() {
             document.finishPage(page)
         }
@@ -188,4 +177,49 @@ object ClinicPdf {
 
         private fun info(number: Int) = PdfDocument.PageInfo.Builder(PAGE_WIDTH.toInt(), PAGE_HEIGHT.toInt(), number).create()
     }
+}
+
+data class DocumentPdfRequest(
+    val type: DocumentType,
+    val patient: DemoPatient,
+    val record: PatientRecord?,
+    val profile: ProfessionalProfile,
+    val content: String,
+    val title: String,
+    val labels: ClinicPdf.PdfLabels,
+) {
+    val filename: String get() = type.filePrefix + ".pdf"
+}
+
+/**
+ * Criptografa um arquivo PDF usando AES-128-CBC com PBKDF2 para derivação de chave.
+ * Retorna o arquivo criptografado (.pdf.enc) ao lado do original.
+ */
+fun encryptPdf(source: File, password: CharArray): File {
+    val salt = ByteArray(16).also(SecureRandom()::nextBytes)
+    val iv = ByteArray(16).also(SecureRandom()::nextBytes)
+
+    val spec = PBEKeySpec(password, salt, 100_000, 128)
+    val secretKey = javax.crypto.SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+        .generateSecret(spec).encoded
+    val key = SecretKeySpec(secretKey, "AES")
+
+    val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+    cipher.init(Cipher.ENCRYPT_MODE, key, IvParameterSpec(iv))
+
+    val input = FileInputStream(source).use { it.readBytes() }
+    val encrypted = cipher.doFinal(input)
+
+    val encryptedFile = File(source.parentFile, source.name + ".enc")
+    FileOutputStream(encryptedFile).use { out ->
+        out.write(salt)
+        out.write(iv)
+        out.write(encrypted)
+    }
+
+    // Limpa dados sensíveis da memória
+    secretKey.fill(0)
+    Arrays.fill(input, 0.toByte())
+
+    return encryptedFile
 }

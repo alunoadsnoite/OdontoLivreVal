@@ -61,7 +61,7 @@ private fun BackupPasswordDialog(
     var password by remember(request) { mutableStateOf("") }
     var confirmation by remember(request) { mutableStateOf("") }
     val exporting = request.action == BackupAction.EXPORT
-    val valid = if (exporting) password.length >= 12 && password == confirmation else password.isNotEmpty()
+    val valid = if (exporting) isBackupPasswordStrong(password) && password == confirmation else password.isNotEmpty()
     AlertDialog(
         onDismissRequest = { if (!busy) onDismiss() },
         title = { Text(stringResource(if (exporting) R.string.security_export else R.string.security_restore)) },
@@ -114,4 +114,21 @@ private fun BackupResult.message(): Int = when (this) {
     BackupResult.RESTORED -> R.string.security_restored
     BackupResult.EXPORT_FAILED -> R.string.security_export_failed
     BackupResult.RESTORE_FAILED -> R.string.security_restore_failed
+}
+
+/**
+ * Valida que a senha de backup atende ao requisito mínimo de complexidade:
+ * pelo menos 12 caracteres, 1 letra maiuscula, 1 numero e 1 simbolo.
+ */
+private fun isBackupPasswordStrong(password: String): Boolean {
+    if (password.length < 12) return false
+    var hasUpper = false
+    var hasDigit = false
+    var hasSymbol = false
+    for (ch in password) {
+        if (ch.isUpperCase()) hasUpper = true
+        else if (ch.isDigit()) hasDigit = true
+        else if (!ch.isLetterOrDigit()) hasSymbol = true
+    }
+    return hasUpper && hasDigit && hasSymbol
 }

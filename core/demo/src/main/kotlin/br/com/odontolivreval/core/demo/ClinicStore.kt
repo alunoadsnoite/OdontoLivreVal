@@ -66,9 +66,9 @@ interface ClinicStore {
 
     suspend fun removeRadiograph(patientId: Long, id: Long)
 
-    suspend fun listPrescriptions(patientId: Long): List<PrescriptionFile>
+    suspend fun listPrescriptions(patientId: Long, archivedDocuments: Boolean = false): List<PrescriptionFile>
 
-    suspend fun addPrescription(patientId: Long, uri: Uri)
+    suspend fun addPrescription(patientId: Long, uri: Uri, archivedDocument: Boolean = false)
 
     suspend fun copyPrescription(patientId: Long, id: Long, uri: Uri)
 

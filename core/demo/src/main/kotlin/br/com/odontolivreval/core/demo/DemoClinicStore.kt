@@ -291,24 +291,25 @@ class DemoClinicStore(context: Context) : ClinicStore {
         persist(snapshot.copy(radiographs = snapshot.radiographs.filterNot { it.file.id == id }))
     }
 
-    override suspend fun listPrescriptions(patientId: Long): List<PrescriptionFile> = access {
-        load().prescriptions.map { it.file }.filter { it.patientId == patientId }
+    override suspend fun listPrescriptions(patientId: Long, archivedDocuments: Boolean): List<PrescriptionFile> = access {
+        load().prescriptions.map { it.file }.filter { it.patientId == patientId && it.archivedDocument == archivedDocuments }
     }
 
-    override suspend fun addPrescription(patientId: Long, uri: Uri) = access {
+    override suspend fun addPrescription(patientId: Long, uri: Uri, archivedDocument: Boolean) = access {
         val snapshot = load()
         requirePatient(snapshot, patientId)
         val input = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open prescription")
         val bytes = input.use { it.readBounded(maxAttachmentBytes) }
         val format = prescriptionFormat(bytes)
+        if (archivedDocument && format != PrescriptionFormat.PDF) throw IOException("Archived document must be a PDF")
         val displayName = if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
             app.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
                 ?.use { if (it.moveToFirst()) it.getString(0) else null }
         } else uri.lastPathSegment
         val name = displayName.orEmpty().substringBeforeLast('.').filterNot { it.isISOControl() }.trim()
-            .ifBlank { "Receita" }.take(110) + "." + format.extension
+            .ifBlank { if (archivedDocument) "Documento" else "Receita" }.take(110) + "." + format.extension
         val id = nextId(snapshot.prescriptions.map { it.file.id })
-        val file = StoredPrescription(PrescriptionFile(id, patientId, name, format), writeNewAttachment(snapshot, bytes))
+        val file = StoredPrescription(PrescriptionFile(id, patientId, name, format, archivedDocument), writeNewAttachment(snapshot, bytes))
         persist(snapshot.copy(prescriptions = snapshot.prescriptions + file))
     }
 

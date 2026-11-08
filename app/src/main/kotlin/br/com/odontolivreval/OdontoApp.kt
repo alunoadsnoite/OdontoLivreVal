@@ -16,6 +16,7 @@ import androidx.navigation.compose.*
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.model.ThemeMode
+import br.com.odontolivreval.feature.documents.DocumentPdfRequest
 import br.com.odontolivreval.feature.documents.DocumentsScreen
 import br.com.odontolivreval.feature.patients.PatientRecordScreen
 import br.com.odontolivreval.feature.patients.PatientsScreen
@@ -42,7 +43,9 @@ fun OdontoApp(
     backupRevision: Int,
     exportOdontogram: @Composable (Long, Long?) -> Unit,
     radiographs: @Composable (Long) -> Unit,
-    prescriptions: @Composable (Long) -> Unit,
+    prescriptions: @Composable (Long, Boolean) -> Unit,
+    onSaveDocument: (DocumentPdfRequest) -> Unit,
+    documentExportStatus: @Composable (Long) -> String?,
     documentPhotos: @Composable (Long) -> Unit,
     protection: @Composable () -> Unit,
 ) {
@@ -69,9 +72,10 @@ fun OdontoApp(
             nav.clearBackStack(Destination.SCHEDULE.name)
         }
     }
-    // Limpa a seleção ao sair do prontuário, evitando que ela fique "grudada".
-    LaunchedEffect(route) {
-        if (route != "patient_record") {
+    // Mantém a seleção durante o fluxo prontuário → documentos → perfil.
+    LaunchedEffect(entry?.destination?.route) {
+        val currentRoute = nav.currentBackStackEntry?.destination?.route ?: return@LaunchedEffect
+        if (currentRoute !in listOf("patient_record", "documents", "profile")) {
             selectedPatient = null
         }
     }
@@ -79,7 +83,7 @@ fun OdontoApp(
         BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
             val wide = maxWidth >= 600.dp
             Column(Modifier.fillMaxSize()) {
-                if (route != "patient_record") {
+                if (route !in listOf("patient_record", "documents") && (route != "profile" || selectedPatient == null)) {
                     // FlowRow wraps labels at large font scales and on narrow screens.
                     FlowRow(Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Destination.entries.forEach { destination ->
@@ -146,6 +150,9 @@ fun OdontoApp(
                                         patient = patient,
                                         onClose = { nav.popBackStack() },
                                         onOpenProfile = { nav.navigate("profile") { launchSingleTop = true } },
+                                        onSaveDocument = onSaveDocument,
+                                        exportStatus = documentExportStatus(patient.id),
+                                        archive = { prescriptions(patient.id, true) },
                                     )
                                 } else {
                                     OutlinedButton(onClick = { nav.popBackStack() }) {
@@ -180,7 +187,7 @@ fun OdontoApp(
                                         store = demoClinic,
                                         patient = patient,
                                         radiographs = { radiographs(patient.id) },
-                                        prescriptions = { prescriptions(patient.id) },
+                                        prescriptions = { prescriptions(patient.id, false) },
                                         exportOdontogram = { exportOdontogram(patient.id, it) },
                                         documentPhotos = { documentPhotos(patient.id) },
                                         onDocuments = { nav.navigate("documents") { launchSingleTop = true } },

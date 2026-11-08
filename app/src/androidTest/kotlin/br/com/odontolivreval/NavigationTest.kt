@@ -3,6 +3,7 @@ package br.com.odontolivreval
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import java.util.UUID
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
@@ -90,5 +91,40 @@ class NavigationTest {
             compose.onAllNodesWithText("Consulta ativa").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription("Dente 11: Canal. 1 superfície marcada").assertExists()
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun documentsKeepsThePatientAfterRecreationAndProfileNavigation() {
+        val name = "Paciente Documento ${UUID.randomUUID().toString().take(8)}"
+        val store = (compose.activity.application as OdontoApplication).demoClinic
+        val patient = runBlocking { store.savePatient(null, name) }
+        try {
+            compose.onNodeWithText(text(R.string.welcome)).assertIsDisplayed()
+            compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
+            compose.waitUntilExactlyOneExists(hasText(name), timeoutMillis = 5_000)
+            compose.onNodeWithText(name).performClick()
+            compose.waitUntilExactlyOneExists(hasText("Documentos"), timeoutMillis = 5_000)
+            compose.onNodeWithText("Documentos").performScrollTo().performClick()
+
+            val patientLabel = "Paciente: $name"
+            compose.onNodeWithText(patientLabel).assertIsDisplayed()
+            compose.activityRule.scenario.recreate()
+            compose.onNodeWithText(patientLabel).assertIsDisplayed()
+
+            compose.waitUntilExactlyOneExists(hasText("Abrir perfil profissional"), timeoutMillis = 5_000)
+            compose.onNodeWithText("Abrir perfil profissional").performScrollTo().performClick()
+            compose.onNodeWithText("Perfil profissional").assertIsDisplayed()
+            compose.waitUntilExactlyOneExists(hasText("Voltar"), timeoutMillis = 5_000)
+            compose.onNodeWithText("Voltar").performScrollTo().performClick()
+
+            compose.onNodeWithText(patientLabel).assertIsDisplayed()
+            compose.waitUntilExactlyOneExists(hasText("Salvar PDF sem assinatura"), timeoutMillis = 5_000)
+            compose.onNodeWithText("Salvar PDF sem assinatura").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText("Compartilhar PDF sem assinatura").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText("Documento assinado").assertDoesNotExist()
+        } finally {
+            runBlocking { store.deletePatient(patient.id) }
+        }
     }
 }

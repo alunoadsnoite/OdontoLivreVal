@@ -26,3 +26,10 @@ A versão atual serve para testes com dados fictícios.
 ## Anexos e exportações de teste
 
 Radiografias e receitas ficam em arquivos criptografados próprios e são incluídas no backup. O primeiro acesso migra os anexos do índice legado antes de substituí-lo. O arquivo temporário da câmera fica no cache privado durante a captura e é removido ao terminar. Uma nova abertura também limpa arquivos de captura abandonados quando não há captura pendente. Fotos da câmera são redimensionadas e gravadas como JPEG. O PDF do odontograma e as cópias de receitas ficam no local escolhido pelo usuário, fora do armazenamento criptografado do app.
+
+
+## Documentos, assinatura e lembretes
+
+O PDF pode ser salvo ou compartilhado sem assinatura. A assinatura e a verificação são feitas no serviço externo escolhido pelo usuário. Os atalhos abrem portais oficiais no navegador. O app arquiva o PDF recebido como bytes, sem recriar ou carimbar o documento. O arquivo fica criptografado no prontuário e é incluído no backup. O arquivamento não confirma que existe uma assinatura válida.
+
+Cópias salvas pelo usuário ficam fora do armazenamento criptografado do app. Ao compartilhar, o app usa uma cópia no cache privado e concede acesso por URI ao destino escolhido. A próxima geração para compartilhar remove PDFs de cache com mais de 24 horas. Os lembretes usam o horário da consulta e omitem o nome do paciente. O app só publica o lembrete após consultar o horário vigente no armazenamento.

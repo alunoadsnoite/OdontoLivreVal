@@ -92,7 +92,7 @@ internal data class ClinicSnapshot(
         .put("prescriptions", JSONArray().apply {
             prescriptions.forEach {
                 put(JSONArray().put(it.file.id).put(it.file.patientId).put(it.file.name)
-                    .put(it.file.format.name).putReference(it.content))
+                    .put(it.file.format.name).putReference(it.content).put(it.file.archivedDocument))
             }
         })
         .put("documentPhotos", JSONArray().apply {
@@ -159,7 +159,7 @@ internal data class ClinicSnapshot(
             || prescriptions.map { it.file.id }.toSet().size != prescriptions.size
             || prescriptions.any {
                 it.file.id <= 0 || it.file.patientId !in patientIds ||
-                    it.file.name.length !in 1..120
+                    it.file.name.length !in 1..120 || (it.file.archivedDocument && it.file.format != PrescriptionFormat.PDF)
             }
             || documentPhotos.map { it.file.id }.toSet().size != documentPhotos.size
             || documentPhotos.any { it.file.id <= 0 || it.file.patientId !in patientIds }
@@ -262,7 +262,11 @@ internal data class ClinicSnapshot(
                 root.getJSONArray("prescriptions").rows {
                     val format = PrescriptionFormat.entries.firstOrNull { format -> format.name == it.getString(3) }
                         ?: throw IOException("Invalid prescription format")
-                    StoredPrescription(PrescriptionFile(it.integer(0), it.integer(1), it.getString(2), format), it.attachment(version, 4))
+                    val archived = version >= 10 && it.getBoolean(6)
+                    StoredPrescription(
+                        PrescriptionFile(it.integer(0), it.integer(1), it.getString(2), format, archived),
+                        it.attachment(version, 4),
+                    )
                 }
             } else emptyList()
 
@@ -307,7 +311,7 @@ internal data class ClinicSnapshot(
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 9
+        private const val currentVersion = 10
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)

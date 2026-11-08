@@ -42,6 +42,7 @@ import br.com.odontolivreval.core.demo.DocumentPhoto
 import br.com.odontolivreval.core.demo.PrescriptionFile
 import br.com.odontolivreval.core.demo.PrescriptionFormat
 import br.com.odontolivreval.feature.patients.PatientDocumentPhotos
+import br.com.odontolivreval.feature.documents.DocumentPdfRequest
 import br.com.odontolivreval.feature.patients.PatientPrescriptions
 import br.com.odontolivreval.feature.patients.PatientRadiographs
 import br.com.odontolivreval.feature.settings.SettingsViewModel
@@ -52,6 +53,12 @@ class MainActivity : ComponentActivity() {
     private lateinit var backupModel: BackupViewModel
     private lateinit var radiographModel: RadiographImportViewModel
     private lateinit var prescriptionModel: PrescriptionViewModel
+    private lateinit var documentFileModel: DocumentFileExportViewModel
+    private var pendingPrescriptionArchive = false
+
+    private val createDocumentPdf = registerForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+        documentFileModel.finish(applicationContext, uri)
+    }
     private lateinit var documentPhotoModel: DocumentPhotoImportViewModel
     private var pendingPrescriptionPatient: Long? = null
     private var pendingPrescriptionCopy: Pair<Long, Long>? = null
@@ -61,7 +68,7 @@ class MainActivity : ComponentActivity() {
         val patientId = pendingPrescriptionPatient
         pendingPrescriptionPatient = null
         if (uri != null && patientId != null) {
-            prescriptionModel.transfer((application as OdontoApplication).demoClinic, patientId, uri)
+            prescriptionModel.transfer((application as OdontoApplication).demoClinic, patientId, uri, pendingPrescriptionArchive)
         }
     }
 
@@ -70,7 +77,7 @@ class MainActivity : ComponentActivity() {
         pendingPrescriptionCopy = null
         val uri = result.data?.data
         if (result.resultCode == RESULT_OK && uri != null && request != null) {
-            prescriptionModel.transfer((application as OdontoApplication).demoClinic, request.first, uri, request.second)
+            prescriptionModel.transfer((application as OdontoApplication).demoClinic, request.first, uri, pendingPrescriptionArchive, request.second)
         }
     }
 
@@ -139,6 +146,8 @@ class MainActivity : ComponentActivity() {
         radiographModel = models[RadiographImportViewModel::class.java]
         pdfModel = models[OdontogramExportViewModel::class.java]
         prescriptionModel = models[PrescriptionViewModel::class.java]
+        documentFileModel = models[DocumentFileExportViewModel::class.java]
+        pendingPrescriptionArchive = savedInstanceState?.getBoolean("prescriptionArchive") == true
         documentPhotoModel = models[DocumentPhotoImportViewModel::class.java]
         pendingPrescriptionPatient = savedInstanceState?.getLong("prescriptionPatient")?.takeIf { it > 0 }
         savedInstanceState?.getLongArray("prescriptionCopy")?.let { pendingPrescriptionCopy = it[0] to it[1] }
@@ -162,6 +171,7 @@ class MainActivity : ComponentActivity() {
             val radiograph by radiographModel.state.collectAsStateWithLifecycle()
             val pdf by pdfModel.state.collectAsStateWithLifecycle()
             val prescription by prescriptionModel.state.collectAsStateWithLifecycle()
+            val documentFile by documentFileModel.state.collectAsStateWithLifecycle()
             val documentPhoto by documentPhotoModel.state.collectAsStateWithLifecycle()
             val screens = rememberSaveableStateHolder()
             val protected = lock.enabled
@@ -182,15 +192,29 @@ class MainActivity : ComponentActivity() {
                                         onExport = { launchOdontogramPdf(patientId, it) },
                                     )
                                 },
-                                prescriptions = { patientId ->
+                                onSaveDocument = ::launchDocumentPdf,
+                                documentExportStatus = { patientId ->
+                                    val result = documentFile?.takeIf { it.patientId == patientId }?.result
+                                    result?.let {
+                                        stringResource(when (it) {
+                                            DocumentFileResult.SAVING -> R.string.document_pdf_saving
+                                            DocumentFileResult.SAVED -> R.string.document_pdf_saved
+                                            DocumentFileResult.FAILED -> R.string.document_pdf_failed
+                                        })
+                                    }
+                                },
+                                prescriptions = { patientId, archive ->
                                     PatientPrescriptions(
                                         store = odontoApplication.demoClinic,
                                         patientId = patientId,
                                         revision = prescription.revision,
                                         busy = prescription.busy,
-                                        transferFailed = prescription.patientId == patientId && prescription.failed,
-                                        copied = prescription.patientId == patientId && prescription.copied,
-                                        onImport = { launchPrescriptionImport(patientId) },
+                                        archivedDocuments = archive,
+                                        transferFailed = prescription.patientId == patientId &&
+                                            prescription.archivedDocument == archive && prescription.failed,
+                                        copied = prescription.patientId == patientId &&
+                                            prescription.archivedDocument == archive && prescription.copied,
+                                        onImport = { launchPrescriptionImport(patientId, archive) },
                                         onCopy = ::launchPrescriptionCopy,
                                     )
                                 },
@@ -235,6 +259,7 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         pendingRadiographPatient?.let { outState.putLong("radiographPatient", it) }
         pendingPrescriptionPatient?.let { outState.putLong("prescriptionPatient", it) }
+        outState.putBoolean("prescriptionArchive", pendingPrescriptionArchive)
         pendingPrescriptionCopy?.let { outState.putLongArray("prescriptionCopy", longArrayOf(it.first, it.second)) }
         pendingPdf?.let {
             outState.putLong("pdfPatient", it.patientId)
@@ -244,20 +269,32 @@ class MainActivity : ComponentActivity() {
         super.onSaveInstanceState(outState)
     }
 
-    private fun launchPrescriptionImport(patientId: Long) {
-        if (pendingPrescriptionPatient != null || prescriptionModel.state.value.busy) return
-        pendingPrescriptionPatient = patientId
+    private fun launchDocumentPdf(request: DocumentPdfRequest) {
+        if (!documentFileModel.prepare(request)) return
         try {
-            pickPrescription.launch(PrescriptionFormat.entries.map { it.mimeType }.toTypedArray())
+            createDocumentPdf.launch(request.filename)
+        } catch (_: ActivityNotFoundException) {
+            documentFileModel.pickerFailed()
+        }
+    }
+
+    private fun launchPrescriptionImport(patientId: Long, archive: Boolean) {
+        if (pendingPrescriptionPatient != null || pendingPrescriptionCopy != null || prescriptionModel.state.value.busy) return
+        pendingPrescriptionPatient = patientId
+        pendingPrescriptionArchive = archive
+        try {
+            val formats = if (archive) listOf(PrescriptionFormat.PDF) else PrescriptionFormat.entries
+            pickPrescription.launch(formats.map { it.mimeType }.toTypedArray())
         } catch (_: ActivityNotFoundException) {
             pendingPrescriptionPatient = null
-            prescriptionModel.fail(patientId)
+            prescriptionModel.fail(patientId, archive)
         }
     }
 
     private fun launchPrescriptionCopy(file: PrescriptionFile) {
-        if (pendingPrescriptionCopy != null || prescriptionModel.state.value.busy) return
+        if (pendingPrescriptionPatient != null || pendingPrescriptionCopy != null || prescriptionModel.state.value.busy) return
         pendingPrescriptionCopy = file.patientId to file.id
+        pendingPrescriptionArchive = file.archivedDocument
         try {
             savePrescriptionCopy.launch(Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -266,7 +303,7 @@ class MainActivity : ComponentActivity() {
             })
         } catch (_: ActivityNotFoundException) {
             pendingPrescriptionCopy = null
-            prescriptionModel.fail(file.patientId)
+            prescriptionModel.fail(file.patientId, file.archivedDocument)
         }
     }
 
@@ -360,12 +397,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         lock.lock()
+        cleanupPendingCaptureFiles()
         super.onStop()
     }
 
     override fun onDestroy() {
         lock.dispose()
+        cleanupPendingCaptureFiles()
         super.onDestroy()
+    }
+
+    private fun cleanupPendingCaptureFiles() {
+        if (pendingRadiographPatient == null && !radiographModel.state.value.busy) {
+            captureFile.delete()
+        }
+        if (pendingDocumentPhotoPatient == null && !documentPhotoModel.state.value.busy) {
+            captureDocumentFile.delete()
+        }
     }
 
     private fun requestNotificationPermission() {

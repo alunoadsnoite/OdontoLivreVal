@@ -1,21 +1,23 @@
 # OdontoLivreVal
 
-Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão **0.10.0** acrescenta duração das consultas, prevenção de horários sobrepostos e retornos vinculados.
+Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão **0.11.0** acrescenta um fluxo de assinatura eletrônica externa e arquivamento dos PDFs recebidos do assinador.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 
 ## O que funciona hoje
 
-- **Início** com atalhos para as áreas do aplicativo.
+- **Início** com próximas consultas e atalhos para as áreas do aplicativo.
 - **Configurações** com tema claro de fundo branco e detalhes roxos, tema escuro com detalhes lilás ou a opção de seguir o sistema. O DataStore salva a preferência para a próxima abertura.
 - **Segurança e backup** em Configurações, com bloqueio opcional e exportação ou restauração de uma cópia criptografada.
+- **Perfil profissional** com nome, CRO e dados da clínica.
 - **Sobre** com a versão instalada e a licença.
 - **Pacientes** com cadastro, busca sem distinção de acentos, edição e exclusão confirmada. Os registros de teste continuam salvos após fechar o app.
 - **Prontuário** ao tocar no nome do paciente: ficha com nascimento, telefone, queixa, anamnese e observações; diagnóstico e conduta por consulta; histórico de evoluções.
 - **Odontograma** dentro do prontuário, com dentições permanente e decídua. Aceita marcação no dente inteiro e cárie ou restauração em faces individuais. A evolução salva pode ser exportada em PDF.
 - **Radiografias** no prontuário, importadas em JPG/PNG ou fotografadas, com visualização e remoção.
 - **Receitas odontológicas** no prontuário, com importação de arquivos PDF/DOCX já emitidos e opção de salvar uma cópia.
-- **Agenda** diária e mensal, com duração da consulta, prevenção de sobreposição e retornos vinculados. A visão mensal mostra quantas consultas ativas há por dia.
+- **Documentos** com modelos de receita, atestado, orçamento e consentimento, exportação em PDF e arquivo de PDFs devolvidos pelo assinador.
+- **Agenda** diária e mensal, com duração da consulta, prevenção de sobreposição, retornos vinculados e lembretes locais. A visão mensal mostra quantas consultas ativas há por dia.
 
 A interface está em português do Brasil. A versão atual funciona sem conta, servidor, anúncios ou serviços de análise. O app declara acesso à autenticação biométrica do Android para o bloqueio opcional.
 
@@ -50,6 +52,15 @@ O APK roda em **Android 8.0 ou superior** (API 26). Para compilar, use JDK 17 ou
 
 Cada anexo aceita até 10 MiB, com limite de 512 MiB somados para radiografias e receitas. O índice e os registros do prontuário continuam com um limite separado de 4 MiB. Anexos existentes são migrados no primeiro acesso aos dados e entram no backup criptografado. O PDF do odontograma e as cópias de receitas que você salva ficam fora da proteção do app.
 
+## Assinar e arquivar um documento
+
+1. Em **Configurações → Perfil profissional**, preencha o nome e o CRO. Em seguida, abra **Pacientes → Prontuário → Documentos**.
+2. Escolha o modelo e use **Salvar PDF sem assinatura**. O PDF gerado contém a identificação profissional. A exportação do odontograma também inclui nome e CRO quando preenchidos.
+3. Assine no serviço adequado ao tipo de documento. O [assinador GOV.BR](https://www.gov.br/governodigital/pt-br/identidade/assinatura-eletronica) fornece assinatura avançada. O [portal de Prescrição Eletrônica do CFO](https://prescricao.cfo.org.br/index) oferece emissão com certificado ICP-Brasil. A [Anvisa](https://www.gov.br/anvisa/pt-br/assuntos/medicamentos/controlados/sncr/perguntas-e-respostas/perguntas-e-respostas-rdc-1000-2025-1-ed/%40%40download/file) diferencia os requisitos conforme o tipo de receita.
+4. Confira o PDF final no [VALIDAR do ITI](https://validar.iti.gov.br/). De volta ao prontuário, escolha **Importar PDF do assinador** para guardá-lo criptografado, sem alterar o arquivo. O arquivamento é independente da verificação no portal.
+
+A assinatura é aplicada pelo serviço externo. A interface abre o navegador e a seleção do arquivo é feita pelo usuário no próprio serviço. Para validar o fluxo, use arquivos com dados fictícios.
+
 ## Testar segurança e backup
 
 1. Atualize por cima da 0.4.0 e abra **Pacientes** ou **Agenda**. Verifique se os registros fictícios aparecem. A primeira abertura migra os registros anteriores para o arquivo criptografado.
@@ -82,7 +93,8 @@ A interface usa Kotlin, Jetpack Compose e Material 3. As versões das dependênc
 | `:feature:settings` | Tela, estado e persistência das configurações |
 | `:core:demo` | Contrato `ClinicStore`, armazenamento criptografado, backup e migração do SQLite |
 | `:feature:patients` | Pacientes, prontuário, evoluções e odontograma |
-| `:feature:schedule` | Agenda diária de consultas |
+| `:feature:schedule` | Agenda diária e mensal de consultas |
+| `:feature:documents` | Modelos de documentos, PDF e acesso aos portais de assinatura |
 
 Consulte a [arquitetura](docs/ARCHITECTURE.md), as [decisões de segurança](docs/SECURITY_DECISIONS.md) e o [histórico de versões](CHANGELOG.md).
 
@@ -90,10 +102,9 @@ Consulte a [arquitetura](docs/ARCHITECTURE.md), as [decisões de segurança](doc
 
 1. Validar em aparelhos reais a migração, o bloqueio, a restauração e o comportamento em diferentes tamanhos de tela e escalas de fonte.
 2. Validar o volume e a recuperação de anexos em aparelhos reais e migrar o índice e os registros para um banco criptografado antes do uso clínico.
-3. Incluir lembretes e o painel de próximas consultas no Início.
-4. Adicionar perfil profissional com CRO.
-5. Implementar emissão de receitas, atestados, orçamentos e consentimentos, com exportação e compartilhamento pelo Android. Tratar assinatura digital em etapa própria.
-6. Preparar a distribuição pelo F-Droid.
+3. Validar em aparelho os lembretes, o painel e o fluxo de documentos e assinatura externa.
+4. Avaliar assinatura qualificada dentro do app com certificado ICP-Brasil, incluindo verificação da cadeia e requisitos por tipo de documento.
+5. Preparar a distribuição pelo F-Droid.
 
 ## Licença
 

@@ -8,6 +8,7 @@ import br.com.odontolivreval.core.demo.ClinicStorageException
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.PatientRecord
 import br.com.odontolivreval.core.demo.ProfessionalProfile
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -36,13 +37,16 @@ internal class DocumentsViewModel(
     private val mutableState = MutableStateFlow(DocumentsState())
     val state = mutableState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
         load()
     }
 
     fun load() {
+        loadJob?.cancel()
         mutableState.update { it.copy(loading = true, failed = false) }
-        viewModelScope.launch {
+        loadJob = viewModelScope.launch {
             try {
                 val profile = store.getProfessionalProfile()
                 val record = store.getPatientRecord(patientId)

@@ -12,7 +12,7 @@
     <string name="security_backup_info">Exporte uma cópia criptografada para restaurar em outro aparelho. A senha da cópia é necessária para restaurar.</string>
     <string name="security_export">Exportar backup</string>
     <string name="security_restore">Restaurar backup</string>
-    <string name="security_password_help">Escolha uma senha de pelo menos 12 caracteres e guarde-a em local seguro.</string>
+    <string name="security_password_help">Senha de pelo menos 12 caracteres, com 1 maiuscula, 1 numero e 1 simbolo. Guarde-a em local seguro.</string>
     <string name="security_password">Senha do backup</string>
     <string name="security_password_confirm">Confirme a senha</string>
     <string name="security_replace_warning">A restauração substitui todos os cadastros e consultas atuais pela cópia selecionada.</string>

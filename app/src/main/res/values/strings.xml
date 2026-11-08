@@ -21,5 +21,8 @@
 <string name="reminder_channel">Lembretes de consulta</string>
 <string name="reminder_channel_description">Avisos cerca de uma hora antes das consultas agendadas.</string>
 <string name="reminder_title">Consulta em breve</string>
-<string name="reminder_text">%1$s · %2$s</string>
+<string name="reminder_text">Abra o aplicativo para consultar a agenda.</string>
+<string name="document_pdf_saving">Gerando PDF…</string>
+<string name="document_pdf_saved">PDF sem assinatura salvo.</string>
+<string name="document_pdf_failed">Não foi possível salvar o PDF.</string>
 </resources>

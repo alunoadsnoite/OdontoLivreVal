@@ -5,13 +5,16 @@ import android.content.Context
 import android.content.Intent
 
 /**
- * Reagenda os lembretes depois que o aparelho reinicia, já que os alarmes são
- * perdidos nesse caso.
+ * Reagenda lembretes após reinicialização ou atualização do app.
  */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        if (intent.action !in listOf(Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED)) return
         val app = context.applicationContext as? OdontoApplication ?: return
-        AppointmentReminders.sync(app, app.demoClinic)
+        if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+            AppointmentReminders.clearLegacyNotifications(app)
+        }
+        val pending = goAsync()
+        AppointmentReminders.sync(app, app.demoClinic).invokeOnCompletion { pending.finish() }
     }
 }

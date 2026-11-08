@@ -3,7 +3,7 @@ package br.com.odontolivreval
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import br.com.odontolivreval.core.demo.DemoAppointment
+import br.com.odontolivreval.core.demo.ClinicStorageException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -14,8 +14,8 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
         val id = intent.getLongExtra(AppointmentReminders.EXTRA_ID, 0)
         if (id <= 0) return
         val day = java.time.LocalDate.ofEpochDay(intent.getLongExtra(AppointmentReminders.EXTRA_DAY, 0))
-        val fallbackTime = intent.getStringExtra(AppointmentReminders.EXTRA_TIME).orEmpty()
-        val fallbackPatient = intent.getStringExtra(AppointmentReminders.EXTRA_PATIENT).orEmpty()
+        val trigger = intent.getLongExtra(AppointmentReminders.EXTRA_TRIGGER, 0)
+        if (trigger <= 0) return
 
         val pending = goAsync()
         val appContext = context.applicationContext
@@ -24,13 +24,9 @@ class AppointmentReminderReceiver : BroadcastReceiver() {
                 val store = (appContext as? OdontoApplication)?.demoClinic
                 val appointment = store?.listAppointments(day)
                     ?.firstOrNull { it.id == id && !it.cancelled }
-                if (store == null) {
-                    AppointmentReminders.notifyFallback(appContext, id, fallbackTime, fallbackPatient)
-                } else if (appointment != null) {
-                    AppointmentReminders.notify(appContext, appointment)
-                }
-            } catch (_: Exception) {
-                AppointmentReminders.notifyFallback(appContext, id, fallbackTime, fallbackPatient)
+                if (appointment != null) AppointmentReminders.notifyIfCurrent(appContext, appointment, trigger)
+            } catch (_: ClinicStorageException) {
+                // No notification without confirming that the appointment is still active.
             } finally {
                 pending.finish()
             }
