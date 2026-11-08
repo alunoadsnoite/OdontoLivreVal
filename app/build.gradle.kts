@@ -5,8 +5,8 @@ android {
  defaultConfig { minSdk = 26
 applicationId = "br.com.odontolivreval"
 targetSdk = 37
-versionCode = 4
-versionName = "0.4.0"
+versionCode = 5
+versionName = "0.5.0"
 testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
@@ -15,7 +15,7 @@ buildFeatures { compose = true; buildConfig = true }
 dependencies {
 implementation(platform(libs.compose.bom))
 implementation(libs.compose.ui)
-implementation("androidx.compose.foundation:foundation-layout")
+implementation(libs.compose.foundation.layout)
 implementation(libs.compose.material3)
 implementation(project(":core:model"))
 implementation(project(":core:designsystem"))

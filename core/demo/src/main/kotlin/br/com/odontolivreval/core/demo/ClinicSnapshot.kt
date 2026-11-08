@@ -43,7 +43,7 @@ internal data class ClinicSnapshot(
     val visits: List<VisitRecord> = emptyList(),
 ) {
     fun encode(): ByteArray = JSONObject()
-        .put("version", 2)
+        .put("version", currentVersion)
         .put("patients", JSONArray().apply {
             patients.forEach { put(JSONArray().put(it.id).put(it.name)) }
         })
@@ -74,7 +74,8 @@ internal data class ClinicSnapshot(
             patients.any { it.id <= 0 || it.name.isBlank() || it.name.length > 100 } ||
             appointments.map { it.id }.toSet().size != appointments.size ||
             appointments.any {
-                it.id <= 0 || it.patientId !in patientIds || it.day !in minDay..maxDay
+                it.id <= 0 || it.patientId !in patientIds || it.day !in minDay..maxDay ||
+                    it.minute !in 0..1439
             } ||
             appointments.filterNot { it.cancelled }.distinctBy { it.day to it.minute }.size !=
             appointments.count { !it.cancelled } ||
@@ -82,9 +83,11 @@ internal data class ClinicSnapshot(
             patientRecords.any {
                 it.id <= 0 || it.patientId !in patientIds
             } ||
+            patientRecords.map { it.patientId }.toSet().size != patientRecords.size ||
             visits.map { it.id }.toSet().size != visits.size ||
             visits.any {
-                it.id <= 0 || it.patientId !in patientIds || it.visitDay !in minDay..maxDay
+                it.id <= 0 || it.patientId !in patientIds || it.visitDay !in minDay..maxDay ||
+                    it.visitMinute !in 0..1439
             }
         ) throw IOException("Invalid clinic data")
     }
@@ -93,6 +96,7 @@ internal data class ClinicSnapshot(
         fun decode(bytes: ByteArray): ClinicSnapshot {
             val root = JSONObject(bytes.toString(Charsets.UTF_8))
             val version = root.optInt("version", 1)
+            if (version !in 1..currentVersion) throw IOException("Unsupported clinic data version")
 
             val patients = root.getJSONArray("patients").rows {
                 DemoPatient(it.integer(0), it.get(1) as? String ?: throw IOException("Invalid patient name"))
@@ -156,6 +160,7 @@ internal data class ClinicSnapshot(
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
+        private const val currentVersion = 2
 
         private fun JSONArray.integer(index: Int): Long = when (val value = get(index)) {
             is Int -> value.toLong()

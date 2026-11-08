@@ -8,6 +8,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import br.com.odontolivreval.core.demo.AppointmentSaveResult
 import br.com.odontolivreval.core.demo.DemoClinicStore
 import br.com.odontolivreval.core.demo.ClinicStorageException
+import br.com.odontolivreval.core.demo.PatientRecord
+import br.com.odontolivreval.core.demo.VisitRecord
 import java.io.File
 import java.nio.file.Files
 import java.time.LocalDate
@@ -18,6 +20,42 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DemoClinicStoreTest {
+    @Test
+    fun assignsUniqueRecordAndVisitIdsAndKeepsAllEvolutions() = runBlocking {
+        val app = InstrumentationRegistry.getInstrumentation().targetContext
+        val directory = Files.createTempDirectory(app.cacheDir.toPath(), "clinic-record-test-").toFile()
+        val isolatedContext = object : ContextWrapper(app) {
+            override fun getApplicationContext(): Context = this
+            override fun getNoBackupFilesDir(): File = directory
+        }
+        try {
+            val store = DemoClinicStore(isolatedContext)
+            val first = store.savePatient(null, "Paciente Um")
+            val second = store.savePatient(null, "Paciente Dois")
+            val firstRecord = store.saveRecordAndVisit(
+                PatientRecord(id = 0, patientId = first.id, phone = "(11) 91234-5678"),
+                VisitRecord(id = 0, patientId = first.id, visitDay = 20_000, visitMinute = 600, diagnosis = "A"),
+            )
+            val secondRecord = store.saveRecordAndVisit(
+                PatientRecord(id = 0, patientId = second.id),
+                VisitRecord(id = 0, patientId = second.id, visitDay = 20_001, visitMinute = 700, diagnosis = "B"),
+            )
+            assertTrue(firstRecord.record.id != secondRecord.record.id)
+            assertTrue(firstRecord.visit.id != secondRecord.visit.id)
+
+            val secondVisit = store.saveRecordAndVisit(
+                store.getPatientRecord(first.id)!!,
+                VisitRecord(id = 0, patientId = first.id, visitDay = 20_002, visitMinute = 800, diagnosis = "C"),
+            )
+            assertEquals(secondVisit.visit.id, store.listVisits(first.id).first().id)
+            assertEquals(2, store.listVisits(first.id).size)
+            assertEquals(1, store.listVisits(second.id).size)
+            assertEquals("(11) 91234-5678", store.getPatientRecord(first.id)!!.phone)
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
     @Test
     fun upgradesPatientDatabaseAndPersistsAppointmentChanges() = runBlocking {
         val app = InstrumentationRegistry.getInstrumentation().targetContext

@@ -32,7 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import br.com.odontolivreval.core.demo.DemoClinicStore
+import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
 import java.time.LocalDate
 import java.time.LocalTime
@@ -43,7 +43,7 @@ private val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
 
 @Composable
 fun ScheduleScreen(
-    store: DemoClinicStore,
+    store: ClinicStore,
     onPatientClick: (DemoPatient) -> Unit = { },
     onPatients: () -> Unit = {},
 ) {
@@ -114,7 +114,7 @@ fun ScheduleScreen(
                                 }
                                 val patient = state.patients.firstOrNull { it.id == appointment.patientId }
                                 TextButton(
-                                    onClick = { onPatientClick(patient!!) },
+                                    onClick = { patient?.let(onPatientClick) },
                                     enabled = !state.writing && patient != null,
                                 ) {
                                     Text(stringResource(R.string.schedule_view_record))

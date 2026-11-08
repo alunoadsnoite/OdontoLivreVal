@@ -1,17 +1,17 @@
 package br.com.odontolivreval.feature.patients
 
 import androidx.lifecycle.ViewModel
-import br.com.odontolivreval.core.demo.ClinicStorageException
-import br.com.odontolivreval.core.demo.DemoClinicStore
-import br.com.odontolivreval.core.demo.DemoPatient
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import br.com.odontolivreval.core.demo.ClinicStorageException
+import br.com.odontolivreval.core.demo.ClinicStore
+import br.com.odontolivreval.core.demo.DemoPatient
+import br.com.odontolivreval.core.demo.clinicSearchKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.Normalizer
 
 internal const val MAX_NAME_LENGTH = 100
 
@@ -28,10 +28,11 @@ internal data class PatientsState(
     val loadFailed: Boolean = false,
     val form: PatientForm? = null,
     val deleteTarget: Long? = null,
+    val deleting: Boolean = false,
     val deleteFailed: Boolean = false,
 )
 
-internal class PatientsViewModel(private val store: DemoClinicStore) : ViewModel() {
+internal class PatientsViewModel(private val store: ClinicStore) : ViewModel() {
     private val mutableState = MutableStateFlow(PatientsState())
     val state = mutableState.asStateFlow()
 
@@ -90,46 +91,39 @@ internal class PatientsViewModel(private val store: DemoClinicStore) : ViewModel
         }
     }
 
-    fun deletePatient(id: Long) {
-        if (state.value.deleteTarget == null) {
-            mutableState.update { it.copy(deleteTarget = id, deleteFailed = false) }
-        } else {
-            val target = state.value.deleteTarget ?: return
-            performDelete(target)
-        }
+    /** Abre a confirmação de exclusão. A exclusão só ocorre em [confirmDelete]. */
+    fun requestDelete(id: Long) {
+        if (state.value.deleting || state.value.deleteTarget != null) return
+        mutableState.update { it.copy(deleteTarget = id, deleteFailed = false) }
     }
 
     fun confirmDelete() {
         val target = state.value.deleteTarget ?: return
-        performDelete(target)
-    }
-
-    private fun performDelete(id: Long) {
+        if (state.value.deleting) return
+        mutableState.update { it.copy(deleting = true, deleteFailed = false) }
         viewModelScope.launch {
             try {
-                store.deletePatient(id)
-                mutableState.update { it.copy(deleteTarget = null, deleteFailed = false) }
+                store.deletePatient(target)
+                mutableState.update {
+                    it.copy(deleteTarget = null, deleting = false, deleteFailed = false)
+                }
                 load()
             } catch (_: ClinicStorageException) {
-                mutableState.update { it.copy(deleteFailed = true) }
+                mutableState.update { it.copy(deleting = false, deleteFailed = true) }
             }
         }
     }
 
     fun cancelDelete() {
+        if (state.value.deleting) return
         mutableState.update { it.copy(deleteTarget = null, deleteFailed = false) }
     }
 
     companion object {
-        fun factory(store: DemoClinicStore) = viewModelFactory {
+        fun factory(store: ClinicStore) = viewModelFactory {
             initializer { PatientsViewModel(store) }
         }
     }
 }
 
-private val combiningMarks = Regex("\\p{M}+")
-
-internal fun String.patientSearchKey(): String =
-    Normalizer.normalize(trim(), Normalizer.Form.NFD).replace(combiningMarks, "").lowercase()
-
-private fun List<DemoPatient>.sortedByName() = sortedBy { it.name.patientSearchKey() }
+private fun List<DemoPatient>.sortedByName() = sortedBy { it.name.clinicSearchKey() }

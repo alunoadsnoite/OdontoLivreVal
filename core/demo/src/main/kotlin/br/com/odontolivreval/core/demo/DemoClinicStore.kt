@@ -37,15 +37,15 @@ enum class AppointmentSaveResult { SAVED, TIME_OCCUPIED }
 
 class ClinicStorageException(cause: Exception) : Exception(cause)
 
-class DemoClinicStore(context: Context) {
+class DemoClinicStore(context: Context) : ClinicStore {
     private val app = context.applicationContext
     private val legacyFile = app.noBackupFilesDir.resolve("demo-patients.db")
     private val snapshotFile = AtomicFile(app.noBackupFilesDir.resolve("demo-clinic.enc"))
     private val mutex = Mutex()
 
-    suspend fun listPatients(): List<DemoPatient> = access { load().patients }
+    override suspend fun listPatients(): List<DemoPatient> = access { load().patients }
 
-    suspend fun savePatient(id: Long?, name: String): DemoPatient = access {
+    override suspend fun savePatient(id: Long?, name: String): DemoPatient = access {
         val snapshot = load()
         val patient = DemoPatient(id ?: nextId(snapshot.patients.map { it.id }), name)
         if (id != null && snapshot.patients.none { it.id == id }) throw IOException("Patient missing")
@@ -53,7 +53,7 @@ class DemoClinicStore(context: Context) {
         patient
     }
 
-    suspend fun listAppointments(day: LocalDate): List<DemoAppointment> = access {
+    override suspend fun listAppointments(day: LocalDate): List<DemoAppointment> = access {
         val snapshot = load()
         val patients = snapshot.patients.associateBy { it.id }
         snapshot.appointments.filter { it.day == day.toEpochDay() }
@@ -66,7 +66,7 @@ class DemoClinicStore(context: Context) {
             }
     }
 
-    suspend fun saveAppointment(
+    override suspend fun saveAppointment(
         id: Long?,
         patientId: Long,
         day: LocalDate,
@@ -87,7 +87,7 @@ class DemoClinicStore(context: Context) {
         AppointmentSaveResult.SAVED
     }
 
-    suspend fun cancelAppointment(id: Long) = access {
+    override suspend fun cancelAppointment(id: Long) = access {
         val snapshot = load()
         if (snapshot.appointments.none { it.id == id }) throw IOException("Appointment missing")
         persist(snapshot.copy(appointments = snapshot.appointments.map {
@@ -95,18 +95,34 @@ class DemoClinicStore(context: Context) {
         }))
     }
 
-    suspend fun getPatientRecord(patientId: Long): PatientRecord? = access {
+    override suspend fun getPatientRecord(patientId: Long): PatientRecord? = access {
         load().patientRecords.find { it.patientId == patientId }
     }
 
-    suspend fun savePatientRecord(record: PatientRecord) = access {
+    override suspend fun savePatientRecord(record: PatientRecord): PatientRecord = access {
         val snapshot = load()
-        if (snapshot.patients.none { it.id == record.patientId }) throw IOException("Patient missing")
-        val updated = snapshot.patientRecords.filterNot { it.patientId == record.patientId } + record
-        persist(snapshot.copy(patientRecords = updated))
+        requirePatient(snapshot, record.patientId)
+        val saved = withRecordId(snapshot, record)
+        persist(snapshot.copy(patientRecords = replaceRecord(snapshot, saved)))
+        saved
     }
 
-    suspend fun deletePatient(id: Long) = access {
+    override suspend fun saveRecordAndVisit(record: PatientRecord, visit: VisitRecord): SavedRecord = access {
+        val snapshot = load()
+        requirePatient(snapshot, record.patientId)
+        if (visit.patientId != record.patientId) throw IOException("Visit and record belong to different patients")
+        val savedRecord = withRecordId(snapshot, record)
+        val savedVisit = withVisitId(snapshot, visit)
+        persist(
+            snapshot.copy(
+                patientRecords = replaceRecord(snapshot, savedRecord),
+                visits = snapshot.visits.filterNot { it.id == savedVisit.id } + savedVisit,
+            ),
+        )
+        SavedRecord(savedRecord, savedVisit)
+    }
+
+    override suspend fun deletePatient(id: Long) = access {
         val snapshot = load()
         if (snapshot.patients.none { it.id == id }) throw IOException("Patient missing")
         persist(snapshot.copy(
@@ -117,19 +133,20 @@ class DemoClinicStore(context: Context) {
         ))
     }
 
-    suspend fun listVisits(patientId: Long): List<VisitRecord> = access {
+    override suspend fun listVisits(patientId: Long): List<VisitRecord> = access {
         load().visits.filter { it.patientId == patientId }
-            .sortedWith(compareBy<VisitRecord>({ -it.visitDay }, { -it.visitMinute }, { it.id }))
+            .sortedWith(compareBy<VisitRecord>({ -it.visitDay }, { -it.visitMinute }, { -it.id }))
     }
 
-    suspend fun saveVisit(visit: VisitRecord) = access {
+    override suspend fun saveVisit(visit: VisitRecord): VisitRecord = access {
         val snapshot = load()
-        if (snapshot.patients.none { it.id == visit.patientId }) throw IOException("Patient missing")
-        val updated = snapshot.visits.filterNot { it.id == visit.id } + visit
-        persist(snapshot.copy(visits = updated))
+        requirePatient(snapshot, visit.patientId)
+        val saved = withVisitId(snapshot, visit)
+        persist(snapshot.copy(visits = snapshot.visits.filterNot { it.id == saved.id } + saved))
+        saved
     }
 
-    suspend fun exportBackup(uri: Uri, password: CharArray) = access {
+    override suspend fun exportBackup(uri: Uri, password: CharArray) = access {
         if (password.size !in 12..128) throw IOException("Invalid backup password length")
         val plaintext = load().encode()
         val protected = try {
@@ -141,7 +158,7 @@ class DemoClinicStore(context: Context) {
         stream.use { it.write(protected) }
     }
 
-    suspend fun restoreBackup(uri: Uri, password: CharArray) = access {
+    override suspend fun restoreBackup(uri: Uri, password: CharArray) = access {
         if (password.size !in 1..128) throw IOException("Invalid backup password length")
         val input = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open backup")
         val encrypted = input.use { it.readClinicFile() }
@@ -212,6 +229,38 @@ class DemoClinicStore(context: Context) {
                 .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                 .build())
         }.generateKey()
+    }
+
+    private fun requirePatient(snapshot: ClinicSnapshot, patientId: Long) {
+        if (snapshot.patients.none { it.id == patientId }) throw IOException("Patient missing")
+    }
+
+    private fun replaceRecord(snapshot: ClinicSnapshot, record: PatientRecord): List<PatientRecord> =
+        snapshot.patientRecords.filterNot { it.patientId == record.patientId } + record
+
+    /**
+     * Mantém o ID de uma ficha existente do mesmo paciente e cria um novo ID
+     * quando a ficha ainda não existe. Assim, fichas de pacientes diferentes
+     * nunca compartilham o mesmo identificador.
+     */
+    private fun withRecordId(snapshot: ClinicSnapshot, record: PatientRecord): PatientRecord {
+        val existing = snapshot.patientRecords.find { it.patientId == record.patientId }
+        val id = existing?.id?.takeIf { it > 0 } ?: nextId(snapshot.patientRecords.map { it.id })
+        return record.copy(id = id)
+    }
+
+    /**
+     * Consultas novas recebem o próximo ID livre. Consultas existentes precisam
+     * pertencer ao mesmo paciente para evitar sobrescrever dados de outro.
+     */
+    private fun withVisitId(snapshot: ClinicSnapshot, visit: VisitRecord): VisitRecord {
+        if (visit.id <= 0) {
+            return visit.copy(id = nextId(snapshot.visits.map { it.id }))
+        }
+        val existing = snapshot.visits.find { it.id == visit.id }
+            ?: throw IOException("Visit missing")
+        if (existing.patientId != visit.patientId) throw IOException("Visit belongs to another patient")
+        return visit
     }
 
     private fun nextId(ids: List<Long>): Long {

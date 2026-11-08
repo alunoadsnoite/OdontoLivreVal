@@ -6,14 +6,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
-import br.com.odontolivreval.core.model.ThemeMode
-import br.com.odontolivreval.core.demo.DemoClinicStore
+import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
+import br.com.odontolivreval.core.model.ThemeMode
 import br.com.odontolivreval.feature.patients.PatientRecordScreen
 import br.com.odontolivreval.feature.patients.PatientsScreen
 import br.com.odontolivreval.feature.schedule.ScheduleScreen
@@ -24,19 +26,27 @@ private enum class Destination(@param:StringRes val label: Int) {
     SETTINGS(R.string.settings)
 }
 
+private val PatientSaver = listSaver<DemoPatient?, Any>(
+    save = { patient -> if (patient == null) emptyList() else listOf(patient.id, patient.name) },
+    restore = { saved ->
+        if (saved.isEmpty()) null else DemoPatient(saved[0] as Long, saved[1] as String)
+    },
+)
+
 @Composable
 fun OdontoApp(
     state: SettingsState,
     onTheme: (ThemeMode) -> Unit,
-    demoClinic: DemoClinicStore,
+    demoClinic: ClinicStore,
     backupRevision: Int,
     protection: @Composable () -> Unit,
 ) {
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route ?: Destination.HOME.name
-    var selectedPatient by remember { mutableStateOf<DemoPatient?>(null) }
-    val onPatientClick: (DemoPatient) -> Unit = { selectedPatient = it }
+    var selectedPatient by rememberSaveable(stateSaver = PatientSaver) {
+        mutableStateOf<DemoPatient?>(null)
+    }
     fun navigate(destination: Destination) {
         nav.navigate(destination.name) {
             popUpTo(Destination.HOME.name) { saveState = true }
@@ -44,11 +54,9 @@ fun OdontoApp(
             restoreState = true
         }
     }
-    // Navega para o prontuário quando um paciente é selecionado
-    LaunchedEffect(selectedPatient) {
-        if (selectedPatient != null) {
-            nav.navigate("patient_record") { launchSingleTop = true }
-        }
+    fun openPatient(patient: DemoPatient) {
+        selectedPatient = patient
+        nav.navigate("patient_record") { launchSingleTop = true }
     }
     LaunchedEffect(backupRevision) {
         if (backupRevision > 0) {
@@ -56,10 +64,9 @@ fun OdontoApp(
             nav.clearBackStack(Destination.SCHEDULE.name)
         }
     }
-    // Limpa a seleção de paciente quando o usuário sai da tela de prontuário
-    // (via navegação ou botão Voltar), evitando que ela fique "grudada".
-    LaunchedEffect(entry?.destination?.route) {
-        if (entry?.destination?.route != "patient_record") {
+    // Limpa a seleção ao sair do prontuário, evitando que ela fique "grudada".
+    LaunchedEffect(route) {
+        if (route != "patient_record") {
             selectedPatient = null
         }
     }
@@ -91,10 +98,14 @@ fun OdontoApp(
                             }
                         }
                         composable(Destination.PATIENTS.name) {
-                            PatientsScreen(demoClinic) { onPatientClick(it) }
+                            PatientsScreen(demoClinic, ::openPatient)
                         }
                         composable(Destination.SCHEDULE.name) {
-                            ScheduleScreen(demoClinic, onPatientClick) { }
+                            ScheduleScreen(
+                                store = demoClinic,
+                                onPatientClick = ::openPatient,
+                                onPatients = { navigate(Destination.PATIENTS) },
+                            )
                         }
                         composable(Destination.SETTINGS.name) {
                             ScreenContent {

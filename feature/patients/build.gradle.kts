@@ -21,4 +21,6 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.runtime)
+    testImplementation(libs.junit)
+    testImplementation(libs.coroutines.test)
 }

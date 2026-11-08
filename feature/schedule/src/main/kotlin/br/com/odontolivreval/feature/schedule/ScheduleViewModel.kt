@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.odontolivreval.core.demo.AppointmentSaveResult
-import br.com.odontolivreval.core.demo.DemoAppointment
-import br.com.odontolivreval.core.demo.DemoClinicStore
 import br.com.odontolivreval.core.demo.ClinicStorageException
+import br.com.odontolivreval.core.demo.ClinicStore
+import br.com.odontolivreval.core.demo.DemoAppointment
 import br.com.odontolivreval.core.demo.DemoPatient
+import br.com.odontolivreval.core.demo.clinicSearchKey
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlinx.coroutines.Job
@@ -36,7 +37,7 @@ internal data class ScheduleState(
     val form: AppointmentForm? = null,
 )
 
-internal class ScheduleViewModel(private val store: DemoClinicStore) : ViewModel() {
+internal class ScheduleViewModel(private val store: ClinicStore) : ViewModel() {
     private val mutableState = MutableStateFlow(ScheduleState())
     val state = mutableState.asStateFlow()
     private var loadJob: Job? = null
@@ -47,7 +48,7 @@ internal class ScheduleViewModel(private val store: DemoClinicStore) : ViewModel
         mutableState.update { it.copy(day = day, loading = true, error = null) }
         loadJob = viewModelScope.launch {
             try {
-                val patients = store.listPatients().sortedBy { it.name.lowercase() }
+                val patients = store.listPatients().sortedBy { it.name.clinicSearchKey() }
                 val appointments = store.listAppointments(day)
                 mutableState.update {
                     it.copy(patients = patients, appointments = appointments, loading = false)
@@ -118,7 +119,7 @@ internal class ScheduleViewModel(private val store: DemoClinicStore) : ViewModel
     }
 
     companion object {
-        fun factory(store: DemoClinicStore) = viewModelFactory {
+        fun factory(store: ClinicStore) = viewModelFactory {
             initializer { ScheduleViewModel(store) }
         }
     }

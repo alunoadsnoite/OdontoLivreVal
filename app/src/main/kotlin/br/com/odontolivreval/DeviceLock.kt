@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 
 internal class DeviceLock(private val activity: ComponentActivity) {
     private val keyguard = requireNotNull(activity.getSystemService(KeyguardManager::class.java))
@@ -42,7 +43,7 @@ internal class DeviceLock(private val activity: ComponentActivity) {
 
     fun changeEnabled(enabled: Boolean) = authenticate { accepted ->
         if (accepted) {
-            settings.edit().putBoolean("enabled", enabled).apply()
+            settings.edit { putBoolean("enabled", enabled) }
             this.enabled = enabled
             unlocked = true
         }

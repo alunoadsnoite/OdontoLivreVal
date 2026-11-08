@@ -39,4 +39,28 @@
     <string name="odontogram_upper">Arcada superior</string>
     <string name="odontogram_lower">Arcada inferior</string>
     <string name="demo_patients_edit_named">Editar %1$s</string>
+    <string name="demo_patient_open_record">Abrir prontuário</string>
+    <string name="demo_patient_invalid_date">Informe uma data válida no formato dd/mm/aaaa e que não esteja no futuro.</string>
+    <string name="demo_patient_invalid_phone">Informe um telefone com DDD (10 ou 11 dígitos).</string>
+    <string name="demo_patient_new_visit">Nova consulta</string>
+    <string name="demo_patient_saving">Salvando ficha…</string>
+    <string name="demo_patient_active_visit">Consulta ativa</string>
+    <string name="demo_patient_no_complaint">Sem queixa registrada.</string>
+    <plurals name="demo_patient_odontogram_marks_plural">
+        <item quantity="one">%1$d dente marcado no odontograma.</item>
+        <item quantity="other">%1$d dentes marcados no odontograma.</item>
+    </plurals>
+    <string name="demo_patient_discard_title">Descartar alterações?</string>
+    <string name="demo_patient_discard_message">As alterações desta ficha ainda não foram salvas.</string>
+    <string name="demo_patient_discard">Descartar</string>
+    <string name="demo_patient_keep_editing">Continuar editando</string>
+    <string name="back">Voltar</string>
+    <string name="odontogram_change_title">Dente %1$s</string>
+    <string name="odontogram_tooth_description">Dente %1$s: %2$s</string>
+    <string name="odontogram_legend">Legenda</string>
+    <string name="odontogram_status_none">Sem marcação</string>
+    <string name="odontogram_status_caries">Cárie</string>
+    <string name="odontogram_status_restoration">Restauração</string>
+    <string name="odontogram_status_missing">Ausente/extraído</string>
+    <string name="odontogram_status_implant">Implante</string>
     </resources>

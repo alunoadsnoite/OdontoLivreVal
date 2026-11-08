@@ -1,7 +1,7 @@
 package br.com.odontolivreval
 
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import java.util.UUID
 import org.junit.Rule
 import org.junit.Test
@@ -9,14 +9,14 @@ import org.junit.Test
 class NavigationTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
     private fun text(id: Int) = compose.activity.getString(id)
-    @Test fun fiveDestinationsAndAboutRemainAvailableAfterRecreation() {
+
+    @Test
+    fun destinationsAndAboutRemainAvailableAfterRecreation() {
         compose.onNodeWithText(text(R.string.welcome)).assertIsDisplayed()
         compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
         compose.onNodeWithText("Pacientes de teste").assertIsDisplayed()
         compose.onAllNodesWithText(text(R.string.schedule)).onFirst().performClick()
         compose.onNodeWithText("Agenda de teste").assertIsDisplayed()
-        compose.onAllNodesWithText(text(R.string.odontogram)).onFirst().performClick()
-        compose.onNodeWithText(text(R.string.development)).assertIsDisplayed()
         compose.onAllNodesWithText(text(R.string.settings)).onFirst().performClick()
         compose.onNodeWithText(compose.activity.getString(br.com.odontolivreval.feature.settings.R.string.dark)).performClick()
         compose.onNodeWithText(text(R.string.about)).performClick()
@@ -29,7 +29,8 @@ class NavigationTest {
         compose.onNodeWithText(text(R.string.welcome)).assertIsDisplayed()
     }
 
-    @Test fun createsFindsAndEditsADemoPatient() {
+    @Test
+    fun createsFindsAndEditsADemoPatient() {
         val suffix = UUID.randomUUID().toString().take(8)
         val original = "Paciente Ágata $suffix"
         val revised = "Paciente Ágata $suffix revisada"
@@ -56,5 +57,32 @@ class NavigationTest {
         compose.onNodeWithText("Editar $original").assertDoesNotExist()
         compose.activityRule.scenario.recreate()
         compose.onNodeWithText("Editar $revised").assertIsDisplayed()
+    }
+
+    @Test
+    fun opensRecordAndMarksATooth() {
+        val suffix = UUID.randomUUID().toString().take(8)
+        val name = "Paciente Dente $suffix"
+        compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
+        compose.waitUntil(5_000) {
+            compose.onAllNodesWithText("Novo paciente").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText("Novo paciente").performClick()
+        compose.onNodeWithText("Nome fictício").performTextInput(name)
+        compose.onNodeWithText("Salvar").performClick()
+        compose.waitUntil(5_000) {
+            compose.onAllNodesWithText(name).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithText(name).performClick()
+        compose.waitUntil(5_000) {
+            compose.onAllNodesWithText("Odontograma").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithContentDescription("Dente 11: Sem marcação").performScrollTo().performClick()
+        compose.onAllNodesWithText("Cárie").onLast().performClick()
+        compose.onNodeWithText("Salvar ficha").performScrollTo().performClick()
+        compose.waitUntil(5_000) {
+            compose.onAllNodesWithText("Consulta ativa").fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNodeWithContentDescription("Dente 11: Cárie").assertExists()
     }
 }

@@ -3,6 +3,7 @@ package br.com.odontolivreval.core.demo
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.nio.ByteBuffer
 import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
@@ -12,33 +13,69 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 internal object ProtectedPayload {
-    private val local = "ODL-LOC1".toByteArray(Charsets.US_ASCII)
-    private val backup = "ODL-BKP1".toByteArray(Charsets.US_ASCII)
+    private const val localHeader = "ODL-LOC1"
+    private const val backupV1Header = "ODL-BKP1"
+    private const val backupV2Header = "ODL-BKP2"
     private const val saltSize = 16
     private const val ivSize = 12
     private const val tagBits = 128
     private const val iterations = 600_000
+    private const val minIterations = 100_000
+    private const val maxIterations = 10_000_000
+    private const val iterationsSize = Int.SIZE_BYTES
+    private val local = localHeader.toByteArray(Charsets.US_ASCII)
+    private val legacyBackup = backupV1Header.toByteArray(Charsets.US_ASCII)
+    private val backup = backupV2Header.toByteArray(Charsets.US_ASCII)
     const val maxDataSize = 4 * 1024 * 1024
-    const val maxFileSize = maxDataSize + 64
+    const val maxFileSize = maxDataSize + 128
 
     fun encryptLocal(data: ByteArray, key: SecretKey): ByteArray = encrypt(data, key, local)
 
     fun decryptLocal(data: ByteArray, key: SecretKey): ByteArray = decrypt(data, key, local)
 
+    /**
+     * Formato 2: magic (8) + iterações do PBKDF2 (4) + sal (16) + IV (12) +
+     * conteúdo autenticado. Guardar as iterações permite aumentar o custo no
+     * futuro sem invalidar backups antigos.
+     */
     fun encryptBackup(data: ByteArray, password: CharArray): ByteArray {
         val salt = ByteArray(saltSize).also(SecureRandom()::nextBytes)
-        return withBackupKey(password, salt) { key -> encrypt(data, key, backup + salt) }
+        val header = backup + ByteBuffer.allocate(iterationsSize).putInt(iterations).array() + salt
+        return withBackupKey(password, salt, iterations) { key -> encrypt(data, key, header) }
     }
 
-    fun decryptBackup(data: ByteArray, password: CharArray): ByteArray {
-        if (data.size < backup.size + saltSize + ivSize + tagBits / 8 ||
-            !data.copyOfRange(0, backup.size).contentEquals(backup)
-        ) throw IOException("Unsupported backup format")
-        val salt = data.copyOfRange(backup.size, backup.size + saltSize)
-        return withBackupKey(password, salt) { key -> decrypt(data, key, backup + salt) }
+    fun decryptBackup(data: ByteArray, password: CharArray): ByteArray = when {
+        data.startsWith(legacyBackup) -> decryptLegacyBackup(data, password)
+        data.startsWith(backup) -> decryptBackupV2(data, password)
+        else -> throw IOException("Unsupported backup format")
     }
 
-    private fun withBackupKey(password: CharArray, salt: ByteArray, block: (SecretKey) -> ByteArray): ByteArray {
+    private fun decryptLegacyBackup(data: ByteArray, password: CharArray): ByteArray {
+        val headerSize = legacyBackup.size + saltSize
+        if (data.size < headerSize + ivSize + tagBits / 8) throw IOException("Invalid backup")
+        val salt = data.copyOfRange(legacyBackup.size, headerSize)
+        val header = data.copyOfRange(0, headerSize)
+        return withBackupKey(password, salt, iterations) { key -> decrypt(data, key, header) }
+    }
+
+    private fun decryptBackupV2(data: ByteArray, password: CharArray): ByteArray {
+        val iterationsStart = backup.size
+        val saltStart = iterationsStart + iterationsSize
+        val headerSize = saltStart + saltSize
+        if (data.size < headerSize + ivSize + tagBits / 8) throw IOException("Invalid backup")
+        val storedIterations = ByteBuffer.wrap(data, iterationsStart, iterationsSize).int
+        if (storedIterations !in minIterations..maxIterations) throw IOException("Unsupported backup cost")
+        val salt = data.copyOfRange(saltStart, headerSize)
+        val header = data.copyOfRange(0, headerSize)
+        return withBackupKey(password, salt, storedIterations) { key -> decrypt(data, key, header) }
+    }
+
+    private fun withBackupKey(
+        password: CharArray,
+        salt: ByteArray,
+        iterations: Int,
+        block: (SecretKey) -> ByteArray,
+    ): ByteArray {
         val spec = PBEKeySpec(password, salt, iterations, 256)
         try {
             val bytes = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
@@ -72,6 +109,9 @@ internal object ProtectedPayload {
         cipher.updateAAD(header)
         return cipher.doFinal(data, start, data.size - start)
     }
+
+    private fun ByteArray.startsWith(prefix: ByteArray): Boolean =
+        size >= prefix.size && copyOfRange(0, prefix.size).contentEquals(prefix)
 }
 
 internal fun InputStream.readClinicFile(): ByteArray {

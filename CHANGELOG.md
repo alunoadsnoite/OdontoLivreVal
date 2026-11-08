@@ -1,10 +1,22 @@
 # Changelog
 
-## Não lançado
+## 0.5.0 — 2026-11-07
 
-- Contato do desenvolvedor (Valdenor Tavares — valdenor.sa@proton.me) exibido na tela Configurações, clicável para abrir o e-mail do celular, e também na tela Sobre.
-- Odontograma com esquema de dentes (arquadas superior e inferior) e simulação de raio-x, substituindo o placeholder vazio.
-- Prontuário do paciente (ficha clínica) acessível ao tocar no nome de um paciente na aba Pacientes, com campos de anamnese e observações.
+- Prontuário do paciente com ficha clínica, anamnese, diagnóstico, conduta, observações e histórico de consultas.
+- Odontograma editável por dente, com cárie, restauração, ausente/extraído e implante, persistido junto à consulta ativa.
+- Nova consulta mantém as evoluções anteriores e permite registrar mais de um atendimento por paciente.
+- Identificadores de ficha e consulta são gerados pelo armazenamento, evitando colisões e sobrescrita entre pacientes.
+- Ficha e consulta são gravadas em uma única transação, com estado de salvamento e confirmação antes de descartar alterações.
+- Data de nascimento e telefone com máscara e validação; formatação de datas no padrão brasileiro.
+- Odontograma responsivo com rolagem horizontal, alvos de toque maiores, descrições acessíveis e legenda.
+- Agenda: corrigido o atalho “Abrir Pacientes”, ordenação sem acentos e proteção contra paciente ausente.
+- Pacientes: exclusão só após confirmação, estado de exclusão e mensagens de erro dentro da lista.
+- Backup em formato 2, com versão e iterações do PBKDF2 gravadas no arquivo; leitura de backups 1 preservada.
+- Validação mais rígida do formato dos dados e recusa de versões desconhecidas.
+- Correção dos erros de compilação do prontuário e do lint.
+- Testes unitários dos ViewModels de pacientes, prontuário e agenda; testes instrumentados atualizados.
+- Contato do desenvolvedor (Valdenor Tavares — valdenor.sa@proton.me) exibido em Configurações e Sobre.
+- Documentação, versão, regras de backup e fluxo de CI atualizados.
 
 ## 0.4.0 — 2026-11-07
 
