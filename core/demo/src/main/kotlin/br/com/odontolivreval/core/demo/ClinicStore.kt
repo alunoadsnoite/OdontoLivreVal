@@ -74,6 +74,14 @@ interface ClinicStore {
 
     suspend fun removePrescription(patientId: Long, id: Long)
 
+    suspend fun listDocumentPhotos(patientId: Long): List<DocumentPhoto>
+
+    suspend fun previewDocumentPhoto(patientId: Long, id: Long): Bitmap?
+
+    suspend fun addDocumentPhoto(patientId: Long, uri: Uri)
+
+    suspend fun removeDocumentPhoto(patientId: Long, id: Long)
+
     suspend fun exportBackup(uri: Uri, password: CharArray)
 
     suspend fun restoreBackup(uri: Uri, password: CharArray)

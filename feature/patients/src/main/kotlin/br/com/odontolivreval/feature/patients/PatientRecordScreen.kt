@@ -47,6 +47,7 @@ fun PatientRecordScreen(
     radiographs: @Composable () -> Unit = {},
     prescriptions: @Composable () -> Unit = {},
     exportOdontogram: @Composable (Long?) -> Unit = {},
+    documentPhotos: @Composable (Long) -> Unit = {},
     onDocuments: () -> Unit = {},
     onClose: () -> Unit,
 ) {
@@ -173,6 +174,7 @@ fun PatientRecordScreen(
         exportOdontogram(state.activeVisitId.takeUnless { state.dirty || state.saving })
         radiographs()
         prescriptions()
+        documentPhotos(patient.id)
         OutlinedButton(onClick = onDocuments, enabled = !state.saving) {
             Text(stringResource(R.string.demo_patient_documents))
         }

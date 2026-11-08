@@ -38,8 +38,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.odontolivreval.core.designsystem.OdontoTheme
+import br.com.odontolivreval.core.demo.DocumentPhoto
 import br.com.odontolivreval.core.demo.PrescriptionFile
 import br.com.odontolivreval.core.demo.PrescriptionFormat
+import br.com.odontolivreval.feature.patients.PatientDocumentPhotos
 import br.com.odontolivreval.feature.patients.PatientPrescriptions
 import br.com.odontolivreval.feature.patients.PatientRadiographs
 import br.com.odontolivreval.feature.settings.SettingsViewModel
@@ -50,8 +52,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var backupModel: BackupViewModel
     private lateinit var radiographModel: RadiographImportViewModel
     private lateinit var prescriptionModel: PrescriptionViewModel
+    private lateinit var documentPhotoModel: DocumentPhotoImportViewModel
     private var pendingPrescriptionPatient: Long? = null
     private var pendingPrescriptionCopy: Pair<Long, Long>? = null
+    private var pendingDocumentPhotoPatient: Long? = null
 
     private val pickPrescription = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         val patientId = pendingPrescriptionPatient
@@ -99,6 +103,23 @@ class MainActivity : ComponentActivity() {
         finishRadiograph(if (saved) Uri.fromFile(file) else null, file)
     }
 
+    private val captureDocumentFile get() = cacheDir.resolve("document-capture/pending.jpg")
+
+    private val pickDocumentPhoto = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        finishDocumentPhoto(uri)
+    }
+
+    private val takeDocumentPhoto = registerForActivityResult(object : ActivityResultContracts.TakePicture() {
+        override fun createIntent(context: Context, input: Uri): Intent =
+            super.createIntent(context, input).apply {
+                clipData = ClipData.newRawUri("document_photo", input)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            }
+    }) { saved ->
+        val file = captureDocumentFile
+        finishDocumentPhoto(if (saved) Uri.fromFile(file) else null, file)
+    }
+
     private val exportBackup = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) {
         backupModel.select(BackupAction.EXPORT, it)
     }
@@ -118,6 +139,7 @@ class MainActivity : ComponentActivity() {
         radiographModel = models[RadiographImportViewModel::class.java]
         pdfModel = models[OdontogramExportViewModel::class.java]
         prescriptionModel = models[PrescriptionViewModel::class.java]
+        documentPhotoModel = models[DocumentPhotoImportViewModel::class.java]
         pendingPrescriptionPatient = savedInstanceState?.getLong("prescriptionPatient")?.takeIf { it > 0 }
         savedInstanceState?.getLongArray("prescriptionCopy")?.let { pendingPrescriptionCopy = it[0] to it[1] }
         savedInstanceState?.let {
@@ -127,6 +149,8 @@ class MainActivity : ComponentActivity() {
         }
         pendingRadiographPatient = savedInstanceState?.getLong("radiographPatient")?.takeIf { it > 0 }
         if (pendingRadiographPatient == null && !radiographModel.state.value.busy) captureFile.delete()
+        pendingDocumentPhotoPatient = savedInstanceState?.getLong("documentPhotoPatient")?.takeIf { it > 0 }
+        if (pendingDocumentPhotoPatient == null && !documentPhotoModel.state.value.busy) captureDocumentFile.delete()
         applyCaptureProtection(lock.enabled)
         requestNotificationPermission()
         enableEdgeToEdge()
@@ -138,6 +162,7 @@ class MainActivity : ComponentActivity() {
             val radiograph by radiographModel.state.collectAsStateWithLifecycle()
             val pdf by pdfModel.state.collectAsStateWithLifecycle()
             val prescription by prescriptionModel.state.collectAsStateWithLifecycle()
+            val documentPhoto by documentPhotoModel.state.collectAsStateWithLifecycle()
             val screens = rememberSaveableStateHolder()
             val protected = lock.enabled
             SideEffect { applyCaptureProtection(protected) }
@@ -180,6 +205,14 @@ class MainActivity : ComponentActivity() {
                                         onCamera = { launchRadiograph(patientId, fromCamera = true) },
                                     )
                                 },
+                                documentPhotos = { patientId ->
+                                    PatientDocumentPhotos(
+                                        store = odontoApplication.demoClinic,
+                                        patientId = patientId,
+                                        onPick = { launchDocumentPhoto(patientId, fromCamera = false) },
+                                        onCamera = { launchDocumentPhoto(patientId, fromCamera = true) },
+                                    )
+                                },
                             ) {
                                 ClinicProtectionScreen(
                                     lock = lock,
@@ -207,6 +240,7 @@ class MainActivity : ComponentActivity() {
             outState.putLong("pdfPatient", it.patientId)
             outState.putLong("pdfVisit", it.visitId)
         }
+        pendingDocumentPhotoPatient?.let { outState.putLong("documentPhotoPatient", it) }
         super.onSaveInstanceState(outState)
     }
 
@@ -280,6 +314,41 @@ class MainActivity : ComponentActivity() {
             return
         }
         radiographModel.import((application as OdontoApplication).demoClinic, patientId, uri, temporary)
+    }
+
+    private fun launchDocumentPhoto(patientId: Long, fromCamera: Boolean) {
+        if (pendingDocumentPhotoPatient != null || documentPhotoModel.state.value.busy) return
+        pendingDocumentPhotoPatient = patientId
+        try {
+            if (fromCamera) {
+                val file = captureDocumentFile
+                file.parentFile?.mkdirs()
+                file.outputStream().close()
+                takeDocumentPhoto.launch(FileProvider.getUriForFile(this, "$packageName.radiographs", file))
+            } else {
+                pickDocumentPhoto.launch(arrayOf("image/jpeg", "image/png"))
+            }
+        } catch (_: ActivityNotFoundException) {
+            abortDocumentPhoto(patientId)
+        } catch (_: IOException) {
+            abortDocumentPhoto(patientId)
+        }
+    }
+
+    private fun abortDocumentPhoto(patientId: Long) {
+        pendingDocumentPhotoPatient = null
+        captureDocumentFile.delete()
+        documentPhotoModel.failed(patientId)
+    }
+
+    private fun finishDocumentPhoto(uri: Uri?, temporary: java.io.File? = null) {
+        val patientId = pendingDocumentPhotoPatient
+        pendingDocumentPhotoPatient = null
+        if (uri == null || patientId == null) {
+            temporary?.delete()
+            return
+        }
+        documentPhotoModel.import((application as OdontoApplication).demoClinic, patientId, uri, temporary)
     }
 
     override fun onResume() {

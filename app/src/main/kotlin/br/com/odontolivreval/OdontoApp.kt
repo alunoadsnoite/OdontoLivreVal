@@ -43,6 +43,7 @@ fun OdontoApp(
     exportOdontogram: @Composable (Long, Long?) -> Unit,
     radiographs: @Composable (Long) -> Unit,
     prescriptions: @Composable (Long) -> Unit,
+    documentPhotos: @Composable (Long) -> Unit,
     protection: @Composable () -> Unit,
 ) {
     val nav = rememberNavController()
@@ -181,6 +182,7 @@ fun OdontoApp(
                                         radiographs = { radiographs(patient.id) },
                                         prescriptions = { prescriptions(patient.id) },
                                         exportOdontogram = { exportOdontogram(patient.id, it) },
+                                        documentPhotos = { documentPhotos(patient.id) },
                                         onDocuments = { nav.navigate("documents") { launchSingleTop = true } },
                                         onClose = { selectedPatient = null; nav.popBackStack() },
                                     )

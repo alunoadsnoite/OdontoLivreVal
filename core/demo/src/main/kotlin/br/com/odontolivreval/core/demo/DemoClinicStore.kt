@@ -224,6 +224,7 @@ class DemoClinicStore(context: Context) : ClinicStore {
             visits = snapshot.visits.filterNot { it.patientId == id },
             radiographs = snapshot.radiographs.filterNot { it.file.patientId == id },
             prescriptions = snapshot.prescriptions.filterNot { it.file.patientId == id },
+            documentPhotos = snapshot.documentPhotos.filterNot { it.file.patientId == id },
         ))
     }
 
@@ -327,6 +328,49 @@ class DemoClinicStore(context: Context) : ClinicStore {
         val file = snapshot.prescriptions.find { it.file.patientId == patientId && it.file.id == id }
             ?: throw IOException("Prescription missing")
         persist(snapshot.copy(prescriptions = snapshot.prescriptions - file))
+    }
+
+    override suspend fun listDocumentPhotos(patientId: Long): List<DocumentPhoto> = access {
+        load().documentPhotos.map { it.file }.filter { it.patientId == patientId }
+    }
+
+    override suspend fun previewDocumentPhoto(patientId: Long, id: Long): Bitmap? = access {
+        val record = load().documentPhotos.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Document photo missing")
+        val bytes = readAttachment(record.content)
+        try {
+            decodeOrientedDocumentPhoto(bytes, 1600)
+        } finally {
+            bytes.fill(0)
+        }
+    }
+
+    override suspend fun addDocumentPhoto(patientId: Long, uri: Uri) = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val input = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot read document photo")
+        val bytes = input.use { it.readBounded(maxAttachmentBytes) }
+        val image = decodeOrientedDocumentPhoto(bytes, 2048) ?: throw IOException("Invalid camera image")
+        try {
+            ByteArrayOutputStream().use { output ->
+                if (!image.compress(Bitmap.CompressFormat.JPEG, 85, output)) throw IOException("Cannot encode photo")
+                if (output.size() > maxAttachmentBytes) throw IOException("Camera image exceeds size limit")
+                val compressed = output.toByteArray()
+                val file = DocumentPhoto(nextId(snapshot.documentPhotos.map { it.file.id }), patientId)
+                val record = StoredDocumentPhoto(file, writeNewAttachment(snapshot, compressed))
+                persist(snapshot.copy(documentPhotos = snapshot.documentPhotos + record))
+            }
+        } finally {
+            image.recycle()
+        }
+    }
+
+    override suspend fun removeDocumentPhoto(patientId: Long, id: Long) = access {
+        val snapshot = load()
+        if (snapshot.documentPhotos.none { it.file.patientId == patientId && it.file.id == id }) {
+            throw IOException("Document photo missing")
+        }
+        persist(snapshot.copy(documentPhotos = snapshot.documentPhotos.filterNot { it.file.id == id }))
     }
 
     override suspend fun exportBackup(uri: Uri, password: CharArray) = access {

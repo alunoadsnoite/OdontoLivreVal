@@ -1,3 +1,4 @@
 <paths>
     <cache-path name="radiograph_capture" path="radiograph-capture/" />
+    <cache-path name="document_capture" path="document-capture/" />
 </paths>

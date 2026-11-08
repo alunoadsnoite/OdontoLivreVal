@@ -10,6 +10,7 @@ import br.com.odontolivreval.core.demo.PatientRecord
 import br.com.odontolivreval.core.demo.Radiograph
 import br.com.odontolivreval.core.demo.PrescriptionFile
 import br.com.odontolivreval.core.demo.ProfessionalProfile
+import br.com.odontolivreval.core.demo.DocumentPhoto
 import br.com.odontolivreval.core.demo.SavedRecord
 import br.com.odontolivreval.core.demo.VisitRecord
 import java.time.LocalDate
@@ -105,6 +106,14 @@ internal class FakeClinicStore : ClinicStore {
     override suspend fun copyPrescription(patientId: Long, id: Long, uri: Uri) = error("Not used")
 
     override suspend fun removePrescription(patientId: Long, id: Long) = error("Not used")
+
+    override suspend fun listDocumentPhotos(patientId: Long): List<DocumentPhoto> = error("Not used")
+
+    override suspend fun previewDocumentPhoto(patientId: Long, id: Long): Bitmap? = error("Not used")
+
+    override suspend fun addDocumentPhoto(patientId: Long, uri: Uri) = error("Not used")
+
+    override suspend fun removeDocumentPhoto(patientId: Long, id: Long) = error("Not used")
 
     override suspend fun exportBackup(uri: Uri, password: CharArray) = error("Not used in patients tests")
 
