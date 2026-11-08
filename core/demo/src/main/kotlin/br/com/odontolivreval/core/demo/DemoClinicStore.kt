@@ -225,6 +225,7 @@ class DemoClinicStore(context: Context) : ClinicStore {
             radiographs = snapshot.radiographs.filterNot { it.file.patientId == id },
             prescriptions = snapshot.prescriptions.filterNot { it.file.patientId == id },
             documentPhotos = snapshot.documentPhotos.filterNot { it.file.patientId == id },
+            digitalSignatures = snapshot.digitalSignatures.filterNot { it.file.patientId == id },
         ))
     }
 
@@ -371,6 +372,47 @@ class DemoClinicStore(context: Context) : ClinicStore {
             throw IOException("Document photo missing")
         }
         persist(snapshot.copy(documentPhotos = snapshot.documentPhotos.filterNot { it.file.id == id }))
+    }
+
+    override suspend fun listDigitalSignatures(patientId: Long?): List<DigitalSignature> = access {
+        load().digitalSignatures.map { it.file }
+            .filter { patientId == null || it.patientId == patientId }
+    }
+
+    override suspend fun previewDigitalSignature(patientId: Long?, id: Long): Bitmap? = access {
+        val record = load().digitalSignatures.find {
+            it.file.id == id && (patientId == null || it.file.patientId == patientId)
+        } ?: throw IOException("Digital signature missing")
+        val bytes = readAttachment(record.content)
+        try {
+            decodeDigitalSignature(bytes, 1600)
+        } finally {
+            bytes.fill(0)
+        }
+    }
+
+    override suspend fun saveDigitalSignature(patientId: Long?, documentType: String?, bitmap: Bitmap): DigitalSignature = access {
+        val snapshot = load()
+        if (patientId != null) requirePatient(snapshot, patientId)
+        val bytes = encodeDigitalSignature(bitmap, 2048)
+        val file = DigitalSignature(
+            nextId(snapshot.digitalSignatures.map { it.file.id }),
+            patientId,
+            documentType,
+        )
+        val record = StoredDigitalSignature(file, writeNewAttachment(snapshot, bytes))
+        persist(snapshot.copy(digitalSignatures = snapshot.digitalSignatures + record))
+        file
+    }
+
+    override suspend fun removeDigitalSignature(patientId: Long?, id: Long) = access {
+        val snapshot = load()
+        if (snapshot.digitalSignatures.none {
+            it.file.id == id && (patientId == null || it.file.patientId == patientId)
+        }) {
+            throw IOException("Digital signature missing")
+        }
+        persist(snapshot.copy(digitalSignatures = snapshot.digitalSignatures.filterNot { it.file.id == id }))
     }
 
     override suspend fun exportBackup(uri: Uri, password: CharArray) = access {

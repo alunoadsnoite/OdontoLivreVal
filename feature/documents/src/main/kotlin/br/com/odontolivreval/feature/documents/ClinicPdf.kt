@@ -1,6 +1,7 @@
 package br.com.odontolivreval.feature.documents
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import br.com.odontolivreval.core.demo.DemoPatient
@@ -31,6 +32,7 @@ object ClinicPdf {
         content: String,
         title: String,
         labels: PdfLabels,
+        signatureBitmap: Bitmap? = null,
     ): File {
         val document = PdfDocument()
         val writer = Writer(document)
@@ -78,7 +80,15 @@ object ClinicPdf {
             }
             writer.paragraph(content.trim().ifBlank { " " }, contentPaint, 24f)
 
-            writer.ensureSpace(80f)
+            // Draw signature image if provided
+            if (signatureBitmap != null) {
+                val sigWidth = minOf(CONTENT_WIDTH, signatureBitmap.width.toFloat() * 0.6f)
+                val sigHeight = sigWidth * signatureBitmap.height.toFloat() / signatureBitmap.width.toFloat()
+                writer.ensureSpace(sigHeight + 30f)
+                writer.drawImage(signatureBitmap, sigWidth, sigHeight)
+            }
+
+            writer.ensureSpace(40f)
             writer.paragraph("______________________________________", body, 4f)
             writer.paragraph(profile.name, body, 2f)
             if (profile.cro.isNotBlank()) {
@@ -156,6 +166,14 @@ object ClinicPdf {
             val paint = Paint().apply { color = 0xFF9A9A9A.toInt(); strokeWidth = 0.8f }
             canvas.drawLine(MARGIN, y + 4f, PAGE_WIDTH - MARGIN, y + 4f, paint)
             y += 16f
+        }
+
+        fun drawImage(bitmap: Bitmap, width: Float, height: Float) {
+            ensureSpace(height)
+            val left = MARGIN
+            val top = y
+            canvas.drawBitmap(bitmap, null, android.graphics.RectF(left, top, left + width, top + height), null)
+            y += height
         }
 
         fun finish() {

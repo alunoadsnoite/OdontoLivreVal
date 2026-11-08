@@ -11,6 +11,7 @@ import br.com.odontolivreval.core.demo.Radiograph
 import br.com.odontolivreval.core.demo.PrescriptionFile
 import br.com.odontolivreval.core.demo.ProfessionalProfile
 import br.com.odontolivreval.core.demo.DocumentPhoto
+import br.com.odontolivreval.core.demo.DigitalSignature
 import br.com.odontolivreval.core.demo.SavedRecord
 import br.com.odontolivreval.core.demo.VisitRecord
 import java.time.LocalDate
@@ -114,6 +115,14 @@ internal class FakeClinicStore : ClinicStore {
     override suspend fun addDocumentPhoto(patientId: Long, uri: Uri) = error("Not used")
 
     override suspend fun removeDocumentPhoto(patientId: Long, id: Long) = error("Not used")
+
+    override suspend fun listDigitalSignatures(patientId: Long?): List<DigitalSignature> = emptyList()
+
+    override suspend fun previewDigitalSignature(patientId: Long?, id: Long): Bitmap? = error("Not used")
+
+    override suspend fun saveDigitalSignature(patientId: Long?, documentType: String?, bitmap: Bitmap): DigitalSignature = error("Not used")
+
+    override suspend fun removeDigitalSignature(patientId: Long?, id: Long) = error("Not used")
 
     override suspend fun exportBackup(uri: Uri, password: CharArray) = error("Not used in patients tests")
 

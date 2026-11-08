@@ -2,6 +2,7 @@ package br.com.odontolivreval.feature.documents
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -16,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -25,6 +27,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
+
+/**
+ * Holder simples para a assinatura digital em bitmap.
+ * Evita problemas com delegate 'by remember { mutableStateOf(...) }'.
+ */
+private class SignatureHolder(var bitmap: Bitmap? = null)
 
 @Composable
 fun DocumentsScreen(
@@ -44,6 +52,8 @@ fun DocumentsScreen(
     val dateLabel = stringResource(R.string.pdf_date)
     val shareTitle = stringResource(R.string.documents_share_title)
     val pdfTitle = stringResource(state.type.pdfTitle)
+
+    val signatureHolder = remember { SignatureHolder() }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(R.string.documents_title), style = MaterialTheme.typography.headlineLarge)
@@ -96,6 +106,23 @@ fun DocumentsScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
 
+                // Assinatura digital
+                Text(stringResource(R.string.signature_capture), style = MaterialTheme.typography.titleSmall)
+                if (signatureHolder.bitmap != null) {
+                    Text(stringResource(R.string.signature_signed), style = MaterialTheme.typography.bodySmall)
+                    OutlinedButton(onClick = { signatureHolder.bitmap = null }) {
+                        Text(stringResource(R.string.signature_clear))
+                    }
+                } else {
+                    Text(stringResource(R.string.signature_not_signed), style = MaterialTheme.typography.bodySmall)
+                    SignaturePad(
+                        onSignatureReady = { bitmap ->
+                            signatureHolder.bitmap = bitmap
+                        },
+                        onEmpty = {},
+                    )
+                }
+
                 when (state.error) {
                     DocumentsError.EMPTY_CONTENT -> Text(
                         stringResource(R.string.documents_empty_content),
@@ -130,6 +157,7 @@ fun DocumentsScreen(
                                 state.content,
                                 pdfTitle,
                                 labels,
+                                signatureHolder.bitmap,
                             )
                             sharePdf(context, file, shareTitle)
                             model.markShared()

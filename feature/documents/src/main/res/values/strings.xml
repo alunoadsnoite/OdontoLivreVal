@@ -55,4 +55,12 @@ Forma de pagamento: ___</string>
     <string name="template_consent">Declaro que recebi informações claras sobre o diagnóstico, o plano de tratamento, os riscos, os benefícios e as alternativas, e que concordo com o procedimento proposto.
 
 Paciente ou responsável: %1$s</string>
+    <string name="signature_capture">Assinatura digital</string>
+    <string name="signature_clear">Limpar</string>
+    <string name="signature_save">Salvar assinatura</string>
+    <string name="signature_sign_document">Assinar documento</string>
+    <string name="signature_signed">Documento assinado</string>
+    <string name="signature_not_signed">Ainda não assinado</string>
+    <string name="signature_draw_instructions">Desenhe sua assinatura acima com o dedo ou stylus.</string>
+    <string name="signature_name">Nome da assinatura</string>
 </resources>

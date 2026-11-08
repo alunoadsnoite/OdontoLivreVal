@@ -82,6 +82,14 @@ interface ClinicStore {
 
     suspend fun removeDocumentPhoto(patientId: Long, id: Long)
 
+    suspend fun listDigitalSignatures(patientId: Long? = null): List<DigitalSignature>
+
+    suspend fun previewDigitalSignature(patientId: Long?, id: Long): Bitmap?
+
+    suspend fun saveDigitalSignature(patientId: Long?, documentType: String?, bitmap: Bitmap): DigitalSignature
+
+    suspend fun removeDigitalSignature(patientId: Long?, id: Long)
+
     suspend fun exportBackup(uri: Uri, password: CharArray)
 
     suspend fun restoreBackup(uri: Uri, password: CharArray)

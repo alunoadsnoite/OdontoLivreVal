@@ -50,6 +50,7 @@ internal data class ClinicSnapshot(
     val radiographs: List<StoredRadiograph> = emptyList(),
     val prescriptions: List<StoredPrescription> = emptyList(),
     val documentPhotos: List<StoredDocumentPhoto> = emptyList(),
+    val digitalSignatures: List<StoredDigitalSignature> = emptyList(),
     val professional: ProfessionalProfile = ProfessionalProfile(),
 ) {
     fun encode(): ByteArray = JSONObject()
@@ -99,16 +100,26 @@ internal data class ClinicSnapshot(
                 put(JSONArray().put(it.file.id).put(it.file.patientId).putReference(it.content))
             }
         })
+        .put("digitalSignatures", JSONArray().apply {
+            digitalSignatures.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.patientId ?: JSONObject.NULL)
+                    .put(it.file.documentType ?: JSONObject.NULL)
+                    .put(it.file.createdAt)
+                    .putReference(it.content))
+            }
+        })
         .toString()
         .toByteArray(Charsets.UTF_8)
 
     fun attachments(): List<AttachmentContent> =
-        radiographs.map { it.content } + prescriptions.map { it.content } + documentPhotos.map { it.content }
+        radiographs.map { it.content } + prescriptions.map { it.content } +
+            documentPhotos.map { it.content } + digitalSignatures.map { it.content }
 
     fun mapAttachments(transform: (AttachmentContent) -> AttachmentContent): ClinicSnapshot = copy(
         radiographs = radiographs.map { it.copy(content = transform(it.content)) },
         prescriptions = prescriptions.map { it.copy(content = transform(it.content)) },
         documentPhotos = documentPhotos.map { it.copy(content = transform(it.content)) },
+        digitalSignatures = digitalSignatures.map { it.copy(content = transform(it.content)) },
     )
 
     private fun JSONArray.putReference(content: AttachmentContent): JSONArray {
@@ -152,6 +163,11 @@ internal data class ClinicSnapshot(
             }
             || documentPhotos.map { it.file.id }.toSet().size != documentPhotos.size
             || documentPhotos.any { it.file.id <= 0 || it.file.patientId !in patientIds }
+            || digitalSignatures.map { it.file.id }.toSet().size != digitalSignatures.size
+            || digitalSignatures.any {
+                it.file.id <= 0 ||
+                    (it.file.patientId != null && it.file.patientId !in patientIds)
+            }
             || contents.any { !it.valid }
             || references.map { it.token }.toSet().size != references.size
             || references.sumOf { it.size.toLong() } > maxAttachmentTotal
@@ -256,6 +272,18 @@ internal data class ClinicSnapshot(
                 }
             } else emptyList()
 
+            val digitalSignatures = if (version >= 9 && root.has("digitalSignatures")) {
+                root.getJSONArray("digitalSignatures").rows {
+                    val patientId = if (it.isNull(2)) null else it.integer(2)
+                    val documentType = if (it.isNull(3)) null else it.getString(3)
+                    val createdAt = it.optLong(4, System.currentTimeMillis())
+                    StoredDigitalSignature(
+                        DigitalSignature(it.integer(0), patientId, documentType, createdAt),
+                        it.attachment(version, 5),
+                    )
+                }
+            } else emptyList()
+
             val professional = if (version >= 7 && root.has("professional")) {
                 val json = root.getJSONObject("professional")
                 ProfessionalProfile(
@@ -271,13 +299,15 @@ internal data class ClinicSnapshot(
             }
 
             val schedule = if (version < 6) appointments.withLegacyDurations() else appointments
-            return ClinicSnapshot(patients, schedule, patientRecords, visits, radiographs, prescriptions, documentPhotos, professional)
-                .apply { validate() }
+            return ClinicSnapshot(
+                patients, schedule, patientRecords, visits, radiographs, prescriptions,
+                documentPhotos, digitalSignatures, professional,
+            ).apply { validate() }
         }
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 8
+        private const val currentVersion = 9
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)
