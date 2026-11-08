@@ -14,9 +14,9 @@ class NavigationTest {
     fun destinationsAndAboutRemainAvailableAfterRecreation() {
         compose.onNodeWithText(text(R.string.welcome)).assertIsDisplayed()
         compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
-        compose.onNodeWithText("Pacientes de teste").assertIsDisplayed()
+        compose.onNodeWithText("Cadastro de pacientes").assertIsDisplayed()
         compose.onAllNodesWithText(text(R.string.schedule)).onFirst().performClick()
-        compose.onNodeWithText("Agenda de teste").assertIsDisplayed()
+        compose.onNodeWithText("Agenda de consultas").assertIsDisplayed()
         compose.onAllNodesWithText(text(R.string.settings)).onFirst().performClick()
         compose.onNodeWithText(compose.activity.getString(br.com.odontolivreval.feature.settings.R.string.dark)).performClick()
         compose.onNodeWithText(text(R.string.about)).performClick()
@@ -40,7 +40,7 @@ class NavigationTest {
         }
         compose.onNodeWithText("Novo paciente").performClick()
         compose.onNodeWithText("Salvar").assertIsNotEnabled()
-        compose.onNodeWithText("Nome fictício").performTextInput(original)
+        compose.onNodeWithText("Nome do paciente").performTextInput(original)
         compose.onNodeWithText("Salvar").performClick()
         compose.waitUntil(5_000) {
             compose.onAllNodesWithText("Buscar pelo nome").fetchSemanticsNodes().isNotEmpty() &&
@@ -49,7 +49,7 @@ class NavigationTest {
         compose.onNodeWithText("Buscar pelo nome").performTextInput("agata $suffix")
         compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Editar $original"))
         compose.onNodeWithText("Editar $original").performClick()
-        compose.onNodeWithText("Nome fictício").performTextReplacement(revised)
+        compose.onNodeWithText("Nome do paciente").performTextReplacement(revised)
         compose.onNodeWithText("Salvar").performClick()
         compose.waitUntil(5_000) {
             compose.onAllNodesWithText("Editar $revised").fetchSemanticsNodes().isNotEmpty()
@@ -68,7 +68,7 @@ class NavigationTest {
             compose.onAllNodesWithText("Novo paciente").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Novo paciente").performClick()
-        compose.onNodeWithText("Nome fictício").performTextInput(name)
+        compose.onNodeWithText("Nome do paciente").performTextInput(name)
         compose.onNodeWithText("Salvar").performClick()
         compose.waitUntil(5_000) {
             compose.onAllNodesWithText(name).fetchSemanticsNodes().isNotEmpty()
@@ -78,11 +78,17 @@ class NavigationTest {
             compose.onAllNodesWithText("Odontograma").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription("Dente 11: Sem marcação").performScrollTo().performClick()
+        compose.onAllNodesWithText("Canal").onLast().performClick()
+        compose.onNodeWithText("Mesial").performClick()
         compose.onAllNodesWithText("Cárie").onLast().performClick()
+        compose.onNodeWithText("Concluir").performClick()
+        compose.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+        compose.onNodeWithText("Descartar alterações?").assertIsDisplayed()
+        compose.onNodeWithText("Continuar editando").performClick()
         compose.onNodeWithText("Salvar ficha").performScrollTo().performClick()
         compose.waitUntil(5_000) {
             compose.onAllNodesWithText("Consulta ativa").fetchSemanticsNodes().isNotEmpty()
         }
-        compose.onNodeWithContentDescription("Dente 11: Cárie").assertExists()
+        compose.onNodeWithContentDescription("Dente 11: Canal. 1 superfície marcada").assertExists()
     }
 }

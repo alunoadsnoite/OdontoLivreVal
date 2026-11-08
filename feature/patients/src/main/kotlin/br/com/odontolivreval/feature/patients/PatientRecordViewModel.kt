@@ -176,8 +176,11 @@ internal class PatientRecordViewModel(
         viewModelScope.launch {
             try {
                 val saved = store.saveRecordAndVisit(current.record, visit)
-                val visits = store.listVisits(patient.id)
                 mutableState.update {
+                    val visits = (it.visits.filterNot { visit -> visit.id == saved.visit.id } + saved.visit)
+                        .sortedWith(compareByDescending<VisitRecord> { visit -> visit.visitDay }
+                            .thenByDescending { visit -> visit.visitMinute }
+                            .thenByDescending { visit -> visit.id })
                     it.copy(
                         record = saved.record,
                         visits = visits,

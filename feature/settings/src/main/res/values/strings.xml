@@ -4,4 +4,21 @@
 <string name="contact_developer">Valdenor Tavares — valdenor.sa@proton.me</string>
 <string name="contact_email">valdenor.sa@proton.me</string>
 <string name="contact_send_email">Enviar e-mail</string>
+<string name="profile_title">Perfil profissional</string>
+<string name="profile_notice">Nome e CRO aparecem nos documentos gerados. Os dados ficam no armazenamento criptografado do aplicativo.</string>
+<string name="profile_name">Nome completo</string>
+<string name="profile_cro">CRO</string>
+<string name="profile_specialty">Especialidade</string>
+<string name="profile_clinic">Nome da clínica</string>
+<string name="profile_address">Endereço</string>
+<string name="profile_phone">Telefone</string>
+<string name="profile_save">Salvar perfil</string>
+<string name="profile_saving">Salvando…</string>
+<string name="profile_saved">Perfil salvo.</string>
+<string name="profile_back">Voltar</string>
+<string name="profile_loading">Carregando perfil…</string>
+<string name="profile_load_error">Não foi possível carregar o perfil.</string>
+<string name="profile_retry">Tentar novamente</string>
+<string name="profile_incomplete">Informe o nome e o CRO.</string>
+<string name="profile_save_error">Não foi possível salvar o perfil.</string>
 </resources>

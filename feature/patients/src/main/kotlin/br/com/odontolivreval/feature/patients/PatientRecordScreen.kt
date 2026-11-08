@@ -1,5 +1,6 @@
 package br.com.odontolivreval.feature.patients
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -43,6 +44,10 @@ private enum class PendingAction { BACK, NEW_VISIT }
 fun PatientRecordScreen(
     store: ClinicStore,
     patient: DemoPatient,
+    radiographs: @Composable () -> Unit = {},
+    prescriptions: @Composable () -> Unit = {},
+    exportOdontogram: @Composable (Long?) -> Unit = {},
+    onDocuments: () -> Unit = {},
     onClose: () -> Unit,
 ) {
     val model: PatientRecordViewModel = viewModel(factory = PatientRecordViewModel.factory(store, patient))
@@ -75,6 +80,7 @@ fun PatientRecordScreen(
     val requestBack = {
         if (state.saving) Unit else if (state.dirty) pendingAction = PendingAction.BACK else onClose()
     }
+    BackHandler(enabled = state.dirty || state.saving, onBack = requestBack)
     val requestNewVisit = {
         if (state.saving) Unit
         else if (state.dirty) pendingAction = PendingAction.NEW_VISIT
@@ -164,6 +170,12 @@ fun PatientRecordScreen(
         )
 
         PatientOdontogramScreen(state.odontogram, model::changeOdontogram)
+        exportOdontogram(state.activeVisitId.takeUnless { state.dirty || state.saving })
+        radiographs()
+        prescriptions()
+        OutlinedButton(onClick = onDocuments, enabled = !state.saving) {
+            Text(stringResource(R.string.demo_patient_documents))
+        }
 
         Text(
             text = stringResource(R.string.demo_patient_visits),
@@ -289,11 +301,12 @@ private fun VisitCard(visit: VisitRecord, active: Boolean) {
                 )
             }
             if (visit.odontogram.isNotEmpty()) {
+                val teethMarked = visit.odontogram.keys.map { it.substringBefore(':') }.toSet().size
                 Text(
                     text = pluralStringResource(
                         R.plurals.demo_patient_odontogram_marks_plural,
-                        visit.odontogram.size,
-                        visit.odontogram.size,
+                        teethMarked,
+                        teethMarked,
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -1,15 +1,20 @@
 package br.com.odontolivreval.feature.patients
 
+import android.graphics.Bitmap
 import android.net.Uri
 import br.com.odontolivreval.core.demo.AppointmentSaveResult
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoAppointment
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.PatientRecord
+import br.com.odontolivreval.core.demo.Radiograph
+import br.com.odontolivreval.core.demo.PrescriptionFile
+import br.com.odontolivreval.core.demo.ProfessionalProfile
 import br.com.odontolivreval.core.demo.SavedRecord
 import br.com.odontolivreval.core.demo.VisitRecord
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.YearMonth
 
 internal class FakeClinicStore : ClinicStore {
     val patients = mutableListOf<DemoPatient>()
@@ -66,14 +71,40 @@ internal class FakeClinicStore : ClinicStore {
 
     override suspend fun listAppointments(day: LocalDate): List<DemoAppointment> = emptyList()
 
+    override suspend fun countActiveAppointments(month: YearMonth): Map<LocalDate, Int> = error("Not used")
+
     override suspend fun saveAppointment(
         id: Long?,
         patientId: Long,
         day: LocalDate,
         time: LocalTime,
+        durationMinutes: Int,
+        returnOfId: Long?,
     ): AppointmentSaveResult = error("Not used in patients tests")
 
     override suspend fun cancelAppointment(id: Long) = error("Not used in patients tests")
+
+    override suspend fun listUpcomingAppointments(from: LocalDate, days: Int): List<DemoAppointment> = emptyList()
+
+    override suspend fun getProfessionalProfile(): ProfessionalProfile = ProfessionalProfile()
+
+    override suspend fun saveProfessionalProfile(profile: ProfessionalProfile): ProfessionalProfile = profile
+
+    override suspend fun listRadiographs(patientId: Long): List<Radiograph> = error("Not used")
+
+    override suspend fun previewRadiograph(patientId: Long, id: Long): Bitmap? = error("Not used")
+
+    override suspend fun addRadiograph(patientId: Long, uri: Uri, fromCamera: Boolean) = error("Not used")
+
+    override suspend fun removeRadiograph(patientId: Long, id: Long) = error("Not used")
+
+    override suspend fun listPrescriptions(patientId: Long): List<PrescriptionFile> = error("Not used")
+
+    override suspend fun addPrescription(patientId: Long, uri: Uri) = error("Not used")
+
+    override suspend fun copyPrescription(patientId: Long, id: Long, uri: Uri) = error("Not used")
+
+    override suspend fun removePrescription(patientId: Long, id: Long) = error("Not used")
 
     override suspend fun exportBackup(uri: Uri, password: CharArray) = error("Not used in patients tests")
 

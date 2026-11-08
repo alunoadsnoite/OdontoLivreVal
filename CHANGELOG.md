@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.10.0 — 2026-11-08
+
+- Duração de 1 a 240 minutos e exibição do intervalo na agenda.
+- Prevenção de consultas sobrepostas, com horários consecutivos permitidos.
+- Retornos vinculados à consulta original e ao mesmo paciente.
+- Agendamentos antigos preservam o início e recebem até 30 minutos sem criar sobreposição.
+
+## 0.9.0 — 2026-11-08
+
+- Radiografias e receitas passam a ser guardadas em arquivos criptografados independentes, com migração automática dos anexos existentes.
+- Limites de 10 MiB por anexo e 512 MiB somados, separados do limite do índice do prontuário.
+- Backup em formato 3 processa um anexo por vez. A restauração lê os formatos anteriores e valida todos os dados antes da troca.
+
+## 0.8.0 — 2026-11-08
+
+- Odontograma com dentições permanente e decídua na ordem FDI.
+- Marcação independente de cárie e restauração por face, além das marcações do dente inteiro.
+- Exportação do odontograma com faces e uma página por dentição registrada.
+- Preservação das marcações de versões anteriores ao abrir o prontuário.
+
+## 0.7.0 — 2026-11-08
+
+- Marcação Canal, disposição dos dentes na ordem FDI e exportação da evolução salva em PDF.
+- Textos do cadastro, da agenda e do prontuário revisados.
+- Radiografias anexadas por arquivo ou câmera, com visualização e remoção.
+- Arquivo de receitas em PDF/DOCX por paciente, com exportação de cópia.
+- Backup criptografado inclui anexos e continua lendo os registros de versões anteriores.
+
+## 0.6.0 — 2026-11-08
+
+- Visão mensal da agenda com contagem de consultas ativas e acesso à lista diária.
+- A ação Voltar confirma antes de descartar alterações no prontuário.
+- A evolução recém-salva é incorporada ao histórico sem uma segunda leitura do armazenamento.
+- CI usa o pacote do SDK Android 37.0 e uma ação de instalação sem a dependência legada `tools`.
+
 ## 0.5.0 — 2026-11-07
 
 - Prontuário do paciente com ficha clínica, anamnese, diagnóstico, conduta, observações e histórico de consultas.

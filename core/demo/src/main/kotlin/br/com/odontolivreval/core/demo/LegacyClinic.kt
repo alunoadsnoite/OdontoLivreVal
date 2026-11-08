@@ -24,6 +24,6 @@ internal object LegacyClinic {
                 }
             }
         }
-        ClinicSnapshot(patients, appointments)
+        ClinicSnapshot(patients, appointments.withLegacyDurations())
     }
 }

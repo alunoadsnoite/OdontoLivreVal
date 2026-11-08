@@ -13,10 +13,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.model.ThemeMode
 
 @Composable
-fun SettingsScreen(state: SettingsState, onTheme: (ThemeMode) -> Unit, onAbout: () -> Unit) {
+fun SettingsScreen(store: ClinicStore, state: SettingsState, onTheme: (ThemeMode) -> Unit, onAbout: () -> Unit, onProfile: () -> Unit = {}) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(R.string.appearance), style = MaterialTheme.typography.headlineSmall)
         Column(Modifier.selectableGroup()) {
@@ -34,6 +35,7 @@ fun SettingsScreen(state: SettingsState, onTheme: (ThemeMode) -> Unit, onAbout: 
             }
         }
         if (state.writeFailed) Text(stringResource(R.string.save_failed), color = MaterialTheme.colorScheme.error)
+        OutlinedButton(onClick = onProfile) { Text(stringResource(R.string.profile_title)) }
         OutlinedButton(onClick = onAbout) { Text(stringResource(R.string.about)) }
         Text(stringResource(R.string.contact_title), style = MaterialTheme.typography.titleMedium)
         val context = LocalContext.current

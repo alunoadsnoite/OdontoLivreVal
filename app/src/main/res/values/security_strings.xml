@@ -1,6 +1,6 @@
 <resources>
     <string name="security_title">Segurança e backup</string>
-    <string name="security_storage">Os dados de teste são criptografados no aparelho. Os registros antigos são migrados ao abrir Pacientes ou Agenda.</string>
+    <string name="security_storage">Os dados são criptografados no aparelho. Os registros antigos são migrados ao abrir Pacientes ou Agenda.</string>
     <string name="security_setup">Configure um PIN, padrão ou senha no Android para usar o bloqueio.</string>
     <string name="security_enabled">Bloqueio ativo.</string>
     <string name="security_disabled">Bloqueio desativado.</string>

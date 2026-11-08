@@ -5,8 +5,8 @@ android {
  defaultConfig { minSdk = 26
 applicationId = "br.com.odontolivreval"
 targetSdk = 37
-versionCode = 5
-versionName = "0.5.0"
+versionCode = 10
+versionName = "0.10.0"
 testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
@@ -23,6 +23,7 @@ implementation(project(":feature:settings"))
 implementation(project(":feature:patients"))
 implementation(project(":core:demo"))
 implementation(project(":feature:schedule"))
+implementation(project(":feature:documents"))
 implementation(libs.activity.compose)
 implementation(libs.lifecycle.runtime)
 implementation(libs.lifecycle.viewmodel)

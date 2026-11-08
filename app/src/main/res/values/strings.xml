@@ -1,6 +1,25 @@
 <resources>
 <string name="app_name">OdontoLivreVal</string>
 <string name="home">Início</string><string name="patients">Pacientes</string><string name="schedule">Agenda</string><string name="settings">Configurações</string><string name="about">Sobre</string>
-<string name="welcome">Odontologia livre e offline</string><string name="intro">Aplicativo livre e gratuito, preparado para um único cirurgião-dentista por dispositivo. O cadastro de pacientes está disponível para testes com nomes fictícios.</string><string name="version">Versão %1$s</string><string name="license">Licença: GPL-3.0-or-later</string><string name="back">Voltar</string>
+<string name="welcome">Odontologia livre e offline</string><string name="intro">Aplicativo livre e gratuito, preparado para um único cirurgião-dentista por dispositivo. Gerencie o cadastro de pacientes e a agenda de consultas.</string><string name="version">Versão %1$s</string><string name="license">Licença: GPL-3.0-or-later</string><string name="back">Voltar</string>
 <string name="icon_attribution">Emoji do ícone adaptado de Twemoji (Twitter e colaboradores), CC BY 4.0.</string>
+<string name="odontogram_pdf_export">Exportar odontograma em PDF</string>
+<string name="odontogram_pdf_save_first">Salve a evolução para exportar o odontograma.</string>
+<string name="odontogram_pdf_privacy">O PDF fica fora do armazenamento criptografado do app. Escolha onde salvá-lo.</string>
+<string name="odontogram_pdf_working">Gerando PDF…</string>
+<string name="odontogram_pdf_saved">PDF salvo.</string>
+<string name="odontogram_pdf_failed">Não foi possível salvar o PDF.</string>
+<string name="home_upcoming_title">Próximas consultas</string>
+<string name="home_upcoming_loading">Carregando consultas…</string>
+<string name="home_upcoming_error">Não foi possível carregar as próximas consultas.</string>
+<string name="home_upcoming_retry">Tentar novamente</string>
+<string name="home_upcoming_empty">Nenhuma consulta agendada para os próximos 30 dias.</string>
+<string name="home_upcoming_entry">%1$s · %2$s · %3$s</string>
+<string name="home_upcoming_duration">%1$d min</string>
+<string name="home_upcoming_return">Retorno</string>
+<string name="home_upcoming_open">Abrir ficha do paciente</string>
+<string name="reminder_channel">Lembretes de consulta</string>
+<string name="reminder_channel_description">Avisos cerca de uma hora antes das consultas agendadas.</string>
+<string name="reminder_title">Consulta em breve</string>
+<string name="reminder_text">%1$s · %2$s</string>
 </resources>

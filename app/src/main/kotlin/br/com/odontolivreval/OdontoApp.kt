@@ -16,6 +16,7 @@ import androidx.navigation.compose.*
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.model.ThemeMode
+import br.com.odontolivreval.feature.documents.DocumentsScreen
 import br.com.odontolivreval.feature.patients.PatientRecordScreen
 import br.com.odontolivreval.feature.patients.PatientsScreen
 import br.com.odontolivreval.feature.schedule.ScheduleScreen
@@ -39,6 +40,9 @@ fun OdontoApp(
     onTheme: (ThemeMode) -> Unit,
     demoClinic: ClinicStore,
     backupRevision: Int,
+    exportOdontogram: @Composable (Long, Long?) -> Unit,
+    radiographs: @Composable (Long) -> Unit,
+    prescriptions: @Composable (Long) -> Unit,
     protection: @Composable () -> Unit,
 ) {
     val nav = rememberNavController()
@@ -74,11 +78,13 @@ fun OdontoApp(
         BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
             val wide = maxWidth >= 600.dp
             Column(Modifier.fillMaxSize()) {
-                // FlowRow wraps labels at large font scales and on narrow screens.
-                FlowRow(Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Destination.entries.forEach { destination ->
-                        FilterChip(selected = route == destination.name, onClick = { navigate(destination) },
-                            label = { Text(stringResource(destination.label)) })
+                if (route != "patient_record") {
+                    // FlowRow wraps labels at large font scales and on narrow screens.
+                    FlowRow(Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Destination.entries.forEach { destination ->
+                            FilterChip(selected = route == destination.name, onClick = { navigate(destination) },
+                                label = { Text(stringResource(destination.label)) })
+                        }
                     }
                 }
                 Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
@@ -92,6 +98,7 @@ fun OdontoApp(
                                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge)
                                 Text(stringResource(R.string.welcome), style = MaterialTheme.typography.titleLarge)
                                 Text(stringResource(R.string.intro))
+                                UpcomingAppointmentsPanel(demoClinic, ::openPatient)
                                 Destination.entries.filter { it != Destination.HOME }.forEach { destination ->
                                     OutlinedButton(onClick = { navigate(destination) }) { Text(stringResource(destination.label)) }
                                 }
@@ -109,10 +116,41 @@ fun OdontoApp(
                         }
                         composable(Destination.SETTINGS.name) {
                             ScreenContent {
-                                SettingsScreen(state, onTheme) { nav.navigate("about") { launchSingleTop = true } }
+                                SettingsScreen(
+                                    demoClinic,
+                                    state,
+                                    onTheme,
+                                    onAbout = { nav.navigate("about") { launchSingleTop = true } },
+                                    onProfile = { nav.navigate("profile") { launchSingleTop = true } },
+                                )
                                     OutlinedButton(onClick = { nav.navigate("protection") { launchSingleTop = true } }) {
                                         Text(stringResource(R.string.security_title))
                                     }
+                            }
+                        }
+                        composable("profile") {
+                            ScreenContent {
+                                ProfessionalProfileScreen(
+                                    store = demoClinic,
+                                    onClose = { nav.popBackStack() },
+                                )
+                            }
+                        }
+                        composable("documents") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    DocumentsScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        onClose = { nav.popBackStack() },
+                                        onOpenProfile = { nav.navigate("profile") { launchSingleTop = true } },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
                             }
                         }
                         composable("protection") {
@@ -140,6 +178,10 @@ fun OdontoApp(
                                     PatientRecordScreen(
                                         store = demoClinic,
                                         patient = patient,
+                                        radiographs = { radiographs(patient.id) },
+                                        prescriptions = { prescriptions(patient.id) },
+                                        exportOdontogram = { exportOdontogram(patient.id, it) },
+                                        onDocuments = { nav.navigate("documents") { launchSingleTop = true } },
                                         onClose = { selectedPatient = null; nav.popBackStack() },
                                     )
                                 } else {

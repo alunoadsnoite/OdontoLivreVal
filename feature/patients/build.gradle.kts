@@ -17,6 +17,7 @@ android {
 dependencies {
     implementation(project(":core:demo"))
     implementation(platform(libs.compose.bom))
+    implementation(libs.activity.compose)
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.lifecycle.viewmodel)

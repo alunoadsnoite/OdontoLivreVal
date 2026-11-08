@@ -24,7 +24,7 @@ O odontograma usa o esquema FDI permanente (11–18, 21–28, 31–38, 41–48).
 
 ## Persistência e segurança
 
-A persistência de demonstração é um único arquivo JSON criptografado com AES-256-GCM. Não use o arquivo de demonstração para dados clínicos reais: o volume cresce com o prontuário e não há migração de banco. Room foi adiado até a definição do banco criptografado e das migrações. O backup usa PBKDF2-HMAC-SHA256, sal aleatório e 600 mil iterações; o formato 2 grava a versão e as iterações no cabeçalho, e a leitura do formato 1 continua disponível. Consulte [SECURITY_DECISIONS.md](SECURITY_DECISIONS.md).
+O índice, os registros e os metadados de anexos ficam em um arquivo JSON criptografado. Cada radiografia e receita tem um arquivo AES-256-GCM independente no diretório privado excluído de backup automático. Os arquivos são escritos antes da publicação do índice. A limpeza remove arquivos sem referência após ler ou gravar o índice vigente. Room foi adiado até a definição do banco clínico criptografado e das migrações. O backup em formato 3 usa PBKDF2-HMAC-SHA256 e quadros autenticados em ordem, com leitura dos formatos 1 e 2 preservada. Consulte [SECURITY_DECISIONS.md](SECURITY_DECISIONS.md).
 
 ## Convenções
 

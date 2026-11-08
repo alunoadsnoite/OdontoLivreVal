@@ -11,12 +11,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,11 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
+import br.com.odontolivreval.core.demo.maxAppointmentMinutes
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -51,7 +58,8 @@ fun ScheduleScreen(
     val state by model.state.collectAsStateWithLifecycle()
     var pickingDay by rememberSaveable { mutableStateOf(false) }
     var confirmCancel by rememberSaveable { mutableStateOf<Long?>(null) }
-    LaunchedEffect(model) { model.showDay() }
+    LaunchedEffect(model) { model.refresh() }
+    val month = state.month
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -63,6 +71,16 @@ fun ScheduleScreen(
         }
         item { Text(stringResource(R.string.schedule_demo_notice)) }
         item {
+            OutlinedButton(
+                onClick = { if (month == null) model.showMonth() else model.showDay() },
+                enabled = !state.writing,
+            ) {
+                Text(stringResource(if (month == null) R.string.schedule_month_view else R.string.schedule_day_view))
+            }
+        }
+        if (month != null) {
+            item { MonthNavigation(month, model::showMonth) }
+        } else item {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { model.showDay(state.day.minusDays(1)) }, enabled = !state.writing) {
                     Text(stringResource(R.string.schedule_previous))
@@ -80,7 +98,11 @@ fun ScheduleScreen(
             state.loading -> item { Text(stringResource(R.string.schedule_loading)) }
             state.error == ScheduleError.LOAD -> item {
                 ScheduleErrorText(R.string.schedule_load_error)
-                TextButton(onClick = { model.showDay() }) { Text(stringResource(R.string.schedule_retry)) }
+                TextButton(onClick = model::refresh) { Text(stringResource(R.string.schedule_retry)) }
+            }
+            month != null -> item {
+                Text(stringResource(R.string.schedule_month_hint), Modifier.padding(bottom = 8.dp))
+                MonthCalendar(month, state.day, state.activeCounts, model::showDay)
             }
             else -> {
                 if (state.error == ScheduleError.CANCEL) {
@@ -101,10 +123,17 @@ fun ScheduleScreen(
                 }
                 items(state.appointments, key = { it.id }) { appointment ->
                     Column {
+                        val end = appointment.time.plusMinutes(appointment.durationMinutes.toLong())
                         Text(
-                            stringResource(R.string.schedule_entry, appointment.time.format(timeFormat), appointment.patientName),
+                            stringResource(
+                                R.string.schedule_entry,
+                                appointment.time.format(timeFormat),
+                                if (end == LocalTime.MIDNIGHT) "24:00" else end.format(timeFormat),
+                                appointment.patientName,
+                            ),
                             style = MaterialTheme.typography.titleMedium,
                         )
+                        if (appointment.returnOfId != null) Text(stringResource(R.string.schedule_return_label))
                         if (appointment.cancelled) {
                             Text(stringResource(R.string.schedule_cancelled))
                         } else {
@@ -112,6 +141,10 @@ fun ScheduleScreen(
                                 TextButton(onClick = { model.open(appointment) }, enabled = !state.writing) {
                                     Text(stringResource(R.string.schedule_edit))
                                 }
+                                TextButton(
+                                    onClick = { model.open(appointment, asReturn = true) },
+                                    enabled = !state.writing,
+                                ) { Text(stringResource(R.string.schedule_book_return)) }
                                 val patient = state.patients.firstOrNull { it.id == appointment.patientId }
                                 TextButton(
                                     onClick = { patient?.let(onPatientClick) },
@@ -184,11 +217,25 @@ private fun AppointmentDialog(state: ScheduleState, model: ScheduleViewModel) {
     }
     AlertDialog(
         onDismissRequest = model::close,
-        title = { Text(stringResource(if (form.id == null) R.string.schedule_new else R.string.schedule_edit)) },
+        title = {
+            val title = when {
+                form.id != null -> R.string.schedule_edit
+                form.returnOfId != null -> R.string.schedule_book_return
+                else -> R.string.schedule_new
+            }
+            Text(stringResource(title))
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { choosingPatient = true }, enabled = !state.writing) {
-                    Text(selectedPatient?.name ?: stringResource(R.string.schedule_choose_patient))
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (form.returnOfId == null) {
+                    OutlinedButton(onClick = { choosingPatient = true }, enabled = !state.writing) {
+                        Text(selectedPatient?.name ?: stringResource(R.string.schedule_choose_patient))
+                    }
+                } else {
+                    Text(selectedPatient?.name.orEmpty())
                 }
                 OutlinedButton(
                     onClick = { pickingDate = true },
@@ -198,9 +245,25 @@ private fun AppointmentDialog(state: ScheduleState, model: ScheduleViewModel) {
                     onClick = { pickingTime = true },
                     enabled = !state.writing,
                 ) { Text(stringResource(R.string.schedule_time, form.time.format(timeFormat))) }
+                OutlinedTextField(
+                    value = form.duration,
+                    onValueChange = { value ->
+                        model.changeForm(form.copy(duration = value.filter { it in '0'..'9' }.take(3)))
+                    },
+                    label = { Text(stringResource(R.string.schedule_duration)) },
+                    supportingText = { Text(stringResource(R.string.schedule_duration_hint, maxAppointmentMinutes)) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    enabled = !state.writing,
+                    isError = state.error == ScheduleError.INVALID_DURATION,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 when (state.error) {
                     ScheduleError.OCCUPIED -> ScheduleErrorText(R.string.schedule_occupied)
                     ScheduleError.SAVE -> ScheduleErrorText(R.string.schedule_save_error)
+                    ScheduleError.INVALID_DURATION -> ScheduleErrorText(R.string.schedule_invalid_duration)
+                    ScheduleError.RETURN_BEFORE_SOURCE -> ScheduleErrorText(R.string.schedule_return_before_source)
+                    ScheduleError.RETURN_PATIENT_MISMATCH -> ScheduleErrorText(R.string.schedule_return_patient_mismatch)
                     else -> Unit
                 }
             }

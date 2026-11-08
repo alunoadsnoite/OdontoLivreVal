@@ -16,10 +16,10 @@ internal object ProtectedPayload {
     private const val localHeader = "ODL-LOC1"
     private const val backupV1Header = "ODL-BKP1"
     private const val backupV2Header = "ODL-BKP2"
-    private const val saltSize = 16
+    const val saltSize = 16
     private const val ivSize = 12
     private const val tagBits = 128
-    private const val iterations = 600_000
+    const val iterations = 600_000
     private const val minIterations = 100_000
     private const val maxIterations = 10_000_000
     private const val iterationsSize = Int.SIZE_BYTES
@@ -64,18 +64,18 @@ internal object ProtectedPayload {
         val headerSize = saltStart + saltSize
         if (data.size < headerSize + ivSize + tagBits / 8) throw IOException("Invalid backup")
         val storedIterations = ByteBuffer.wrap(data, iterationsStart, iterationsSize).int
-        if (storedIterations !in minIterations..maxIterations) throw IOException("Unsupported backup cost")
         val salt = data.copyOfRange(saltStart, headerSize)
         val header = data.copyOfRange(0, headerSize)
         return withBackupKey(password, salt, storedIterations) { key -> decrypt(data, key, header) }
     }
 
-    private fun withBackupKey(
+    fun <T> withBackupKey(
         password: CharArray,
         salt: ByteArray,
         iterations: Int,
-        block: (SecretKey) -> ByteArray,
-    ): ByteArray {
+        block: (SecretKey) -> T,
+    ): T {
+        if (iterations !in minIterations..maxIterations) throw IOException("Unsupported backup cost")
         val spec = PBEKeySpec(password, salt, iterations, 256)
         try {
             val bytes = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).encoded
@@ -89,8 +89,14 @@ internal object ProtectedPayload {
         }
     }
 
-    private fun encrypt(data: ByteArray, key: SecretKey, header: ByteArray): ByteArray {
-        if (data.size > maxDataSize) throw IOException("Snapshot is too large")
+    fun encryptAttachment(data: ByteArray, key: SecretKey, token: String): ByteArray =
+        encrypt(data, key, "ODL-ATT1$token".encodeToByteArray(), maxAttachmentBytes)
+
+    fun decryptAttachment(data: ByteArray, key: SecretKey, token: String): ByteArray =
+        decrypt(data, key, "ODL-ATT1$token".encodeToByteArray(), maxAttachmentBytes)
+
+    fun encrypt(data: ByteArray, key: SecretKey, header: ByteArray, limit: Int = maxDataSize): ByteArray {
+        if (data.size > limit) throw IOException("Snapshot is too large")
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, key)
         val iv = cipher.iv
@@ -99,9 +105,9 @@ internal object ProtectedPayload {
         return header + iv + cipher.doFinal(data)
     }
 
-    private fun decrypt(data: ByteArray, key: SecretKey, header: ByteArray): ByteArray {
+    fun decrypt(data: ByteArray, key: SecretKey, header: ByteArray, limit: Int = maxDataSize): ByteArray {
         val start = header.size + ivSize
-        if (data.size !in (start + tagBits / 8)..(start + tagBits / 8 + maxDataSize) ||
+        if (data.size !in (start + tagBits / 8)..(start + tagBits / 8 + limit) ||
             !data.copyOfRange(0, header.size).contentEquals(header)
         ) throw IOException("Invalid encrypted snapshot")
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
@@ -114,13 +120,15 @@ internal object ProtectedPayload {
         size >= prefix.size && copyOfRange(0, prefix.size).contentEquals(prefix)
 }
 
-internal fun InputStream.readClinicFile(): ByteArray {
+internal fun InputStream.readClinicFile(): ByteArray = readBounded(ProtectedPayload.maxFileSize)
+
+internal fun InputStream.readBounded(limit: Int): ByteArray {
     val output = ByteArrayOutputStream()
     val buffer = ByteArray(8192)
     while (true) {
         val count = read(buffer)
         if (count < 0) return output.toByteArray()
-        if (output.size() + count > ProtectedPayload.maxFileSize) throw IOException("File exceeds size limit")
+        if (output.size() + count > limit) throw IOException("File exceeds size limit")
         output.write(buffer, 0, count)
     }
 }

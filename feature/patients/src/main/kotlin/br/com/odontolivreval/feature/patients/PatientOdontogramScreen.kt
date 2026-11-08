@@ -15,19 +15,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -35,12 +37,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val upperRight = 11..18
-private val upperLeft = 21..28
-private val lowerRight = 31..38
-private val lowerLeft = 41..48
-
-private data class ToothStatus(
+internal data class ToothStatus(
     val code: String,
     val label: Int,
     val color: @Composable () -> Color,
@@ -51,7 +48,8 @@ fun PatientOdontogramScreen(
     odontogram: Map<String, String> = emptyMap(),
     onOdontogramChange: (Map<String, String>) -> Unit = { },
 ) {
-    var editingTooth by remember { mutableStateOf<Int?>(null) }
+    var dentition by rememberSaveable { mutableStateOf(Dentition.PERMANENT) }
+    var editingTooth by rememberSaveable { mutableStateOf<Int?>(null) }
 
     Column(
         modifier = Modifier.padding(vertical = 8.dp),
@@ -67,34 +65,24 @@ fun PatientOdontogramScreen(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = stringResource(R.string.odontogram_xray),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(R.string.odontogram_xray_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Dentition.entries.forEach { option ->
+                FilterChip(
+                    selected = dentition == option,
+                    onClick = { dentition = option },
+                    label = { Text(stringResource(option.label)) },
                 )
             }
         }
-
         ToothRow(
             label = stringResource(R.string.odontogram_upper),
-            groups = listOf(upperRight, upperLeft),
+            groups = dentition.upper,
             odontogram = odontogram,
             onEdit = { editingTooth = it },
         )
         ToothRow(
             label = stringResource(R.string.odontogram_lower),
-            groups = listOf(lowerRight, lowerLeft),
+            groups = dentition.lower,
             odontogram = odontogram,
             onEdit = { editingTooth = it },
         )
@@ -123,46 +111,67 @@ fun PatientOdontogramScreen(
     }
 
     editingTooth?.let { tooth ->
-        val current = odontogram[tooth.toString()].orEmpty()
-        AlertDialog(
-            onDismissRequest = { editingTooth = null },
-            title = { Text(stringResource(R.string.odontogram_change_title, tooth.toString())) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    statuses.forEach { status ->
-                        TextButton(
-                            onClick = {
-                                val updated = if (status.code.isEmpty()) {
-                                    odontogram - tooth.toString()
-                                } else {
-                                    odontogram + (tooth.toString() to status.code)
-                                }
-                                onOdontogramChange(updated)
-                                editingTooth = null
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                text = stringResource(status.label) +
-                                    if (status.code == current) " ✓" else "",
-                            )
-                        }
+        ToothEditor(tooth, odontogram, onOdontogramChange) { editingTooth = null }
+    }
+}
+
+@Composable
+private fun ToothEditor(
+    tooth: Int,
+    odontogram: Map<String, String>,
+    onChange: (Map<String, String>) -> Unit,
+    onClose: () -> Unit,
+) {
+    var surface by rememberSaveable(tooth) { mutableStateOf<ToothSurface?>(null) }
+    val key = toothKey(tooth, surface)
+    val current = odontogram[key].orEmpty()
+    val options = if (surface == null) statuses else surfaceStatuses
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(stringResource(R.string.odontogram_change_title, tooth.toString())) },
+        text = {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(
+                        selected = surface == null,
+                        onClick = { surface = null },
+                        label = { Text(stringResource(R.string.odontogram_whole)) },
+                    )
+                    surfacesFor(tooth).forEach { option ->
+                        val label = stringResource(option.label)
+                        FilterChip(
+                            selected = surface == option,
+                            onClick = { surface = option },
+                            label = { Text(if (toothKey(tooth, option) in odontogram) "$label •" else label) },
+                        )
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { editingTooth = null }) {
-                    Text(stringResource(R.string.demo_patients_cancel))
+                options.forEach { status ->
+                    TextButton(
+                        onClick = {
+                            onChange(if (status.code.isEmpty()) odontogram - key else odontogram + (key to status.code))
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        val label = stringResource(status.label)
+                        Text(if (status.code == current) "$label ✓" else label)
+                    }
                 }
-            },
-        )
-    }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onClose) { Text(stringResource(R.string.odontogram_done)) }
+        },
+    )
 }
 
 @Composable
 private fun ToothRow(
     label: String,
-    groups: List<IntRange>,
+    groups: List<IntProgression>,
     odontogram: Map<String, String>,
     onEdit: (Int) -> Unit,
 ) {
@@ -187,7 +196,8 @@ private fun ToothRow(
                 range.forEach { number ->
                     ToothBox(
                         number = number,
-                        status = odontogram[number.toString()].orEmpty(),
+                        status = odontogram[toothKey(number)].orEmpty(),
+                        surfaceCount = surfacesFor(number).count { toothKey(number, it) in odontogram },
                         onClick = { onEdit(number) },
                     )
                 }
@@ -200,10 +210,15 @@ private fun ToothRow(
 private fun ToothBox(
     number: Int,
     status: String,
+    surfaceCount: Int,
     onClick: () -> Unit,
 ) {
     val definition = statuses.firstOrNull { it.code == status } ?: statuses.first()
-    val color = definition.color()
+    val color = if (status.isEmpty() && surfaceCount > 0) {
+        MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        definition.color()
+    }
     val contentColor = when (status) {
         "C" -> MaterialTheme.colorScheme.onError
         "R" -> MaterialTheme.colorScheme.onPrimary
@@ -211,16 +226,19 @@ private fun ToothBox(
         "I" -> MaterialTheme.colorScheme.onTertiary
         else -> MaterialTheme.colorScheme.onSurface
     }
-    val description = stringResource(
-        R.string.odontogram_tooth_description,
-        number.toString(),
-        stringResource(definition.label),
-    )
+    val surfaceLabel = pluralStringResource(R.plurals.odontogram_surface_count, surfaceCount, surfaceCount)
+    val statusLabel = stringResource(definition.label)
+    val summary = when {
+        surfaceCount == 0 -> statusLabel
+        status.isEmpty() -> surfaceLabel
+        else -> "$statusLabel. $surfaceLabel"
+    }
+    val accessibleLabel = stringResource(R.string.odontogram_tooth_description, number.toString(), summary)
     Column(
         modifier = Modifier
             .size(46.dp, 60.dp)
             .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
+            .semantics { contentDescription = accessibleLabel },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
@@ -238,7 +256,11 @@ private fun ToothBox(
             )
         }
         Text(
-            text = if (status.isEmpty()) "" else stringResource(definition.label),
+            text = when {
+                surfaceCount > 0 -> pluralStringResource(R.plurals.odontogram_surface_count_short, surfaceCount, surfaceCount)
+                status.isNotEmpty() -> stringResource(definition.label)
+                else -> ""
+            },
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
@@ -246,10 +268,13 @@ private fun ToothBox(
     }
 }
 
-private val statuses = listOf(
+internal val statuses = listOf(
     ToothStatus("", R.string.odontogram_status_none) { MaterialTheme.colorScheme.surface },
     ToothStatus("C", R.string.odontogram_status_caries) { MaterialTheme.colorScheme.error },
+    ToothStatus("E", R.string.odontogram_status_canal) { MaterialTheme.colorScheme.primaryContainer },
     ToothStatus("R", R.string.odontogram_status_restoration) { MaterialTheme.colorScheme.primary },
     ToothStatus("X", R.string.odontogram_status_missing) { MaterialTheme.colorScheme.secondary },
     ToothStatus("I", R.string.odontogram_status_implant) { MaterialTheme.colorScheme.tertiary },
 )
+
+private val surfaceStatuses = statuses.filter { it.code in setOf("", "C", "R") }
