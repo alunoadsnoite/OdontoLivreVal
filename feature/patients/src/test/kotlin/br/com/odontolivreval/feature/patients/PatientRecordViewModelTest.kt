@@ -18,6 +18,7 @@ import org.junit.Test
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class PatientRecordViewModelTest {
     private val patient = DemoPatient(1, "Ana")
+    private val testScheduler = StandardTestDispatcher()
 
     @Test
     fun loadsNewestVisitAsActiveAndSavesChanges() = runTest {

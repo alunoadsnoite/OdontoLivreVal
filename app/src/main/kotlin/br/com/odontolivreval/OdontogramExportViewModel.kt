@@ -50,4 +50,9 @@ internal class OdontogramExportViewModel : ViewModel() {
             }
         }
     }
+
+    /** Limpa dados de exportação de odontograma da memória quando o app vai para segundo plano. */
+    fun clear() {
+        mutableState.value = null
+    }
 }

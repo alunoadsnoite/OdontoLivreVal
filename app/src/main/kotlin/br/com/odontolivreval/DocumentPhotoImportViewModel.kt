@@ -39,4 +39,12 @@ internal class DocumentPhotoImportViewModel : ViewModel() {
             }
         }
     }
+
+    /** Limpa dados de importação de foto de documento da memória quando o app vai para segundo plano. */
+    fun clear() {
+        mutableState.value = mutableState.value.copy(
+            busy = false,
+            failedPatient = null,
+        )
+    }
 }

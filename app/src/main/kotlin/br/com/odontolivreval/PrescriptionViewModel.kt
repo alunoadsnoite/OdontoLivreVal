@@ -43,4 +43,15 @@ internal class PrescriptionViewModel : ViewModel() {
             }
         }
     }
+
+    /** Limpa dados de prescrição da memória quando o app vai para segundo plano. */
+    fun clear() {
+        mutableState.value = state.value.copy(
+            patientId = null,
+            busy = false,
+            failed = false,
+            copied = false,
+            archivedDocument = false,
+        )
+    }
 }

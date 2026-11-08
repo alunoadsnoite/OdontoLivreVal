@@ -20,12 +20,12 @@ internal data class HomeState(
 )
 
 internal class HomeViewModel(private val store: ClinicStore) : ViewModel() {
-    private val mutableState = MutableStateFlow(HomeState())
-    val state = mutableState.asStateFlow()
-
     init {
         load()
     }
+
+    private val mutableState = MutableStateFlow(HomeState())
+    val state = mutableState.asStateFlow()
 
     fun load() {
         mutableState.update { it.copy(loading = true, failed = false) }
@@ -38,6 +38,11 @@ internal class HomeViewModel(private val store: ClinicStore) : ViewModel() {
                 mutableState.update { it.copy(loading = false, failed = true) }
             }
         }
+    }
+
+    /** Limpa dados de próximas consultas da memória quando o app vai para segundo plano. */
+    fun clear() {
+        mutableState.update { it.copy(upcoming = emptyList()) }
     }
 
     companion object {

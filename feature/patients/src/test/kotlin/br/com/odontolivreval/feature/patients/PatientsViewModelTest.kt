@@ -17,6 +17,7 @@ import org.junit.Test
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class PatientsViewModelTest {
+    private val testScheduler = StandardTestDispatcher()
     @Test
     fun loadsSavesAndDeletesOnlyAfterConfirmation() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))

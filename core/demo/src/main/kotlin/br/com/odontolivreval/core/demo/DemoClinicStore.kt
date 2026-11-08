@@ -13,6 +13,7 @@ import android.util.AtomicFile
 import android.util.Base64
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.security.GeneralSecurityException
@@ -217,16 +218,51 @@ class DemoClinicStore(context: Context) : ClinicStore {
     override suspend fun deletePatient(id: Long) = access {
         val snapshot = load()
         if (snapshot.patients.none { it.id == id }) throw IOException("Patient missing")
-        persist(snapshot.copy(
-            patients = snapshot.patients.filterNot { it.id == id },
-            appointments = snapshot.appointments.filter { it.patientId != id },
-            patientRecords = snapshot.patientRecords.filterNot { it.patientId == id },
-            visits = snapshot.visits.filterNot { it.patientId == id },
-            radiographs = snapshot.radiographs.filterNot { it.file.patientId == id },
-            prescriptions = snapshot.prescriptions.filterNot { it.file.patientId == id },
-            documentPhotos = snapshot.documentPhotos.filterNot { it.file.patientId == id },
-            digitalSignatures = snapshot.digitalSignatures.filterNot { it.file.patientId == id },
-        ))
+        // Backup automático antes de operação destrutiva para permitir recuperação
+        val backupFile = autoBackup()
+        try {
+            persist(snapshot.copy(
+                patients = snapshot.patients.filterNot { it.id == id },
+                appointments = snapshot.appointments.filter { it.patientId != id },
+                patientRecords = snapshot.patientRecords.filterNot { it.patientId == id },
+                visits = snapshot.visits.filterNot { it.patientId == id },
+                radiographs = snapshot.radiographs.filterNot { it.file.patientId == id },
+                prescriptions = snapshot.prescriptions.filterNot { it.file.patientId == id },
+                documentPhotos = snapshot.documentPhotos.filterNot { it.file.patientId == id },
+                digitalSignatures = snapshot.digitalSignatures.filterNot { it.file.patientId == id },
+            ))
+        } catch (error: Exception) {
+            backupFile.deleteRecursively()
+            throw error
+        }
+        backupFile.deleteRecursively()
+        Unit
+    }
+
+    private fun autoBackup(): File {
+        val directory = app.cacheDir.resolve("auto-backup")
+        if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Cannot create auto-backup directory")
+        val file = File(directory, "auto-backup-${System.currentTimeMillis()}.odl")
+        val output = app.contentResolver.openOutputStream(Uri.fromFile(file), "wt") ?: throw IOException("Cannot open auto-backup")
+        output.use {
+            BackupArchive.write(it, "auto-backup-temporary".toCharArray()) { writer ->
+                val plaintext = load().encode()
+                try {
+                    writer.frame(plaintext, ProtectedPayload.maxDataSize)
+                } finally {
+                    plaintext.fill(0)
+                }
+                load().attachments().forEach { attachment ->
+                    val bytes = readAttachment(attachment)
+                    try {
+                        writer.frame(bytes, maxAttachmentBytes)
+                    } finally {
+                        bytes.fill(0)
+                    }
+                }
+            }
+        }
+        return file
     }
 
     override suspend fun listVisits(patientId: Long): List<VisitRecord> = access {
@@ -442,32 +478,41 @@ class DemoClinicStore(context: Context) : ClinicStore {
 
     override suspend fun restoreBackup(uri: Uri, password: CharArray) = access {
         if (password.size !in 1..128) throw IOException("Invalid backup password length")
-        val input = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open backup")
-        val snapshot = stageAttachments { staged ->
-            BufferedInputStream(input).use { stream ->
-                if (BackupArchive.matches(stream)) {
-                    BackupArchive.read(stream, password) { reader ->
-                        decodeSnapshot(reader.frame(ProtectedPayload.maxDataSize)).mapAttachments { content ->
-                            val reference = content as? AttachmentRef ?: throw IOException("Invalid backup index")
-                            val bytes = reader.frame(reference.size)
-                            try {
-                                if (bytes.size != reference.size) throw IOException("Invalid backup attachment size")
-                                writeAttachment(bytes).also(staged::add)
-                            } finally {
-                                bytes.fill(0)
+        // Backup automático antes de restauração para permitir recuperação em caso de falha
+        val backupFile = autoBackup()
+        try {
+            val input = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open backup")
+            val snapshot = stageAttachments { staged ->
+                BufferedInputStream(input).use { stream ->
+                    if (BackupArchive.matches(stream)) {
+                        BackupArchive.read(stream, password) { reader ->
+                            decodeSnapshot(reader.frame(ProtectedPayload.maxDataSize)).mapAttachments { content ->
+                                val reference = content as? AttachmentRef ?: throw IOException("Invalid backup index")
+                                val bytes = reader.frame(reference.size)
+                                try {
+                                    if (bytes.size != reference.size) throw IOException("Invalid backup attachment size")
+                                    writeAttachment(bytes).also(staged::add)
+                                } finally {
+                                    bytes.fill(0)
+                                }
                             }
                         }
+                    } else {
+                        migrateAttachments(
+                            decodeSnapshot(ProtectedPayload.decryptBackup(stream.readClinicFile(), password)),
+                            staged,
+                        )
                     }
-                } else {
-                    migrateAttachments(
-                        decodeSnapshot(ProtectedPayload.decryptBackup(stream.readClinicFile(), password)),
-                        staged,
-                    )
                 }
             }
+            persist(snapshot)
+            removeLegacy()
+            backupFile.deleteRecursively()
+        } catch (error: Exception) {
+            backupFile.deleteRecursively()
+            throw error
         }
-        persist(snapshot)
-        removeLegacy()
+        Unit
     }
 
     private fun decodeSnapshot(bytes: ByteArray): ClinicSnapshot = try {
@@ -563,6 +608,17 @@ class DemoClinicStore(context: Context) : ClinicStore {
             throw IOException("Snapshot commit could not be verified")
         }
         cleanAttachments(snapshot)
+        compactSnapshotIfNeeded()
+    }
+
+    private fun compactSnapshotIfNeeded() {
+        val file = snapshotFile.baseFile
+        if (!file.exists()) return
+        val size = file.length()
+        if (size > maxSnapshotSize) {
+            val snapshot = load()
+            persist(snapshot)
+        }
     }
 
     private fun removeLegacy() {
@@ -603,6 +659,7 @@ class DemoClinicStore(context: Context) : ClinicStore {
 
     private companion object {
         const val MAX_UPCOMING_DAYS = 366
+        const val maxSnapshotSize = 4 * 1024 * 1024 // 4 MiB: compacta o snapshot quando excede este limite
     }
 
     private fun replaceRecord(snapshot: ClinicSnapshot, record: PatientRecord): List<PatientRecord> =

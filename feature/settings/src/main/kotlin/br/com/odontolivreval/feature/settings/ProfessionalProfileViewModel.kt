@@ -67,6 +67,15 @@ internal class ProfessionalProfileViewModel(private val store: ClinicStore) : Vi
         }
     }
 
+    /** Limpa dados do perfil profissional da memória quando o app vai para segundo plano. */
+    fun clear() {
+        mutableState.update { it.copy(
+            profile = ProfessionalProfile(),
+            saved = false,
+            error = null,
+        )}
+    }
+
     companion object {
         fun factory(store: ClinicStore) = viewModelFactory {
             initializer { ProfessionalProfileViewModel(store) }

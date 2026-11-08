@@ -34,14 +34,14 @@ internal class DocumentsViewModel(
     private val store: ClinicStore,
     private val patientId: Long,
 ) : ViewModel() {
+    init {
+        load()
+    }
+
     private val mutableState = MutableStateFlow(DocumentsState())
     val state = mutableState.asStateFlow()
 
     private var loadJob: Job? = null
-
-    init {
-        load()
-    }
 
     fun load() {
         loadJob?.cancel()
@@ -90,6 +90,15 @@ internal class DocumentsViewModel(
 
     fun markShared() {
         mutableState.update { it.copy(shared = true) }
+    }
+
+    /** Limpa dados de documentos da memória quando o app vai para segundo plano. */
+    fun clear() {
+        mutableState.update { it.copy(
+            record = null,
+            contents = emptyMap(),
+            shared = false,
+        )}
     }
 
     companion object {

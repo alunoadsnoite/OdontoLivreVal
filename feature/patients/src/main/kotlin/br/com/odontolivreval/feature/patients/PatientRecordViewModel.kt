@@ -30,6 +30,9 @@ internal class PatientRecordViewModel(
     private val store: ClinicStore,
     private val patient: DemoPatient,
 ) : ViewModel() {
+    init {
+        load()
+    }
 
     private val mutableState = MutableStateFlow(PatientRecordState())
     val state = mutableState.asStateFlow()
@@ -52,10 +55,6 @@ internal class PatientRecordViewModel(
         val birthDateError: Boolean = false,
         val phoneError: Boolean = false,
     )
-
-    init {
-        load()
-    }
 
     fun retry() {
         if (state.value.loadFailed) load()
@@ -202,6 +201,24 @@ internal class PatientRecordViewModel(
                 mutableState.update { it.copy(saving = false, saveFailed = true) }
             }
         }
+    }
+
+    /** Limpa dados sensíveis do prontuário da memória quando o app vai para segundo plano. */
+    fun clear() {
+        mutableState.update { it.copy(
+            record = PatientRecord(id = 0, patientId = 0),
+            visits = emptyList(),
+            activeVisitId = null,
+            visitDay = null,
+            visitMinute = null,
+            diagnosis = "",
+            conduct = "",
+            odontogram = emptyMap(),
+            dirty = false,
+            saved = false,
+            birthDateError = false,
+            phoneError = false,
+        )}
     }
 
     companion object {

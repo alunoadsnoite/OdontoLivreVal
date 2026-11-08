@@ -14,6 +14,14 @@
 - Retornos vinculados à consulta original e ao mesmo paciente.
 - Agendamentos antigos preservam o início e recebem até 30 minutos sem criar sobreposição.
 
+### Em desenvolvimento (próxima versão)
+
+- Backup automático antes de exclusão de paciente e restauração de backup
+- Compactação automática do snapshot criptografado quando excede 4 MiB
+- Limpeza de dados sensíveis dos ViewModels quando o app vai para segundo plano
+- Validação de complexidade de senha de backup (12+ caracteres, maiúscula, número, símbolo)
+- Opção de criptografar PDF antes de compartilhar (AES-128-CBC com PBKDF2)
+
 ## 0.9.0 — 2026-11-08
 
 - Radiografias e receitas passam a ser guardadas em arquivos criptografados independentes, com migração automática dos anexos existentes.

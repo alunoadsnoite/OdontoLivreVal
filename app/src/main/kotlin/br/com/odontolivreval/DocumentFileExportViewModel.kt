@@ -55,4 +55,10 @@ internal class DocumentFileExportViewModel : ViewModel() {
             mutableState.value = DocumentFileExport(patientId, result)
         }
     }
+
+    /** Limpa dados de exportação de documento da memória quando o app vai para segundo plano. */
+    fun clear() {
+        pending = null
+        mutableState.value = null
+    }
 }

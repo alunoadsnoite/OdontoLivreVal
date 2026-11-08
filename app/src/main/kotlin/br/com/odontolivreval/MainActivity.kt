@@ -46,6 +46,7 @@ import br.com.odontolivreval.feature.documents.DocumentPdfRequest
 import br.com.odontolivreval.feature.patients.PatientPrescriptions
 import br.com.odontolivreval.feature.patients.PatientRadiographs
 import br.com.odontolivreval.feature.settings.SettingsViewModel
+import br.com.odontolivreval.core.demo.ClearingManager
 import java.io.IOException
 
 class MainActivity : ComponentActivity() {
@@ -398,12 +399,14 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         lock.lock()
         cleanupPendingCaptureFiles()
+        ClearingManager.clearAll()
         super.onStop()
     }
 
     override fun onDestroy() {
         lock.dispose()
         cleanupPendingCaptureFiles()
+        ClearingManager.clearAll()
         super.onDestroy()
     }
 

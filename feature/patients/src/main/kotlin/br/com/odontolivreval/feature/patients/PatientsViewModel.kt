@@ -119,6 +119,15 @@ internal class PatientsViewModel(private val store: ClinicStore) : ViewModel() {
         mutableState.update { it.copy(deleteTarget = null, deleteFailed = false) }
     }
 
+    /** Limpa dados de pacientes da memória quando o app vai para segundo plano. */
+    fun clear() {
+        mutableState.update { it.copy(
+            patients = emptyList(),
+            form = null,
+            deleteTarget = null,
+        )}
+    }
+
     companion object {
         fun factory(store: ClinicStore) = viewModelFactory {
             initializer { PatientsViewModel(store) }

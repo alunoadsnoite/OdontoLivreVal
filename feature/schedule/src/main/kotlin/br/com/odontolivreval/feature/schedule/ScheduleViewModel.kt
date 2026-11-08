@@ -163,6 +163,21 @@ internal class ScheduleViewModel(private val store: ClinicStore) : ViewModel() {
         }
     }
 
+    /** Limpa dados de agenda da memória quando o app vai para segundo plano. */
+    fun clear() {
+        if (!state.value.writing) {
+            mutableState.update { it.copy(
+                day = LocalDate.now(),
+                month = null,
+                activeCounts = emptyMap(),
+                patients = emptyList(),
+                appointments = emptyList(),
+                form = null,
+                error = null,
+            )}
+        }
+    }
+
     companion object {
         fun factory(store: ClinicStore) = viewModelFactory {
             initializer { ScheduleViewModel(store) }
