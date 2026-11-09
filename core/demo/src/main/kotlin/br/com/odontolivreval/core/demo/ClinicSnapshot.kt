@@ -56,6 +56,7 @@ internal data class ClinicSnapshot(
     val treatmentPlans: List<StoredTreatmentPlan> = emptyList(),
     val treatmentProcedures: List<StoredTreatmentProcedure> = emptyList(),
     val treatmentBudgets: List<StoredTreatmentBudget> = emptyList(),
+    val informedConsents: List<StoredInformedConsent> = emptyList(),
     val professional: ProfessionalProfile = ProfessionalProfile(),
 ) {
     fun encode(): ByteArray = JSONObject()
@@ -160,6 +161,20 @@ internal data class ClinicSnapshot(
                     .putReference(it.content))
             }
         })
+        .put("informedConsents", JSONArray().apply {
+            informedConsents.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.patientId)
+                    .put(it.file.type.name).put(it.file.status.name)
+                    .put(it.file.title).put(it.file.procedure)
+                    .put(it.file.version).put(it.file.originalId ?: JSONObject.NULL)
+                    .put(it.file.planId ?: JSONObject.NULL)
+                    .put(it.file.procedureId ?: JSONObject.NULL)
+                    .put(it.file.createdAt)
+                    .put(it.file.revokedReason ?: JSONObject.NULL)
+                    .put(it.file.revokedAt ?: JSONObject.NULL)
+                    .putReference(it.content))
+            }
+        })
         .toString()
         .toByteArray(Charsets.UTF_8)
 
@@ -169,7 +184,8 @@ internal data class ClinicSnapshot(
             medicalCertificates.map { it.content } +
             treatmentPlans.map { it.content } +
             treatmentProcedures.map { it.content } +
-            treatmentBudgets.map { it.content }
+            treatmentBudgets.map { it.content } +
+            informedConsents.map { it.content }
 
     fun mapAttachments(transform: (AttachmentContent) -> AttachmentContent): ClinicSnapshot = copy(
         radiographs = radiographs.map { it.copy(content = transform(it.content)) },
@@ -180,6 +196,7 @@ internal data class ClinicSnapshot(
         treatmentPlans = treatmentPlans.map { it.copy(content = transform(it.content)) },
         treatmentProcedures = treatmentProcedures.map { it.copy(content = transform(it.content)) },
         treatmentBudgets = treatmentBudgets.map { it.copy(content = transform(it.content)) },
+        informedConsents = informedConsents.map { it.copy(content = transform(it.content)) },
     )
 
     private fun JSONArray.putReference(content: AttachmentContent): JSONArray {
@@ -244,6 +261,10 @@ internal data class ClinicSnapshot(
             || treatmentBudgets.map { it.file.id }.toSet().size != treatmentBudgets.size
             || treatmentBudgets.any { it.file.id <= 0 || it.file.patientId !in patientIds }
             || treatmentBudgets.any { !it.content.valid }
+            || informedConsents.map { it.file.id }.toSet().size != informedConsents.size
+            || informedConsents.any { it.file.id <= 0 || it.file.patientId !in patientIds }
+            || informedConsents.any { it.file.title.length !in 1..120 }
+            || informedConsents.any { !it.content.valid }
             || contents.any { !it.valid }
             || references.map { it.token }.toSet().size != references.size
             || references.sumOf { it.size.toLong() } > maxAttachmentTotal
@@ -453,6 +474,30 @@ internal data class ClinicSnapshot(
                 }
             } else emptyList()
 
+            val informedConsents = if (version >= 14 && root.has("informedConsents")) {
+                root.getJSONArray("informedConsents").rows {
+                    StoredInformedConsent(
+                        InformedConsentFile(
+                            id = it.integer(0),
+                            patientId = it.integer(1),
+                            type = ConsentType.valueOf(it.getString(2)),
+                            status = ConsentStatus.valueOf(it.getString(3)),
+                            title = it.getString(4),
+                            procedure = it.getString(5),
+                            version = it.integer(6).toInt(),
+                            originalId = if (it.isNull(7)) null else it.integer(7),
+                            planId = if (it.isNull(8)) null else it.integer(8),
+                            procedureId = if (it.isNull(9)) null else it.integer(9),
+                            issueDate = if (it.isNull(10)) LocalDate.now() else LocalDate.ofEpochDay(it.integer(10)),
+                            createdAt = it.optLong(11, System.currentTimeMillis()),
+                            revokedReason = if (it.isNull(12)) null else it.getString(12),
+                            revokedAt = if (it.isNull(13)) null else LocalDate.ofEpochDay(it.integer(13)),
+                        ),
+                        it.attachment(version, 14),
+                    )
+                }
+            } else emptyList()
+
             val professional = if (version >= 7 && root.has("professional")) {
                 val json = root.getJSONObject("professional")
                 ProfessionalProfile(
@@ -475,13 +520,14 @@ internal data class ClinicSnapshot(
             return ClinicSnapshot(
                 patients, schedule, patientRecords, visits, radiographs, prescriptions,
                 documentPhotos, digitalSignatures, medicalCertificates,
-                treatmentPlans, treatmentProcedures, treatmentBudgets, professional,
+                treatmentPlans, treatmentProcedures, treatmentBudgets, informedConsents,
+                professional,
             ).apply { validate() }
         }
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 13
+        private const val currentVersion = 14
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)

@@ -143,6 +143,20 @@ interface ClinicStore {
     suspend fun createTreatmentBudgetRevision(patientId: Long, id: Long): TreatmentBudget
 
     suspend fun deleteTreatmentBudget(patientId: Long, id: Long)
+
+    // --- Termos de consentimento (TCLE) ---
+
+    suspend fun listInformedConsents(patientId: Long): List<InformedConsentFile>
+
+    suspend fun getInformedConsent(patientId: Long, id: Long): InformedConsent?
+
+    suspend fun saveInformedConsent(patientId: Long, consent: InformedConsent): InformedConsent
+
+    suspend fun deleteInformedConsent(patientId: Long, id: Long)
+
+    suspend fun revokeInformedConsent(patientId: Long, id: Long, reason: String)
+
+    suspend fun createInformedConsentRevision(patientId: Long, id: Long): InformedConsent
 }
 
 data class SavedRecord(val record: PatientRecord, val visit: VisitRecord)

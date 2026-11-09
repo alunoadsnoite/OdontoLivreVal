@@ -51,6 +51,7 @@ fun PatientRecordScreen(
     onDocuments: () -> Unit = {},
     onCertificates: () -> Unit = {},
     onTreatmentPlans: () -> Unit = {},
+    onConsents: () -> Unit = {},
     onClose: () -> Unit,
 ) {
     val model: PatientRecordViewModel = viewModel(factory = PatientRecordViewModel.factory(store, patient))
@@ -185,6 +186,9 @@ fun PatientRecordScreen(
         }
         OutlinedButton(onClick = onTreatmentPlans, enabled = !state.saving) {
             Text(stringResource(R.string.demo_patient_treatment_plans))
+        }
+        OutlinedButton(onClick = onConsents, enabled = !state.saving) {
+            Text(stringResource(R.string.demo_patient_consents))
         }
 
         Text(

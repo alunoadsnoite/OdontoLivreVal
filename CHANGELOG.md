@@ -85,3 +85,17 @@
 - Integração com prontuário e odontograma
 - Armazenamento criptografado no snapshot (versão 13)
 - Compartilhamento via Android Sharesheet e FileProvider
+
+## 0.12.0 — 2026-11-09
+
+### Termos de Consentimento Livre e Esclarecido (Etapa 13C)
+
+- Nove modelos de TCLE: tratamento geral, extração, endodontia, periodontia, restauração, prótese, implante, ortodontia, estética
+- Ciclo de vida: rascunho, apresentado, aguardando manifestação, aceito, recusado, revogado, substituído
+- Conteúdo completo: paciente, profissional/CRO/UF, procedimento, objetivos, explicação, benefícios, riscos, alternativas, cuidados, limitações, dúvidas, declaração de esclarecimento
+- Suporte a responsável legal
+- Histórico e versionamento com preservação de versões finalizadas
+- PDF A4 com paginação, espaços para assinatura (sem assinatura digital fictícia)
+- Compartilhamento via Android Sharesheet e FileProvider
+- Armazenamento criptografado no snapshot (versão 14)
+- Inclusão no backup criptografado

@@ -30,6 +30,9 @@ import br.com.odontolivreval.feature.treatment.TreatmentBudgetListScreen
 import br.com.odontolivreval.feature.treatment.TreatmentBudgetPreviewScreen
 import br.com.odontolivreval.feature.treatment.TreatmentPlanFormScreen
 import br.com.odontolivreval.feature.treatment.TreatmentPlanListScreen
+import br.com.odontolivreval.feature.consent.ConsentFormScreen
+import br.com.odontolivreval.feature.consent.ConsentListScreen
+import br.com.odontolivreval.feature.consent.ConsentPreviewScreen
 
 private enum class Destination(@param:StringRes val label: Int) {
     HOME(R.string.home), PATIENTS(R.string.patients), SCHEDULE(R.string.schedule),
@@ -364,6 +367,76 @@ fun OdontoApp(
                                 }
                             }
                         }
+                        composable("consent_list") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    ConsentListScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        onClose = { nav.popBackStack() },
+                                        onCreateConsent = {
+                                            nav.navigate("consent_form") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                        onOpenConsent = { consentId ->
+                                            nav.navigate("consent_form?consentId=$consentId") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                        onRevokeConsent = { _, _ -> },
+                                        onCreateRevision = { consentId ->
+                                            nav.navigate("consent_form?consentId=$consentId") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("consent_form") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                val consentId = nav.currentBackStackEntry?.arguments?.getLong("consentId")
+                                if (patient != null) {
+                                    ConsentFormScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        consentId = consentId,
+                                        onClose = { nav.popBackStack() },
+                                        onSaveComplete = { nav.popBackStack() },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("consent_preview") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                val consentId = nav.currentBackStackEntry?.arguments?.getLong("consentId") ?: -1L
+                                if (patient != null && consentId > 0) {
+                                    ConsentPreviewScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        consentId = consentId,
+                                        onClose = { nav.popBackStack() },
+                                        onShare = { /* handled internally */ },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
                         composable("protection") {
                             ScreenContent {
                                 protection()
@@ -396,6 +469,7 @@ fun OdontoApp(
                                         onDocuments = { nav.navigate("documents") { launchSingleTop = true } },
                                         onCertificates = { nav.navigate("certificates_list") { launchSingleTop = true } },
                                         onTreatmentPlans = { nav.navigate("treatment_plan_list") { launchSingleTop = true } },
+                                        onConsents = { nav.navigate("consent_list") { launchSingleTop = true } },
                                         onClose = { selectedPatient = null; nav.popBackStack() },
                                     )
                                 } else {

@@ -2,6 +2,12 @@ package br.com.odontolivreval.feature.schedule
 
 import android.graphics.Bitmap
 import android.net.Uri
+import br.com.odontolivreval.core.demo.ConsentProof
+import br.com.odontolivreval.core.demo.ConsentStatus
+import br.com.odontolivreval.core.demo.ConsentType
+import br.com.odontolivreval.core.demo.InformedConsent
+import br.com.odontolivreval.core.demo.InformedConsentFile
+import br.com.odontolivreval.core.demo.LegalRepresentative
 import br.com.odontolivreval.core.demo.AppointmentSaveResult
 import br.com.odontolivreval.core.demo.BudgetStatus
 import br.com.odontolivreval.core.demo.CertificateStatus
@@ -34,6 +40,7 @@ internal class FakeScheduleStore : ClinicStore {
     val patients = mutableListOf(DemoPatient(1, "Ana"))
     val appointments = mutableMapOf<LocalDate, MutableList<DemoAppointment>>()
     val medicalCertificates = mutableListOf<MedicalCertificateFile>()
+    val informedConsents = mutableListOf<InformedConsentFile>()
     private var nextId = 1L
 
     override suspend fun listPatients(): List<DemoPatient> = patients.toList()
@@ -542,5 +549,182 @@ internal class FakeScheduleStore : ClinicStore {
 
     override suspend fun deleteTreatmentBudget(patientId: Long, id: Long) {
         treatmentBudgets.removeAll { it.patientId == patientId && it.id == id }
+    }
+
+    // --- Termos de consentimento (fake para testes) ---
+
+    override suspend fun listInformedConsents(patientId: Long): List<InformedConsentFile> =
+        informedConsents.filter { it.patientId == patientId }
+
+    override suspend fun getInformedConsent(patientId: Long, id: Long): InformedConsent? =
+        informedConsents.find { it.patientId == patientId && it.id == id }
+            ?.let { file ->
+                InformedConsent(
+                    id = file.id,
+                    patientId = file.patientId,
+                    type = file.type,
+                    status = file.status,
+                    title = file.title,
+                    content = "",
+                    procedure = file.procedure,
+                    objectives = "",
+                    explanation = "",
+                    benefits = "",
+                    risks = "",
+                    alternatives = "",
+                    consequencesOfNotPerforming = "",
+                    careInstructions = "",
+                    limitations = "",
+                    patientQuestions = "",
+                    clarificationStatement = "",
+                    consentProof = ConsentProof(),
+                    legalRepresentative = null,
+                    placeOfIssue = "",
+                    issueDate = file.issueDate,
+                    professionalId = null,
+                    planId = file.planId,
+                    procedureId = file.procedureId,
+                    version = file.version,
+                    originalId = file.originalId,
+                    revokedReason = file.revokedReason,
+                    revokedAt = file.revokedAt,
+                )
+            }
+
+    override suspend fun saveInformedConsent(patientId: Long, consent: InformedConsent): InformedConsent {
+        val existing = informedConsents.find { it.patientId == patientId && it.id == consent.id }
+        val savedFile = if (existing != null) {
+            val updated = informedConsents.map {
+                if (it.patientId == patientId && it.id == consent.id) {
+                    it.copy(
+                        type = consent.type,
+                        status = consent.status,
+                        title = consent.title,
+                        procedure = consent.procedure,
+                        version = consent.version,
+                        planId = consent.planId,
+                        procedureId = consent.procedureId,
+                        issueDate = consent.issueDate,
+                    )
+                } else it
+            }
+            informedConsents.clear()
+            informedConsents.addAll(updated)
+            existing
+        } else {
+            val newId = (informedConsents.maxOfOrNull { it.id } ?: 0) + 1
+            val file = InformedConsentFile(
+                id = newId,
+                patientId = patientId,
+                type = consent.type,
+                status = consent.status,
+                title = consent.title,
+                procedure = consent.procedure,
+                version = consent.version,
+                originalId = consent.originalId,
+                planId = consent.planId,
+                procedureId = consent.procedureId,
+                issueDate = consent.issueDate,
+                createdAt = System.currentTimeMillis(),
+            )
+            informedConsents.add(file)
+            file
+        }
+        return InformedConsent(
+            id = savedFile.id,
+            patientId = patientId,
+            type = savedFile.type,
+            status = savedFile.status,
+            title = savedFile.title,
+            content = consent.content,
+            procedure = savedFile.procedure,
+            objectives = consent.objectives,
+            explanation = consent.explanation,
+            benefits = consent.benefits,
+            risks = consent.risks,
+            alternatives = consent.alternatives,
+            consequencesOfNotPerforming = consent.consequencesOfNotPerforming,
+            careInstructions = consent.careInstructions,
+            limitations = consent.limitations,
+            patientQuestions = consent.patientQuestions,
+            clarificationStatement = consent.clarificationStatement,
+            consentProof = consent.consentProof,
+            legalRepresentative = consent.legalRepresentative,
+            placeOfIssue = consent.placeOfIssue,
+            issueDate = savedFile.issueDate,
+            professionalId = consent.professionalId,
+            planId = savedFile.planId,
+            procedureId = savedFile.procedureId,
+            version = savedFile.version,
+            originalId = savedFile.originalId,
+            revokedReason = savedFile.revokedReason,
+            revokedAt = savedFile.revokedAt,
+        )
+    }
+
+    override suspend fun deleteInformedConsent(patientId: Long, id: Long) {
+        informedConsents.removeAll { it.patientId == patientId && it.id == id }
+    }
+
+    override suspend fun revokeInformedConsent(patientId: Long, id: Long, reason: String) {
+        val idx = informedConsents.indexOfFirst { it.patientId == patientId && it.id == id }
+        if (idx >= 0) {
+            informedConsents[idx] = informedConsents[idx].copy(
+                status = ConsentStatus.REVOKED,
+                revokedReason = reason,
+                revokedAt = LocalDate.now(),
+            )
+        }
+    }
+
+    override suspend fun createInformedConsentRevision(patientId: Long, id: Long): InformedConsent {
+        val existing = informedConsents.find { it.patientId == patientId && it.id == id }
+            ?: throw IllegalStateException("Consent not found")
+        val newId = (informedConsents.maxOfOrNull { it.id } ?: 0) + 1
+        val newFile = InformedConsentFile(
+            id = newId,
+            patientId = patientId,
+            type = existing.type,
+            status = ConsentStatus.DRAFT,
+            title = existing.title,
+            procedure = existing.procedure,
+            version = existing.version + 1,
+            originalId = existing.originalId ?: id,
+            planId = existing.planId,
+            procedureId = existing.procedureId,
+            issueDate = existing.issueDate,
+            createdAt = System.currentTimeMillis(),
+        )
+        informedConsents.add(newFile)
+        return InformedConsent(
+            id = newId,
+            patientId = patientId,
+            type = newFile.type,
+            status = newFile.status,
+            title = newFile.title,
+            content = "",
+            procedure = newFile.procedure,
+            objectives = "",
+            explanation = "",
+            benefits = "",
+            risks = "",
+            alternatives = "",
+            consequencesOfNotPerforming = "",
+            careInstructions = "",
+            limitations = "",
+            patientQuestions = "",
+            clarificationStatement = "",
+            consentProof = ConsentProof(),
+            legalRepresentative = null,
+            placeOfIssue = "",
+            issueDate = newFile.issueDate,
+            professionalId = null,
+            planId = newFile.planId,
+            procedureId = newFile.procedureId,
+            version = newFile.version,
+            originalId = newFile.originalId,
+            revokedReason = null,
+            revokedAt = null,
+        )
     }
 }

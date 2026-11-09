@@ -1,0 +1,87 @@
+<resources>
+    <!-- Consentimentos -->
+    <string name="consents_title">Termos de Consentimento</string>
+    <string name="consents_patient">Paciente: %1$s</string>
+    <string name="consents_create">Novo termo de consentimento</string>
+    <string name="consents_history">Histórico de consentimentos</string>
+    <string name="consents_empty">Nenhum termo de consentimento cadastrado.</string>
+    <string name="consents_loading">Carregando…</string>
+    <string name="consents_error">Erro ao carregar termos de consentimento.</string>
+    <string name="consents_retry">Tentar novamente</string>
+    <string name="consents_type">Tipo: %1$s</string>
+    <string name="consents_status">Status: %1$s</string>
+    <string name="consents_view">Visualizar</string>
+    <string name="consents_new_revision">Nova revisão</string>
+    <string name="consents_revoke">Revogar</string>
+    <string name="consents_back">Voltar</string>
+
+    <!-- Formulário de consentimento -->
+    <string name="consent_form_new_title">Novo Termo de Consentimento</string>
+    <string name="consent_form_edit_title">Editar Termo de Consentimento</string>
+    <string name="consent_form_type">Tipo de termo</string>
+    <string name="consent_form_title">Título</string>
+    <string name="consent_form_procedure">Procedimento</string>
+    <string name="consent_form_content">Conteúdo do termo</string>
+    <string name="consent_form_objectives">Objetivos do tratamento</string>
+    <string name="consent_form_explanation">Explicação do procedimento</string>
+    <string name="consent_form_benefits">Benefícios esperados</string>
+    <string name="consent_form_risks">Riscos e complicações</string>
+    <string name="consent_form_alternatives">Alternativas terapêuticas</string>
+    <string name="consent_form_consequences">Consequências da não realização</string>
+    <string name="consent_form_care">Cuidados necessários</string>
+    <string name="consent_form_limitations">Limitações e incertezas</string>
+    <string name="consent_form_questions">Dúvidas do paciente</string>
+    <string name="consent_form_clarification">Declaração de esclarecimento</string>
+    <string name="consent_form_place">Local de emissão</string>
+    <string name="consent_form_decision">Decisão do paciente</string>
+    <string name="consent_form_signed_document">Documento assinado</string>
+    <string name="consent_form_patient_decision">Decisão informada</string>
+    <string name="consent_form_proof_method">Método de comprovação</string>
+    <string name="consent_form_representative">Responsável legal</string>
+    <string name="consent_form_rep_name">Nome do responsável</string>
+    <string name="consent_form_rep_relationship">Vínculo de representação</string>
+    <string name="consent_form_rep_id">Identificação</string>
+    <string name="consent_form_save_draft">Salvar rascunho</string>
+    <string name="consent_form_present">Apresentar ao paciente</string>
+    <string name="consent_form_accept">Aceitar</string>
+    <string name="consent_form_reject">Recusar</string>
+    <string name="consent_form_saving">Salvando…</string>
+    <string name="consent_form_error_incomplete">Preencha todos os campos obrigatórios.</string>
+    <string name="consent_form_error_save">Erro ao salvar o termo de consentimento.</string>
+    <string name="consent_form_error_not_found">Termo não encontrado.</string>
+    <string name="consent_form_error_unknown">Erro desconhecido.</string>
+
+    <!-- Revogação -->
+    <string name="consents_revoke_title">Revogar termo de consentimento</string>
+    <string name="consents_revoke_reason">Informe o motivo da revogação:</string>
+    <string name="consents_revoke_reason_field">Motivo</string>
+    <string name="consents_revoke_confirm">Confirmar revogação</string>
+    <string name="consents_revoke_dismiss">Descartar</string>
+
+    <!-- Tipos de termo -->
+    <string name="consent_type_general">Tratamento odontológico geral</string>
+    <string name="consent_type_extraction">Extração dentária</string>
+    <string name="consent_type_endodontic">Tratamento endodôntico</string>
+    <string name="consent_type_periodontal">Tratamento periodontal</string>
+    <string name="consent_type_restorative">Procedimentos restauradores</string>
+    <string name="consent_type_prosthetic">Tratamento protético</string>
+    <string name="consent_type_implant">Implantes dentários</string>
+    <string name="consent_type_orthodontic">Tratamento ortodôntico</string>
+    <string name="consent_type_cosmetic">Procedimentos estéticos odontológicos</string>
+
+    <!-- Labels do PDF (reutilizados do módulo documents) -->
+    <string name="pdf_cro">CRO</string>
+    <string name="pdf_patient">Paciente</string>
+    <string name="pdf_birth">Nascimento</string>
+    <string name="pdf_phone">Telefone</string>
+    <string name="pdf_date">Data</string>
+
+    <!-- Compartilhamento -->
+    <string name="consents_share">Compartilhar PDF</string>
+    <string name="consents_sharing">Compartilhando…</string>
+    <string name="consents_share_title">Compartilhar termo de consentimento</string>
+    <string name="consents_pdf_notice">O PDF será gerado com base nos dados do termo. O documento exportado fica fora da proteção criptográfica do aplicativo.</string>
+    <string name="consents_preview_title">Pré-visualização do Termo de Consentimento</string>
+    <string name="consents_share_error">Falha ao compartilhar o termo de consentimento.</string>
+    <string name="consents_not_found">Termo de consentimento não encontrado.</string>
+</resources>

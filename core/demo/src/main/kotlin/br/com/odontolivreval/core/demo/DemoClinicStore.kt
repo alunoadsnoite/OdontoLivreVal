@@ -802,6 +802,268 @@ class DemoClinicStore(context: Context) : ClinicStore {
         ))
     }
 
+    // --- Termos de consentimento (TCLE) ---
+
+    override suspend fun listInformedConsents(patientId: Long): List<InformedConsentFile> = access {
+        load().informedConsents.map { it.file }.filter { it.patientId == patientId }
+    }
+
+    override suspend fun getInformedConsent(patientId: Long, id: Long): InformedConsent? = access {
+        val stored = load().informedConsents.find { it.file.patientId == patientId && it.file.id == id }
+            ?: return@access null
+        val file = stored.file
+        val content = try {
+            String(readAttachment(stored.content), StandardCharsets.UTF_8)
+        } catch (_: IOException) {
+            ""
+        }
+        val obj = org.json.JSONObject(content)
+        val proofObj = obj.optJSONObject("consentProof")
+        val proof = ConsentProof(
+            patientDecision = proofObj?.optString("patientDecision") ?: null,
+            recordedAt = if (proofObj?.isNull("recordedAt") == false)
+                LocalDate.ofEpochDay(proofObj.optLong("recordedAt")) else null,
+            proofMethod = proofObj?.optString("proofMethod") ?: null,
+            hasSignedDocument = proofObj?.optBoolean("hasSignedDocument") ?: false,
+        )
+        val repObj = obj.optJSONObject("legalRepresentative")
+        val representative = if (repObj != null) {
+            LegalRepresentative(
+                name = repObj.optString("name", ""),
+                relationship = repObj.optString("relationship", ""),
+                identification = repObj.optString("identification", ""),
+            )
+        } else null
+        InformedConsent(
+            id = file.id,
+            patientId = file.patientId,
+            type = file.type,
+            status = file.status,
+            title = file.title,
+            content = obj.optString("content", ""),
+            procedure = obj.optString("procedure", ""),
+            objectives = obj.optString("objectives", ""),
+            explanation = obj.optString("explanation", ""),
+            benefits = obj.optString("benefits", ""),
+            risks = obj.optString("risks", ""),
+            alternatives = obj.optString("alternatives", ""),
+            consequencesOfNotPerforming = obj.optString("consequencesOfNotPerforming", ""),
+            careInstructions = obj.optString("careInstructions", ""),
+            limitations = obj.optString("limitations", ""),
+            patientQuestions = obj.optString("patientQuestions", ""),
+            clarificationStatement = obj.optString("clarificationStatement", ""),
+            consentProof = proof,
+            legalRepresentative = representative,
+            placeOfIssue = obj.optString("placeOfIssue", ""),
+            issueDate = if (obj.isNull("issueDate")) file.issueDate
+            else LocalDate.ofEpochDay(obj.optLong("issueDate")),
+            professionalId = if (obj.isNull("professionalId")) null else obj.optLong("professionalId"),
+            planId = file.planId,
+            procedureId = file.procedureId,
+            version = file.version,
+            originalId = file.originalId,
+            revokedReason = file.revokedReason,
+            revokedAt = file.revokedAt,
+        )
+    }
+
+    override suspend fun saveInformedConsent(patientId: Long, consent: InformedConsent): InformedConsent = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val now = System.currentTimeMillis()
+        val existing = snapshot.informedConsents.find { it.file.patientId == patientId && it.file.id == consent.id }
+        val savedFile = when {
+            existing != null -> {
+                val updatedFile = existing.file.copy(
+                    type = consent.type,
+                    status = consent.status,
+                    title = consent.title,
+                    procedure = consent.procedure,
+                    version = if (consent.status == ConsentStatus.DRAFT && existing.file.status != ConsentStatus.DRAFT)
+                        existing.file.version else existing.file.version,
+                    planId = consent.planId,
+                    procedureId = consent.procedureId,
+                )
+                val updated = snapshot.informedConsents.map {
+                    if (it.file.patientId == patientId && it.file.id == consent.id) {
+                        it.copy(file = updatedFile)
+                    } else it
+                }
+                persist(snapshot.copy(informedConsents = updated))
+                updatedFile
+            }
+            else -> {
+                val newId = nextId(snapshot.informedConsents.map { it.file.id })
+                val newFile = InformedConsentFile(
+                    id = newId,
+                    patientId = patientId,
+                    type = consent.type,
+                    status = consent.status,
+                    title = consent.title,
+                    procedure = consent.procedure,
+                    version = 1,
+                    originalId = null,
+                    planId = consent.planId,
+                    procedureId = consent.procedureId,
+                    issueDate = consent.issueDate,
+                    createdAt = now,
+                )
+                val bytes = consent.toJsonBytes()
+                val content = writeNewAttachment(snapshot, bytes)
+                persist(snapshot.copy(
+                    informedConsents = snapshot.informedConsents + StoredInformedConsent(newFile, content),
+                ))
+                newFile
+            }
+        }
+        InformedConsent(
+            id = savedFile.id,
+            patientId = patientId,
+            type = savedFile.type,
+            status = savedFile.status,
+            title = savedFile.title,
+            content = consent.content,
+            procedure = savedFile.procedure,
+            objectives = consent.objectives,
+            explanation = consent.explanation,
+            benefits = consent.benefits,
+            risks = consent.risks,
+            alternatives = consent.alternatives,
+            consequencesOfNotPerforming = consent.consequencesOfNotPerforming,
+            careInstructions = consent.careInstructions,
+            limitations = consent.limitations,
+            patientQuestions = consent.patientQuestions,
+            clarificationStatement = consent.clarificationStatement,
+            consentProof = consent.consentProof,
+            legalRepresentative = consent.legalRepresentative,
+            placeOfIssue = consent.placeOfIssue,
+            issueDate = savedFile.issueDate ?: consent.issueDate,
+            professionalId = consent.professionalId,
+            planId = savedFile.planId,
+            procedureId = savedFile.procedureId,
+            version = savedFile.version,
+            originalId = savedFile.originalId,
+            revokedReason = savedFile.revokedReason,
+            revokedAt = savedFile.revokedAt,
+        )
+    }
+
+    override suspend fun revokeInformedConsent(patientId: Long, id: Long, reason: String) = access {
+        val snapshot = load()
+        val existing = snapshot.informedConsents.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Consent missing")
+        persist(snapshot.copy(
+            informedConsents = snapshot.informedConsents.map {
+                if (it.file.patientId == patientId && it.file.id == id) {
+                    it.copy(file = it.file.copy(
+                        status = ConsentStatus.REVOKED,
+                        revokedReason = reason,
+                        revokedAt = LocalDate.now(),
+                    ))
+                } else it
+            },
+        ))
+    }
+
+    override suspend fun createInformedConsentRevision(patientId: Long, id: Long): InformedConsent = access {
+        val snapshot = load()
+        val existing = snapshot.informedConsents.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Consent missing")
+        if (existing.file.status != ConsentStatus.ACCEPTED &&
+            existing.file.status != ConsentStatus.REJECTED &&
+            existing.file.status != ConsentStatus.REVOKED) {
+            throw IOException("Only accepted, rejected or revoked consents can have a new revision")
+        }
+        val content = try {
+            String(readAttachment(existing.content), StandardCharsets.UTF_8)
+        } catch (_: IOException) {
+            ""
+        }
+        val obj = org.json.JSONObject(content)
+        val proofObj = obj.optJSONObject("consentProof")
+        val proof = ConsentProof(
+            patientDecision = proofObj?.optString("patientDecision") ?: null,
+            recordedAt = if (proofObj?.isNull("recordedAt") == false)
+                LocalDate.ofEpochDay(proofObj.optLong("recordedAt")) else null,
+            proofMethod = proofObj?.optString("proofMethod") ?: null,
+            hasSignedDocument = proofObj?.optBoolean("hasSignedDocument") ?: false,
+        )
+        val repObj = obj.optJSONObject("legalRepresentative")
+        val representative = if (repObj != null) {
+            LegalRepresentative(
+                name = repObj.optString("name", ""),
+                relationship = repObj.optString("relationship", ""),
+                identification = repObj.optString("identification", ""),
+            )
+        } else null
+        val current = InformedConsent(
+            id = existing.file.id,
+            patientId = patientId,
+            type = existing.file.type,
+            status = existing.file.status,
+            title = existing.file.title,
+            content = obj.optString("content", ""),
+            procedure = obj.optString("procedure", ""),
+            objectives = obj.optString("objectives", ""),
+            explanation = obj.optString("explanation", ""),
+            benefits = obj.optString("benefits", ""),
+            risks = obj.optString("risks", ""),
+            alternatives = obj.optString("alternatives", ""),
+            consequencesOfNotPerforming = obj.optString("consequencesOfNotPerforming", ""),
+            careInstructions = obj.optString("careInstructions", ""),
+            limitations = obj.optString("limitations", ""),
+            patientQuestions = obj.optString("patientQuestions", ""),
+            clarificationStatement = obj.optString("clarificationStatement", ""),
+            consentProof = proof,
+            legalRepresentative = representative,
+            placeOfIssue = obj.optString("placeOfIssue", ""),
+            issueDate = if (obj.isNull("issueDate")) existing.file.issueDate
+            else LocalDate.ofEpochDay(obj.optLong("issueDate")),
+            professionalId = if (obj.isNull("professionalId")) null else obj.optLong("professionalId"),
+            planId = existing.file.planId,
+            procedureId = existing.file.procedureId,
+            version = existing.file.version,
+            originalId = existing.file.originalId,
+            revokedReason = existing.file.revokedReason,
+            revokedAt = existing.file.revokedAt,
+        )
+        val newFile = InformedConsentFile(
+            id = nextId(snapshot.informedConsents.map { it.file.id }),
+            patientId = patientId,
+            type = existing.file.type,
+            status = ConsentStatus.DRAFT,
+            title = existing.file.title,
+            procedure = existing.file.procedure,
+            version = existing.file.version + 1,
+            originalId = existing.file.originalId ?: id,
+            planId = existing.file.planId,
+            procedureId = existing.file.procedureId,
+            issueDate = existing.file.issueDate,
+            createdAt = System.currentTimeMillis(),
+        )
+        val bytes = current.toJsonBytes()
+        val contentRef = writeNewAttachment(snapshot, bytes)
+        persist(snapshot.copy(
+            informedConsents = snapshot.informedConsents + StoredInformedConsent(newFile, contentRef),
+        ))
+        current.copy(
+            id = newFile.id,
+            status = ConsentStatus.DRAFT,
+            originalId = newFile.originalId,
+        )
+    }
+
+    override suspend fun deleteInformedConsent(patientId: Long, id: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.informedConsents.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Consent missing")
+        persist(snapshot.copy(
+            informedConsents = snapshot.informedConsents.filterNot {
+                it.file.patientId == patientId && it.file.id == id
+            },
+        ))
+    }
+
     private fun autoBackup(): File {
         val directory = app.cacheDir.resolve("auto-backup")
         if (!directory.isDirectory && !directory.mkdirs()) throw IOException("Cannot create auto-backup directory")
