@@ -8,10 +8,13 @@
 <string name="profile_notice">Nome e CRO aparecem nos documentos gerados. Os dados ficam no armazenamento criptografado do aplicativo.</string>
 <string name="profile_name">Nome completo</string>
 <string name="profile_cro">CRO</string>
+<string name="profile_cro_uf">UF do CRO</string>
+<string name="profile_cpf">CPF (opcional)</string>
 <string name="profile_specialty">Especialidade</string>
 <string name="profile_clinic">Nome da clínica</string>
 <string name="profile_address">Endereço</string>
 <string name="profile_phone">Telefone</string>
+<string name="profile_email">E-mail profissional</string>
 <string name="profile_save">Salvar perfil</string>
 <string name="profile_saving">Salvando…</string>
 <string name="profile_saved">Perfil salvo.</string>

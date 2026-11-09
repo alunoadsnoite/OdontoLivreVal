@@ -452,6 +452,18 @@ class DemoClinicStore(context: Context) : ClinicStore {
         persist(snapshot.copy(digitalSignatures = snapshot.digitalSignatures.filterNot { it.file.id == id }))
     }
 
+    override suspend fun uploadProfessionalLogo(uri: Uri) = access {
+        throw IOException("Not implemented")
+    }
+
+    override suspend fun previewProfessionalLogo(): Bitmap? = access {
+        throw IOException("Not implemented")
+    }
+
+    override suspend fun removeProfessionalLogo() = access {
+        throw IOException("Not implemented")
+    }
+
     override suspend fun exportBackup(uri: Uri, password: CharArray) = access {
         if (password.size !in 12..128) throw IOException("Invalid backup password length")
         val snapshot = load()
@@ -478,7 +490,6 @@ class DemoClinicStore(context: Context) : ClinicStore {
 
     override suspend fun restoreBackup(uri: Uri, password: CharArray) = access {
         if (password.size !in 1..128) throw IOException("Invalid backup password length")
-        // Backup automático antes de restauração para permitir recuperação em caso de falha
         val backupFile = autoBackup()
         try {
             val input = app.contentResolver.openInputStream(uri) ?: throw IOException("Cannot open backup")
@@ -536,8 +547,6 @@ class DemoClinicStore(context: Context) : ClinicStore {
             }
         }
 
-    // Clean up only before the index commit starts. An interrupted commit may already
-    // have published the index, so later cleanup reads the authoritative index first.
     private fun stageAttachments(action: (MutableList<AttachmentRef>) -> ClinicSnapshot): ClinicSnapshot {
         val staged = mutableListOf<AttachmentRef>()
         try {
@@ -665,21 +674,12 @@ class DemoClinicStore(context: Context) : ClinicStore {
     private fun replaceRecord(snapshot: ClinicSnapshot, record: PatientRecord): List<PatientRecord> =
         snapshot.patientRecords.filterNot { it.patientId == record.patientId } + record
 
-    /**
-     * Mantém o ID de uma ficha existente do mesmo paciente e cria um novo ID
-     * quando a ficha ainda não existe. Assim, fichas de pacientes diferentes
-     * nunca compartilham o mesmo identificador.
-     */
     private fun withRecordId(snapshot: ClinicSnapshot, record: PatientRecord): PatientRecord {
         val existing = snapshot.patientRecords.find { it.patientId == record.patientId }
         val id = existing?.id?.takeIf { it > 0 } ?: nextId(snapshot.patientRecords.map { it.id })
         return record.copy(id = id)
     }
 
-    /**
-     * Consultas novas recebem o próximo ID livre. Consultas existentes precisam
-     * pertencer ao mesmo paciente para evitar sobrescrever dados de outro.
-     */
     private fun withVisitId(snapshot: ClinicSnapshot, visit: VisitRecord): VisitRecord {
         if (visit.id <= 0) {
             return visit.copy(id = nextId(snapshot.visits.map { it.id }))

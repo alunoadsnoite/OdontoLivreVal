@@ -58,10 +58,14 @@ internal data class ClinicSnapshot(
         .put("professional", JSONObject()
             .put("name", professional.name)
             .put("cro", professional.cro)
+            .put("croUF", professional.croUF)
+            .put("cpf", professional.cpf ?: JSONObject.NULL)
             .put("specialty", professional.specialty)
             .put("clinicName", professional.clinicName)
             .put("address", professional.address)
-            .put("phone", professional.phone))
+            .put("phone", professional.phone)
+            .put("email", professional.email ?: JSONObject.NULL)
+            .put("logoFileId", professional.logoFileId ?: JSONObject.NULL))
         .put("patients", JSONArray().apply {
             patients.forEach { put(JSONArray().put(it.id).put(it.name)) }
         })
@@ -173,10 +177,13 @@ internal data class ClinicSnapshot(
             || references.sumOf { it.size.toLong() } > maxAttachmentTotal
             || professional.name.length > ProfessionalProfile.MAX_NAME
             || professional.cro.length > ProfessionalProfile.MAX_CRO
+            || professional.croUF.length > ProfessionalProfile.MAX_CRO_UF
+            || professional.cpf.length > ProfessionalProfile.MAX_CPF
             || professional.specialty.length > ProfessionalProfile.MAX_SPECIALTY
             || professional.clinicName.length > ProfessionalProfile.MAX_CLINIC
             || professional.address.length > ProfessionalProfile.MAX_ADDRESS
             || professional.phone.length > ProfessionalProfile.MAX_PHONE
+            || professional.email.length > ProfessionalProfile.MAX_EMAIL
         ) throw IOException("Invalid clinic data")
     }
 
@@ -293,10 +300,14 @@ internal data class ClinicSnapshot(
                 ProfessionalProfile(
                     name = json.optString("name", ""),
                     cro = json.optString("cro", ""),
+                    croUF = json.optString("croUF", ""),
+                    cpf = json.optString("cpf")?.takeIf { it.isNotBlank() } ?: "",
                     specialty = json.optString("specialty", ""),
                     clinicName = json.optString("clinicName", ""),
                     address = json.optString("address", ""),
                     phone = json.optString("phone", ""),
+                    email = json.optString("email")?.takeIf { it.isNotBlank() } ?: "",
+                    logoFileId = if (json.isNull("logoFileId")) null else json.optLong("logoFileId", 0L),
                 )
             } else {
                 ProfessionalProfile()
@@ -311,7 +322,7 @@ internal data class ClinicSnapshot(
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 10
+        private const val currentVersion = 11
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)

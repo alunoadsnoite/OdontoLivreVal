@@ -30,12 +30,12 @@ internal class PatientRecordViewModel(
     private val store: ClinicStore,
     private val patient: DemoPatient,
 ) : ViewModel() {
+    private val mutableState = MutableStateFlow(PatientRecordState())
+    val state = mutableState.asStateFlow()
+
     init {
         load()
     }
-
-    private val mutableState = MutableStateFlow(PatientRecordState())
-    val state = mutableState.asStateFlow()
 
     internal data class PatientRecordState(
         val record: PatientRecord = PatientRecord(id = 0, patientId = 0),

@@ -90,6 +90,12 @@ interface ClinicStore {
 
     suspend fun removeDigitalSignature(patientId: Long?, id: Long)
 
+    suspend fun uploadProfessionalLogo(uri: Uri)
+
+    suspend fun previewProfessionalLogo(): Bitmap?
+
+    suspend fun removeProfessionalLogo()
+
     suspend fun exportBackup(uri: Uri, password: CharArray)
 
     suspend fun restoreBackup(uri: Uri, password: CharArray)

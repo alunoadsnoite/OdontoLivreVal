@@ -130,6 +130,12 @@ internal class FakeScheduleStore : ClinicStore {
 
     override suspend fun removeDigitalSignature(patientId: Long?, id: Long) = error("Not used")
 
+    override suspend fun uploadProfessionalLogo(uri: Uri) = error("Not used")
+
+    override suspend fun previewProfessionalLogo(): Bitmap? = error("Not used")
+
+    override suspend fun removeProfessionalLogo() = error("Not used")
+
     override suspend fun exportBackup(uri: Uri, password: CharArray) = error("Not used")
 
     override suspend fun restoreBackup(uri: Uri, password: CharArray) = error("Not used")

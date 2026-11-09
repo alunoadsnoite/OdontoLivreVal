@@ -179,18 +179,6 @@ object ClinicPdf {
     }
 }
 
-data class DocumentPdfRequest(
-    val type: DocumentType,
-    val patient: DemoPatient,
-    val record: PatientRecord?,
-    val profile: ProfessionalProfile,
-    val content: String,
-    val title: String,
-    val labels: ClinicPdf.PdfLabels,
-) {
-    val filename: String get() = type.filePrefix + ".pdf"
-}
-
 /**
  * Criptografa um arquivo PDF usando AES-128-CBC com PBKDF2 para derivação de chave.
  * Retorna o arquivo criptografado (.pdf.enc) ao lado do original.

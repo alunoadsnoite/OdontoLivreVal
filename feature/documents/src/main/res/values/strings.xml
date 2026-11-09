@@ -1,25 +1,21 @@
 <resources>
     <string name="documents_title">Documentos</string>
-    <string name="documents_patient">Paciente: %1$s</string>
-    <string name="documents_notice">O PDF gerado aqui sai sem assinatura eletrônica. Confira o conteúdo antes de salvar ou compartilhar.</string>
+    <string name="documents_notice">Documentos de demonstração. Confira o conteúdo antes de compartilhar.</string>
     <string name="documents_loading">Carregando documentos…</string>
     <string name="documents_load_error">Não foi possível carregar os dados do documento.</string>
     <string name="documents_retry">Tentar novamente</string>
     <string name="documents_back">Voltar</string>
-    <string name="documents_professional">Profissional: %1$s · CRO %2$s</string>
+    <string name="documents_signed_by">Profissional: %1$s · CRO %2$s</string>
     <string name="documents_profile_missing">Preencha nome e CRO no perfil profissional antes de gerar documentos.</string>
     <string name="documents_open_profile">Abrir perfil profissional</string>
     <string name="documents_type">Tipo de documento</string>
     <string name="documents_content">Conteúdo do documento</string>
     <string name="documents_empty_content">Digite o conteúdo do documento.</string>
     <string name="documents_shared">PDF gerado. Escolha o aplicativo para compartilhar.</string>
-    <string name="documents_generate">Compartilhar PDF sem assinatura</string>
+    <string name="documents_generate">Gerar PDF e compartilhar</string>
     <string name="documents_share_title">Compartilhar PDF</string>
-    <string name="documents_encrypt_pdf">Criptografar PDF antes de compartilhar</string>
-    <string name="documents_encrypt_help">A senha será necessária para abrir o PDF.</string>
-    <string name="documents_pdf_password">Senha do PDF</string>
-    <string name="documents_pdf_password_help">Mínimo 8 caracteres</string>
-    <string name="documents_share_encrypted">Compartilhar PDF criptografado</string>
+    <string name="documents_patient">Paciente: %1$s</string>
+    <string name="documents_professional">Profissional: %1$s · CRO %2$s</string>
 
     <string name="doc_prescription">Receita</string>
     <string name="doc_certificate">Atestado</string>
@@ -61,13 +57,41 @@ Forma de pagamento: ___</string>
     <string name="template_consent">Declaro que recebi informações claras sobre o diagnóstico, o plano de tratamento, os riscos, os benefícios e as alternativas, e que concordo com o procedimento proposto.
 
 Paciente ou responsável: %1$s</string>
-    <string name="documents_save_pdf">Salvar PDF sem assinatura</string>
-    <string name="documents_pdf_error">Não foi possível gerar ou compartilhar o PDF.</string>
-    <string name="signature_title">Assinatura eletrônica</string>
-    <string name="signature_flow">Salve o PDF, assine no serviço adequado e importe o arquivo devolvido. O app preserva o PDF recebido sem alterá-lo.</string>
-    <string name="signature_provider_notice">GOV.BR oferece assinatura avançada. Para prescrições que exigem certificado ICP-Brasil, use o fluxo do CFO. Confira a assinatura no VALIDAR antes de usar o documento.</string>
-    <string name="signature_gov">Abrir assinador GOV.BR</string>
-    <string name="signature_cfo">Prescrição do CFO</string>
-    <string name="signature_validate">Abrir VALIDAR (ITI)</string>
-    <string name="signature_portal_error">Não foi possível abrir o portal. Verifique se há um navegador instalado.</string>
+
+    <!-- Prescrição -->
+    <string name="prescription_title">Receita Odontológica</string>
+    <string name="prescription_patient">Paciente</string>
+    <string name="prescription_medication">Medicamento</string>
+    <string name="prescription_presentation">Apresentação</string>
+    <string name="prescription_concentration">Concentração</string>
+    <string name="prescription_posology">Posologia</string>
+    <string name="prescription_route">Via de administração</string>
+    <string name="prescription_duration">Duração</string>
+    <string name="prescription_quantity">Quantidade</string>
+    <string name="prescription_observations">Observações</string>
+    <string name="prescription_additional_instructions">Orientações adicionais</string>
+    <string name="prescription_validity_days">Validade (dias)</string>
+    <string name="prescription_add_medication">Adicionar medicamento</string>
+    <string name="prescription_remove_medication">Remover</string>
+    <string name="prescription_generate_pdf">Gerar PDF</string>
+    <string name="prescription_generate_pdf_title">Gerar Receita em PDF</string>
+    <string name="prescription_no_medications">Nenhum medicamento adicionado</string>
+    <string name="prescription_error_empty_fields">Preencha nome, CRO e pelo menos um medicamento.</string>
+    <string name="prescription_error_no_medications">Adicione pelo menos um medicamento.</string>
+
+    <!-- Criptografia e compartilhamento de PDF -->
+    <string name="documents_encrypt_pdf">Criptografar PDF antes de compartilhar</string>
+    <string name="documents_pdf_password">Senha do PDF</string>
+    <string name="documents_save_pdf">Salvar documento</string>
+    <string name="documents_share_encrypted">Gerar PDF criptografado e compartilhar</string>
+    <string name="documents_pdf_error">Falha ao compartilhar o PDF.</string>
+
+    <!-- Portais de assinatura digital -->
+    <string name="signature_title">Assinatura digital</string>
+    <string name="signature_flow">Use um portal oficial para assinar digitalmente o documento gerado.</string>
+    <string name="signature_provider_notice">O OdontoLivreVal não armazena assinaturas digitais com valor legal.</string>
+    <string name="signature_gov">Portal ICP-Brasil (ITI)</string>
+    <string name="signature_cfo">Portal CFO (Prescrição)</string>
+    <string name="signature_validate">Validar assinatura</string>
+    <string name="signature_portal_error">Não foi possível abrir o portal.</string>
 </resources>
