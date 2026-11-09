@@ -14,6 +14,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -40,7 +41,7 @@ fun ConsentListScreen(
     val state by model.listState.collectAsStateWithLifecycle()
 
     var revokeDialogOpen by remember { mutableStateOf(false) }
-    var revokeTargetId by remember { mutableStateOf(-1L) }
+    var revokeTargetId by remember { mutableLongStateOf(-1L) }
     var revokeReason by remember { mutableStateOf("") }
 
     Column(

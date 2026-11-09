@@ -3,7 +3,7 @@ package br.com.odontolivreval.feature.documents
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -79,7 +79,7 @@ fun DocumentsScreen(
 
     fun openPortal(url: String) {
         portalFailed = try {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
             false
         } catch (_: ActivityNotFoundException) {
             true

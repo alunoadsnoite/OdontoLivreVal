@@ -21,9 +21,9 @@
 | Área | Estado nesta candidata |
 | --- | --- |
 | Inicialização / navegação principal | Correções feitas no código; compilação final pendente |
-| Perfil profissional | Factory corrigida e atalho visível; testar novamente no Motorola |
-| Rotas do prontuário | Seleção do paciente preservada no código; validar cada tela com paciente fictício |
-| Documentos | Inicialização corrigida; navegação/exportação precisam de validação manual |
+| Perfil profissional | Factory corrigida; abertura e retorno de Configurações passaram no Motorola |
+| Rotas do prontuário | Seleção preservada; telas de navegação cobertas pelos testes instrumentados com paciente fictício |
+| Documentos | Inicialização corrigida; rota, perfil e controles principais passaram nos testes instrumentados; exportar PDF segue no roteiro manual |
 | Confirmação eletrônica | Registro local digitado com confirmação explícita; não é assinatura certificada |
 | Importar PDF assinado | Cópia criptografada por paciente e hash informativo; assinatura não verificada, versão não vinculada |
 | Assinatura manuscrita/criptográfica | Traçado não capturado; modalidade criptográfica indisponível |
@@ -32,7 +32,7 @@
 
 ## Verificações
 
-Uma rodada anterior de compilação e análise estática concluiu `test`, assemble debug/release, lint e compilação do APK instrumentado antes das últimas alterações. A rodada final de build desta candidata deve ser registrada separadamente. Não foram executados testes funcionais nem testes conectados nesta sessão, conforme combinado para a noite.
+Na rodada final, `test`, assemble debug/release, lint e compilação do APK instrumentado concluíram com sucesso; 20/20 testes unitários e 11/11 testes instrumentados no Motorola passaram. O lint não apontou problemas de código nos módulos do app; resta um aviso interno do lint check da dependência AndroidX Lifecycle 2.11.0. Exportação PDF, importação de PDF assinado, restauração e acessibilidade continuam no roteiro manual.
 
 A inspeção no Motorola confirmou anteriormente o encerramento ao abrir Perfil profissional e sua correção de factory; a navegação completa de Documentos e a assinatura não foram validadas manualmente. Nenhum dado clínico real deve ser usado na próxima rodada.
 

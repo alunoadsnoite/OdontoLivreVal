@@ -4,17 +4,14 @@ import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.Manifest
 import android.provider.Settings
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -136,9 +133,6 @@ class MainActivity : ComponentActivity() {
         backupModel.select(BackupAction.RESTORE, it)
     }
 
-    private val notificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lock = DeviceLock(this)
@@ -162,7 +156,6 @@ class MainActivity : ComponentActivity() {
         pendingDocumentPhotoPatient = savedInstanceState?.getLong("documentPhotoPatient")?.takeIf { it > 0 }
         if (pendingDocumentPhotoPatient == null && !documentPhotoModel.state.value.busy) captureDocumentFile.delete()
         applyCaptureProtection(lock.enabled)
-        requestNotificationPermission()
         enableEdgeToEdge()
         val odontoApplication = application as OdontoApplication
         setContent {
@@ -416,15 +409,6 @@ class MainActivity : ComponentActivity() {
         }
         if (pendingDocumentPhotoPatient == null && !documentPhotoModel.state.value.busy) {
             captureDocumentFile.delete()
-        }
-    }
-
-    private fun requestNotificationPermission() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 

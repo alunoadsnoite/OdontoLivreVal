@@ -1,6 +1,8 @@
 <resources>
     <string name="schedule_title">Agenda de consultas</string>
     <string name="schedule_demo_notice">Marque, acompanhe e remaneje consultas.</string>
+    <string name="schedule_notification_permission_notice">Autorize notificações para receber lembretes das consultas. O aviso não mostra nome nem dados clínicos.</string>
+    <string name="schedule_notification_permission_enable">Ativar lembretes</string>
     <string name="schedule_previous">Dia anterior</string>
     <string name="schedule_next">Dia seguinte</string>
     <string name="schedule_loading">Carregando agenda…</string>

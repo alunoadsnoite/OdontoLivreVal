@@ -111,3 +111,4 @@
 - Hash SHA-256 é exibido para o PDF selecionado como referência; não comprova autoria nem valida assinatura.
 - PDF selecionado é copiado sem alterações para o arquivo criptografado do paciente e incluído no backup; ainda não está vinculado a uma versão específica de documento.
 - Não declarar assinatura certificada ou validade jurídica automática.
+- Permissão de notificações deixou de ser solicitada na abertura do app; o profissional escolhe ativá-la pela Agenda.

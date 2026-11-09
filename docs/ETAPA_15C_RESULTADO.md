@@ -25,6 +25,7 @@ O `DocumentsViewModel` iniciava `load()` no bloco `init` antes de inicializar o 
 - A tela Documentos e a persistência de uma assinatura não foram percorridas manualmente nesta sessão.
 - O fluxo de importação foi implementado para escolher PDF, calcular hash SHA-256 e arquivar os bytes no armazenamento criptografado do paciente. O hash não certifica assinatura nem associa o arquivo a uma versão do documento.
 - A confirmação eletrônica exige nome e confirmação explícita; continua sendo apenas um registro local. Não captura traçado manuscrito nem realiza assinatura digital certificada.
-- A validação final em dispositivo e a execução dos testes instrumentados ficam pendentes para a sessão de testes combinada.
-- Build final da candidata 0.13.0: `:app:assembleDebug`, `:app:assembleRelease`, `:app:assembleDebugAndroidTest` e `lint` concluídos com sucesso em 09/11/2026. O lint do app registra 231 avisos `UnusedResources` e nenhum erro. Os testes unitários e conectados não foram executados nesta rodada.
-- APK debug atual em `~/Downloads/OdontoLivreVal-0.13.0-debug.apk`; SHA-256: `eb83af47747350d26b58112b427e7c1b9a2d6ceaf203daa99089ce67089265f7`. A compilação release é unsigned e não deve ser distribuída.
+- Build final da candidata 0.13.0: `:app:assembleDebug`, `:app:assembleRelease`, `:app:assembleDebugAndroidTest`, `lint` e `test` concluíram com sucesso em 09/11/2026. Os 20 testes unitários passaram. Avisos de recursos duplicados e dois avisos de lint no código foram removidos; resta um aviso `ObsoleteLintCustomCheck` interno do verificador AndroidX Lifecycle 2.11.0.
+- Os 11 testes instrumentados passaram no Motorola Edge 70 Fusion: 2 de lembretes, 4 de armazenamento e 5 de navegação, perfil e Documentos. Os cenários de navegação foram alinhados aos rótulos reais em português usados pela interface.
+- A permissão de notificação agora é solicitada apenas pelo botão **Ativar lembretes** na Agenda, em vez de aparecer na primeira abertura.
+- APK debug atual em `~/Downloads/OdontoLivreVal-0.13.0-debug.apk`; SHA-256: `9e3e2fbe2de9ca815440310f86d16c10947cfb6d1396d2899bebe0e7ab6c75d2`. A compilação release é unsigned e não deve ser distribuída.

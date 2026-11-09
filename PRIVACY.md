@@ -32,7 +32,7 @@ O manifesto não declara a permissão `INTERNET`. O app não usa conta, servidor
 ## Permissões declaradas
 
 - `CAMERA`: fotografar anexos quando o profissional escolhe essa função.
-- `POST_NOTIFICATIONS`: publicar lembretes locais nas versões Android que exigem autorização.
+- `POST_NOTIFICATIONS`: solicitado somente quando o profissional toca em **Ativar lembretes** na Agenda; abrir o app não inicia a solicitação.
 - `RECEIVE_BOOT_COMPLETED`: reprogramar lembretes locais após reinicialização.
 - `USE_BIOMETRIC`: permitir autenticação biométrica opcional do aparelho para o bloqueio do app.
 

@@ -1,9 +1,12 @@
 package br.com.odontolivreval.feature.schedule
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -31,6 +34,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -57,6 +62,8 @@ fun ScheduleScreen(
 ) {
     val model: ScheduleViewModel = viewModel(factory = ScheduleViewModel.factory(store))
     val state by model.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     var pickingDay by rememberSaveable { mutableStateOf(false) }
     var confirmCancel by rememberSaveable { mutableStateOf<Long?>(null) }
     LaunchedEffect(model) { model.refresh() }
@@ -71,6 +78,16 @@ fun ScheduleScreen(
             Text(stringResource(R.string.schedule_title), style = MaterialTheme.typography.headlineLarge)
         }
         item { Text(stringResource(R.string.schedule_demo_notice)) }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            item {
+                Text(stringResource(R.string.schedule_notification_permission_notice))
+                OutlinedButton(onClick = { notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
+                    Text(stringResource(R.string.schedule_notification_permission_enable))
+                }
+            }
+        }
         item {
             OutlinedButton(
                 onClick = { if (month == null) model.showMonth() else model.showDay() },

@@ -34,10 +34,12 @@ Use exclusivamente pacientes e conteúdo fictícios. Em cada cenário, anote mod
 
 ## Agenda e notificações
 
-1. Crie consultas fictícias com durações sobrepostas e consecutivas; confirme que apenas sobreposição é bloqueada.
-2. Crie, remarque e cancele consultas; verifique vínculo de retorno e cancelamento de lembretes antigos.
-3. Teste permissão de notificação concedida e negada, aparelho reiniciado, mudança de fuso horário e economia de bateria.
-4. Confira a notificação na tela bloqueada; ela deve ser genérica e não expor dados clínicos.
+1. Abra o app e confirme que ele não solicita permissão de notificação automaticamente.
+2. Na Agenda, toque em **Ativar lembretes** e teste permissão concedida e negada.
+3. Crie consultas fictícias com durações sobrepostas e consecutivas; confirme que apenas sobreposição é bloqueada.
+4. Crie, remarque e cancele consultas; verifique vínculo de retorno e cancelamento de lembretes antigos.
+5. Teste aparelho reiniciado, mudança de fuso horário e economia de bateria.
+6. Confira a notificação na tela bloqueada; ela deve ser genérica e não expor dados clínicos.
 
 ## Offline, acessibilidade e encerramento
 

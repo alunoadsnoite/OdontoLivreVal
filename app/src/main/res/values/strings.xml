@@ -1,4 +1,5 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedResources">
+<!-- App translations intentionally override same-named strings from feature-library modules. -->
 <string name="app_name">OdontoLivreVal</string>
 <string name="home">Início</string><string name="patients">Pacientes</string><string name="schedule">Agenda</string><string name="settings">Configurações</string><string name="about">Sobre</string>
 <string name="welcome">Odontologia livre e offline</string><string name="intro">Aplicativo livre e gratuito, preparado para um único cirurgião-dentista por dispositivo. Gerencie o cadastro de pacientes e a agenda de consultas.</string><string name="version">Versão %1$s</string><string name="license">Licença: GPL-3.0-or-later</string><string name="back">Voltar</string>
@@ -44,7 +45,6 @@
 <string name="demo_patients_load_failed">Não foi possível carregar os pacientes.</string>
 <string name="demo_patients_retry">Tentar novamente</string>
 <string name="demo_patients_save_failed">Não foi possível salvar o cadastro.</string>
-<string name="demo_patient_title">Ficha do Paciente</string>
 <string name="demo_patient_name">Nome</string>
 <string name="demo_patient_birth_date">Data de Nascimento</string>
 <string name="demo_patient_phone">Telefone</string>
@@ -62,7 +62,6 @@
 <string name="odontogram_subtitle">Marque os dentes para registrar esta evolução.</string>
 <string name="odontogram_upper">Arcada Superior</string>
 <string name="odontogram_lower">Arcada Inferior</string>
-<string name="demo_patient_edit_named">Editar %1$s</string>
 <string name="demo_patient_open_record">Abrir Prontuário</string>
 <string name="demo_patient_invalid_date">Informe uma data válida no formato dd/mm/aaaa.</string>
 <string name="demo_patient_invalid_phone">Informe um telefone com DDD (10 ou 11 dígitos).</string>
