@@ -26,7 +26,7 @@ Na execução final, os 11 testes instrumentados passaram no Motorola Edge 70 Fu
 3. Fazer avaliação de segurança, privacidade, retenção e requisitos jurídicos para uso clínico real. Este app não declara conformidade integral com a LGPD.
 4. Resolver a associação entre PDF importado e versão de documento e decidir sobre captura de assinatura manuscrita e validação criptográfica; as funções atuais não substituem assinatura profissional certificada.
 5. Preparar assinatura de release e comprovar atualização/reprodutibilidade antes de distribuir APK.
-6. Para F-Droid, preparar metadados e validar o build a partir do código-fonte. Nenhuma submissão está autorizada neste momento.
+6. Para F-Droid, cumprir o período de manutenção da política de inclusão (ou demonstrar exceção), finalizar a validação manual e validar o build a partir do código-fonte. Os metadados localizados foram preparados; a solicitação ao repositório principal não foi aberta.
 
 ## Artefatos locais
 

@@ -1,0 +1,7 @@
+Aplicativo livre de prontuário odontológico, desenvolvido para funcionar offline em um único dispositivo.
+
+Recursos: cadastro de pacientes, prontuário, odontograma, agenda e lembretes locais, radiografias, documentos, atestados, planos de tratamento, orçamentos e termos de consentimento. Inclui bloqueio opcional do app e backup criptografado.
+
+O app não exige conta nem envia os dados clínicos a um servidor. Câmera e arquivos só são usados nas ações escolhidas pela pessoa usuária. Os lembretes são locais.
+
+ESTADO DE DESENVOLVIMENTO: use somente dados fictícios durante a validação. O projeto ainda não foi declarado pronto para uso clínico e não afirma conformidade integral com a LGPD. A confirmação digitada no app não é assinatura digital certificada. Consulte a política de privacidade e as limitações no site do projeto antes de usar.

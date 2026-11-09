@@ -1,6 +1,6 @@
 # OdontoLivreVal
 
-Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão de desenvolvimento **0.13.0** (versionCode 13) reúne as etapas 13A–15B; ainda não foi lançada nem submetida ao F-Droid.
+Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão de desenvolvimento **0.13.0** (versionCode 13) reúne as etapas 13A–15B; ainda não foi lançada nem submetida ao F-Droid. A inclusão no repositório principal não está elegível até cumprir o período de manutenção previsto na política ou demonstrar uma exceção.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 
@@ -82,7 +82,7 @@ A assinatura é aplicada pelo serviço externo. A interface abre o navegador e a
 | `./gradlew lint` | Ver estado atualizado em [docs/ETAPA_15B_RELEASE_READINESS.md](docs/ETAPA_15B_RELEASE_READINESS.md) |
 | `./gradlew :app:assembleDebugAndroidTest` | Compila o APK de testes; execução conectada é registrada separadamente |
 
-Os testes instrumentados existentes cobrem cenários específicos com registros fictícios. A execução final conectada e a validação manual em aparelho estão pendentes; leia [docs/ROTEIRO_TESTES_MANUAIS.md](docs/ROTEIRO_TESTES_MANUAIS.md) e o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md).
+Os testes instrumentados existentes cobrem cenários específicos com registros fictícios. Em 09/11/2026, a execução conectada no Motorola passou (11 testes); a validação manual ampliada continua no roteiro. Consulte [docs/ROTEIRO_TESTES_MANUAIS.md](docs/ROTEIRO_TESTES_MANUAIS.md) e o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md).
 
 ## Estrutura do código
 
@@ -107,7 +107,7 @@ Consulte a [arquitetura](docs/ARCHITECTURE.md), as [decisões de segurança](doc
 2. Validar o volume e a recuperação de anexos em aparelhos reais e migrar o índice e os registros para um banco criptografado antes do uso clínico.
 3. Validar em aparelho os lembretes, o painel e o fluxo de documentos e assinatura externa.
 4. Avaliar assinatura qualificada dentro do app com certificado ICP-Brasil, incluindo verificação da cadeia e requisitos por tipo de documento.
-5. Preparar a distribuição pelo F-Droid.
+5. Cumprir os requisitos de elegibilidade e revisão do [F-Droid](docs/FDROID_READINESS.md) antes de solicitar inclusão.
 
 ## Licença
 

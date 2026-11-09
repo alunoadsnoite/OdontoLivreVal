@@ -1,7 +1,7 @@
-# Preparação para F-Droid
+# F-Droid: preparação e elegibilidade
 
 **Candidata analisada:** 0.13.0, versionCode 13  
-**Estado:** documentação inicial; não submetido. A publicação depende de autorização explícita do mantenedor.
+**Estado em 09/11/2026:** metadados localizados preparados; ainda não submetido e não elegível, pelo momento, à inclusão no repositório principal.
 
 ## Dados de identificação propostos
 
@@ -13,13 +13,15 @@
 
 ## Pendências técnicas
 
-- Definir tag/revisão de origem e metadados F-Droid com `Build` reproduzível para versionCode 13.
+- Publicar os metadados de loja em `fastlane/metadata/android/pt-BR` junto com o código-fonte.
+- A submissão ao repositório principal exige um registro em `fdroiddata` (não neste repositório) e uma revisão dos mantenedores. Para `versionCode 13`, a revisão de origem deve apontar para o hash completo do commit que contém esta versão; não usar nome de branch ou tag como `commit`.
 - Confirmar que a compilação do fdroidserver usa apenas dependências disponíveis e não depende de artefatos pré-compilados ou rede durante a fase de build.
 - Validar assinatura/reprodutibilidade e executar a análise de metadados e varreduras do F-Droid.
 - Confirmar as licenças de bibliotecas, imagens, ícones e outros recursos.
 - Concluir testes funcionais reais e a revisão de segurança/privacidade descrita em `ETAPA_15B_RELEASE_READINESS.md`.
-- Verificar políticas e documentação atuais do F-Droid no momento de uma eventual submissão.
+- Manter o projeto por pelo menos três meses antes de pedir inclusão, ou demonstrar uma exceção prevista pela política. O histórico público atual começa em 07/11/2026 e ainda não demonstra três meses de manutenção nem usuários comprovados ou outra exceção.
+- Corrigir a descrição para refletir o estado do app no momento da submissão; ele continua em validação e não deve ser apresentado como pronto para uso clínico.
 
-O guia oficial de submissão descreve o fluxo de inclusão e revisão [Submetendo ao F-Droid](https://fdroid.gitlab.io/jekyll-fdroid/docs/Submitting_to_F-Droid_Quick_Start_Guide/). Os metadados e comandos de build são descritos na [referência de metadados](https://fdroid.gitlab.io/jekyll-fdroid/docs/Build_Metadata_Reference/); a validação de builds reproduzíveis é detalhada em [Reproducible Builds](https://fdroid.gitlab.io/jekyll-fdroid/docs/Reproducible_Builds/).
+O guia oficial explica o fluxo de submissão e revisão [Submetendo ao F-Droid](https://fdroid.gitlab.io/jekyll-fdroid/docs/Submitting_to_F-Droid_Quick_Start_Guide/). A política de inclusão pede manutenção ativa por pelo menos três meses, salvo exceções explícitas, além de app funcional, útil e não demonstrativo ([Política de inclusão](https://fdroid.gitlab.io/jekyll-fdroid/en/docs/Inclusion_Policy/)). Os metadados de build ficam no repositório `fdroiddata`, com `commit` apontando para hash completo ([referência de metadados](https://fdroid.gitlab.io/jekyll-fdroid/docs/Build_Metadata_Reference/)).
 
-Este arquivo registra preparação; não é uma submissão nem aprovação para publicar.
+Não foi aberta uma submissão: a política de três meses ainda não foi atendida e a sessão local do GitLab não está autenticada. A sessão do GitHub também está com token inválido; a tentativa de envio pode ser feita pelo Git remoto, mas só se as credenciais locais permitirem.

@@ -1,0 +1,3 @@
+Versão candidata 0.13.0 para validação, com correções na navegação, perfil profissional, documentos e permissões de lembretes.
+Inclui melhorias no prontuário, agenda, backup e fluxos documentais.
+Use somente dados fictícios. Ainda não está pronta para uso clínico.
