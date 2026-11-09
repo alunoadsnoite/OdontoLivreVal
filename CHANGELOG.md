@@ -56,3 +56,19 @@
 - Validação de campos obrigatórios (nome e CRO) e formatos nos documentos profissionais
 - Receituário odontológico com geração de PDF em A4 e compartilhamento
 - Controle de lista de medicamentos (nome, apresentação, concentração, posologia, via de administração, duração, quantidade, observações)
+
+## 0.11.0 — 2026-11-09
+
+### Atestados e declarações odontológicas (Etapa 13A)
+
+- Três tipos de documento: atestado odontológico, declaração de comparecimento, declaração de acompanhamento
+- Ciclo de vida: rascunho → finalizado → cancelado (com motivo)
+- Nova versão para correções (deriva do documento finalizado)
+- Modelos editáveis em português brasileiro
+- CID apenas quando autorizado explicitamente pelo paciente
+- Não gera diagnóstico ou afastamento automaticamente
+- Integração com prontuário: seção "Atestados e declarações"
+- PDF A4 com cabeçalho profissional, CRO/UF, assinatura manuscrita, sem assinatura digital fictícia
+- Compartilhamento via Android Sharesheet e FileProvider
+- Armazenamento criptografado no snapshot (versão 12)
+- Inclusão no backup criptografado

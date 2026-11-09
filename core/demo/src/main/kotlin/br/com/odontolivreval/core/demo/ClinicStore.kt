@@ -99,6 +99,20 @@ interface ClinicStore {
     suspend fun exportBackup(uri: Uri, password: CharArray)
 
     suspend fun restoreBackup(uri: Uri, password: CharArray)
+
+    // --- Atestados e declarações ---
+
+    suspend fun listMedicalCertificates(patientId: Long): List<MedicalCertificateFile>
+
+    suspend fun getMedicalCertificate(patientId: Long, id: Long): MedicalCertificate?
+
+    suspend fun saveMedicalCertificate(patientId: Long, certificate: MedicalCertificate): MedicalCertificate
+
+    suspend fun cancelMedicalCertificate(patientId: Long, id: Long, reason: String)
+
+    suspend fun createMedicalCertificateVersion(patientId: Long, id: Long): MedicalCertificate
+
+    suspend fun deleteMedicalCertificate(patientId: Long, id: Long)
 }
 
 data class SavedRecord(val record: PatientRecord, val visit: VisitRecord)

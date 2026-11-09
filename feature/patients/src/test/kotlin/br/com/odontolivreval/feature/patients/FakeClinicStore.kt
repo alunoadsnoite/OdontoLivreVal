@@ -3,9 +3,13 @@ package br.com.odontolivreval.feature.patients
 import android.graphics.Bitmap
 import android.net.Uri
 import br.com.odontolivreval.core.demo.AppointmentSaveResult
+import br.com.odontolivreval.core.demo.CertificateStatus
+import br.com.odontolivreval.core.demo.CertificateType
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoAppointment
 import br.com.odontolivreval.core.demo.DemoPatient
+import br.com.odontolivreval.core.demo.MedicalCertificate
+import br.com.odontolivreval.core.demo.MedicalCertificateFile
 import br.com.odontolivreval.core.demo.PatientRecord
 import br.com.odontolivreval.core.demo.Radiograph
 import br.com.odontolivreval.core.demo.PrescriptionFile
@@ -22,6 +26,7 @@ internal class FakeClinicStore : ClinicStore {
     val patients = mutableListOf<DemoPatient>()
     val records = mutableListOf<PatientRecord>()
     val visits = mutableListOf<VisitRecord>()
+    val medicalCertificates = mutableListOf<MedicalCertificateFile>()
     var saves = 0
         private set
     private var nextRecordId = 1L
@@ -133,4 +138,123 @@ internal class FakeClinicStore : ClinicStore {
     override suspend fun exportBackup(uri: Uri, password: CharArray) = error("Not used in patients tests")
 
     override suspend fun restoreBackup(uri: Uri, password: CharArray) = error("Not used in patients tests")
+
+    // --- Atestados e declarações (fake para testes) ---
+
+    override suspend fun listMedicalCertificates(patientId: Long): List<MedicalCertificateFile> =
+        medicalCertificates.filter { it.patientId == patientId }
+
+    override suspend fun getMedicalCertificate(patientId: Long, id: Long): MedicalCertificate? =
+        medicalCertificates.find { it.patientId == patientId && it.id == id }
+            ?.let { file ->
+                MedicalCertificate(
+                    id = file.id,
+                    patientId = file.patientId,
+                    type = file.type,
+                    status = file.status,
+                    title = file.title,
+                    content = "",
+                    serviceDate = file.serviceDate,
+                    leaveDays = file.leaveDays,
+                    version = file.version,
+                    originalId = file.originalId,
+                    placeOfIssue = "",
+                    issueDate = file.serviceDate,
+                )
+            }
+
+    override suspend fun saveMedicalCertificate(patientId: Long, certificate: MedicalCertificate): MedicalCertificate {
+        val existing = medicalCertificates.find { it.patientId == patientId && it.id == certificate.id }
+        val savedFile = if (existing != null) {
+            val updated = medicalCertificates.map {
+                if (it.patientId == patientId && it.id == certificate.id) {
+                    it.copy(
+                        type = certificate.type,
+                        status = certificate.status,
+                        title = certificate.title,
+                        serviceDate = certificate.serviceDate,
+                        leaveDays = certificate.leaveDays,
+                        version = certificate.version,
+                        originalId = certificate.originalId,
+                    )
+                } else it
+            }
+            medicalCertificates.clear()
+            medicalCertificates.addAll(updated)
+            existing
+        } else {
+            val newId = (medicalCertificates.maxOfOrNull { it.id } ?: 0) + 1
+            val file = MedicalCertificateFile(
+                id = newId,
+                patientId = patientId,
+                type = certificate.type,
+                status = certificate.status,
+                title = certificate.title,
+                serviceDate = certificate.serviceDate,
+                leaveDays = certificate.leaveDays,
+                version = certificate.version,
+                originalId = certificate.originalId,
+            )
+            medicalCertificates.add(file)
+            file
+        }
+        saves++
+        return MedicalCertificate(
+            id = savedFile.id,
+            patientId = patientId,
+            type = savedFile.type,
+            status = savedFile.status,
+            title = savedFile.title,
+            content = certificate.content,
+            serviceDate = savedFile.serviceDate,
+            leaveDays = savedFile.leaveDays,
+            version = savedFile.version,
+            originalId = savedFile.originalId,
+            placeOfIssue = certificate.placeOfIssue,
+            issueDate = savedFile.serviceDate,
+        )
+    }
+
+    override suspend fun cancelMedicalCertificate(patientId: Long, id: Long, reason: String) {
+        val idx = medicalCertificates.indexOfFirst { it.patientId == patientId && it.id == id }
+        if (idx >= 0) {
+            medicalCertificates[idx] = medicalCertificates[idx].copy(status = CertificateStatus.CANCELLED)
+        }
+    }
+
+    override suspend fun createMedicalCertificateVersion(patientId: Long, id: Long): MedicalCertificate {
+        val existing = medicalCertificates.find { it.patientId == patientId && it.id == id }
+            ?: throw IllegalStateException("Certificate not found")
+        val newId = (medicalCertificates.maxOfOrNull { it.id } ?: 0) + 1
+        val newFile = MedicalCertificateFile(
+            id = newId,
+            patientId = patientId,
+            type = existing.type,
+            status = CertificateStatus.DRAFT,
+            title = existing.title,
+            serviceDate = existing.serviceDate,
+            leaveDays = existing.leaveDays,
+            version = existing.version + 1,
+            originalId = existing.originalId ?: id,
+        )
+        medicalCertificates.add(newFile)
+        return MedicalCertificate(
+            id = newId,
+            patientId = patientId,
+            type = newFile.type,
+            status = newFile.status,
+            title = newFile.title,
+            content = "",
+            serviceDate = newFile.serviceDate,
+            leaveDays = newFile.leaveDays,
+            version = newFile.version,
+            originalId = newFile.originalId,
+            placeOfIssue = "",
+            issueDate = newFile.serviceDate,
+        )
+    }
+
+    override suspend fun deleteMedicalCertificate(patientId: Long, id: Long) {
+        medicalCertificates.removeAll { it.patientId == patientId && it.id == id }
+    }
 }

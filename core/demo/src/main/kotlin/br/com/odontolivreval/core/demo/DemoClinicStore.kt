@@ -22,6 +22,7 @@ import java.security.ProviderException
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth
+import java.nio.charset.StandardCharsets
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import kotlinx.coroutines.Dispatchers
@@ -230,6 +231,7 @@ class DemoClinicStore(context: Context) : ClinicStore {
                 prescriptions = snapshot.prescriptions.filterNot { it.file.patientId == id },
                 documentPhotos = snapshot.documentPhotos.filterNot { it.file.patientId == id },
                 digitalSignatures = snapshot.digitalSignatures.filterNot { it.file.patientId == id },
+                medicalCertificates = snapshot.medicalCertificates.filterNot { it.file.patientId == id },
             ))
         } catch (error: Exception) {
             backupFile.deleteRecursively()
@@ -237,6 +239,151 @@ class DemoClinicStore(context: Context) : ClinicStore {
         }
         backupFile.deleteRecursively()
         Unit
+    }
+
+    override suspend fun listMedicalCertificates(patientId: Long): List<MedicalCertificateFile> = access {
+        load().medicalCertificates.map { it.file }.filter { it.patientId == patientId }
+    }
+
+    override suspend fun getMedicalCertificate(patientId: Long, id: Long): MedicalCertificate? = access {
+        val stored = load().medicalCertificates.find { it.file.patientId == patientId && it.file.id == id }
+            ?: return@access null
+        val file = stored.file
+        val content = try {
+            readAttachment(stored.content)
+        } catch (_: IOException) {
+            return@access MedicalCertificate(
+                id = file.id, patientId = file.patientId, type = file.type, status = file.status,
+                title = file.title, content = "", serviceDate = file.serviceDate,
+                leaveDays = file.leaveDays, version = file.version, originalId = file.originalId,
+                placeOfIssue = "", issueDate = LocalDate.now(),
+            )
+        }
+        val text = String(content, StandardCharsets.UTF_8)
+        MedicalCertificate(
+            id = file.id, patientId = file.patientId, type = file.type, status = file.status,
+            title = file.title, content = text, serviceDate = file.serviceDate,
+            leaveDays = file.leaveDays, version = file.version, originalId = file.originalId,
+            placeOfIssue = "", issueDate = LocalDate.now(),
+        )
+    }
+
+    override suspend fun saveMedicalCertificate(patientId: Long, certificate: MedicalCertificate): MedicalCertificate = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val existing = snapshot.medicalCertificates.find { it.file.patientId == patientId && it.file.id == certificate.id }
+        val now = System.currentTimeMillis()
+        val savedFile = when {
+            existing != null -> {
+                // Atualiza rascunho existente ou cria nova versão de finalizado
+                val file = existing.file.copy(
+                    type = certificate.type,
+                    status = certificate.status,
+                    title = certificate.title,
+                    serviceDate = certificate.serviceDate,
+                    leaveDays = certificate.leaveDays,
+                    version = if (certificate.status == CertificateStatus.FINALIZED && existing.file.status == CertificateStatus.DRAFT)
+                        existing.file.version + 1 else existing.file.version,
+                    originalId = if (certificate.status == CertificateStatus.FINALIZED && existing.file.status == CertificateStatus.DRAFT)
+                        existing.file.id else existing.file.originalId,
+                )
+                MedicalCertificateFile(
+                    id = file.id, patientId = patientId, type = file.type, status = file.status,
+                    title = file.title, serviceDate = file.serviceDate, leaveDays = file.leaveDays,
+                    version = file.version, originalId = file.originalId, createdAt = now,
+                )
+            }
+            else -> {
+                val newId = nextId(snapshot.medicalCertificates.map { it.file.id })
+                MedicalCertificateFile(
+                    id = newId, patientId = patientId, type = certificate.type,
+                    status = certificate.status, title = certificate.title,
+                    serviceDate = certificate.serviceDate, leaveDays = certificate.leaveDays,
+                    version = 1, originalId = null, createdAt = now,
+                )
+            }
+        }
+        val bytes = certificate.content.toByteArray(StandardCharsets.UTF_8)
+        val content = writeNewAttachment(snapshot, bytes)
+        persist(snapshot.copy(
+            medicalCertificates = snapshot.medicalCertificates.filterNot {
+                it.file.patientId == patientId && it.file.id == savedFile.id
+            } + StoredMedicalCertificate(savedFile, content),
+        ))
+        MedicalCertificate(
+            id = savedFile.id, patientId = patientId, type = savedFile.type, status = savedFile.status,
+            title = savedFile.title, content = certificate.content, serviceDate = savedFile.serviceDate,
+            leaveDays = savedFile.leaveDays, version = savedFile.version, originalId = savedFile.originalId,
+            placeOfIssue = certificate.placeOfIssue, issueDate = savedFile.serviceDate,
+        )
+    }
+
+    override suspend fun cancelMedicalCertificate(patientId: Long, id: Long, reason: String) = access {
+        val snapshot = load()
+        val existing = snapshot.medicalCertificates.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Certificate missing")
+        if (existing.file.status != CertificateStatus.FINALIZED) throw IOException("Only finalized certificates can be cancelled")
+        persist(snapshot.copy(
+            medicalCertificates = snapshot.medicalCertificates.map {
+                if (it.file.patientId == patientId && it.file.id == id) {
+                    it.copy(file = it.file.copy(
+                        status = CertificateStatus.CANCELLED,
+                        cancelledReason = reason,
+                        cancelledAt = LocalDate.now(),
+                    ))
+                } else it
+            },
+        ))
+    }
+
+    override suspend fun createMedicalCertificateVersion(patientId: Long, id: Long): MedicalCertificate = access {
+        val snapshot = load()
+        val existing = snapshot.medicalCertificates.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Certificate missing")
+        if (existing.file.status != CertificateStatus.FINALIZED) throw IOException("Only finalized certificates can have a new version")
+        val newFile = MedicalCertificateFile(
+            id = nextId(snapshot.medicalCertificates.map { it.file.id }),
+            patientId = patientId,
+            type = existing.file.type,
+            status = CertificateStatus.DRAFT,
+            title = existing.file.title,
+            serviceDate = existing.file.serviceDate,
+            leaveDays = existing.file.leaveDays,
+            version = existing.file.version + 1,
+            originalId = existing.file.originalId ?: id,
+            createdAt = System.currentTimeMillis(),
+        )
+        val existingStored = snapshot.medicalCertificates.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Certificate content missing")
+        val existingContent = try {
+            String(readAttachment(existingStored.content), StandardCharsets.UTF_8)
+        } catch (_: IOException) {
+            ""
+        }
+        persist(snapshot.copy(
+            medicalCertificates = snapshot.medicalCertificates + StoredMedicalCertificate(
+                newFile,
+                writeNewAttachment(snapshot, existingContent.toByteArray(StandardCharsets.UTF_8)),
+            ),
+        ))
+        MedicalCertificate(
+            id = newFile.id, patientId = patientId, type = newFile.type, status = newFile.status,
+            title = newFile.title, content = existingContent, serviceDate = newFile.serviceDate,
+            leaveDays = newFile.leaveDays, version = newFile.version, originalId = newFile.originalId,
+            placeOfIssue = "", issueDate = newFile.serviceDate,
+        )
+    }
+
+    override suspend fun deleteMedicalCertificate(patientId: Long, id: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.medicalCertificates.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Certificate missing")
+        if (existing.file.status == CertificateStatus.FINALIZED) throw IOException("Cannot delete finalized certificate")
+        persist(snapshot.copy(
+            medicalCertificates = snapshot.medicalCertificates.filterNot {
+                it.file.patientId == patientId && it.file.id == id
+            },
+        ))
     }
 
     private fun autoBackup(): File {

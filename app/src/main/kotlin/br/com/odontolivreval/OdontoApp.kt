@@ -16,6 +16,9 @@ import androidx.navigation.compose.*
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.model.ThemeMode
+import br.com.odontolivreval.feature.documents.CertificateFormScreen
+import br.com.odontolivreval.feature.documents.CertificateListScreen
+import br.com.odontolivreval.feature.documents.CertificatePreviewScreen
 import br.com.odontolivreval.feature.documents.DocumentPdfRequest
 import br.com.odontolivreval.feature.documents.DocumentsScreen
 import br.com.odontolivreval.feature.patients.PatientRecordScreen
@@ -161,6 +164,83 @@ fun OdontoApp(
                                 }
                             }
                         }
+                        composable("certificates_list") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    CertificateListScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        onClose = { nav.popBackStack() },
+                                        onCreateCertificate = {
+                                            nav.navigate("certificates_form") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                        onViewCertificate = { certId ->
+                                            nav.navigate("certificates_form?certificateId=$certId") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                        onCancelCertificate = { _, _ -> },
+                                        onCreateVersion = { certId ->
+                                            nav.navigate("certificates_form?certificateId=$certId") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("certificates_form") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                val certificateId = nav.currentBackStackEntry?.arguments?.getLong("certificateId") ?: -1L
+                                if (patient != null) {
+                                    CertificateFormScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        certificate = null,
+                                        onClose = { nav.popBackStack() },
+                                        onSave = { nav.popBackStack() },
+                                        onFinalize = { nav.popBackStack() },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("certificates_preview") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                val certificateId = nav.currentBackStackEntry?.arguments?.getLong("certificateId") ?: -1L
+                                if (patient != null && certificateId > 0) {
+                                    CertificatePreviewScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        certificateId = certificateId,
+                                        onClose = { nav.popBackStack() },
+                                        onShare = { /* handled internally */ },
+                                        onCancel = { /* handled internally */ },
+                                        onNewVersion = {
+                                            nav.navigate("certificates_form?certificateId=$certificateId") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
                         composable("protection") {
                             ScreenContent {
                                 protection()
@@ -191,6 +271,7 @@ fun OdontoApp(
                                         exportOdontogram = { exportOdontogram(patient.id, it) },
                                         documentPhotos = { documentPhotos(patient.id) },
                                         onDocuments = { nav.navigate("documents") { launchSingleTop = true } },
+                                        onCertificates = { nav.navigate("certificates_list") { launchSingleTop = true } },
                                         onClose = { selectedPatient = null; nav.popBackStack() },
                                     )
                                 } else {

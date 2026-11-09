@@ -51,6 +51,7 @@ internal data class ClinicSnapshot(
     val prescriptions: List<StoredPrescription> = emptyList(),
     val documentPhotos: List<StoredDocumentPhoto> = emptyList(),
     val digitalSignatures: List<StoredDigitalSignature> = emptyList(),
+    val medicalCertificates: List<StoredMedicalCertificate> = emptyList(),
     val professional: ProfessionalProfile = ProfessionalProfile(),
 ) {
     fun encode(): ByteArray = JSONObject()
@@ -112,18 +113,33 @@ internal data class ClinicSnapshot(
                     .putReference(it.content))
             }
         })
+        .put("medicalCertificates", JSONArray().apply {
+            medicalCertificates.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.patientId)
+                    .put(it.file.type.name).put(it.file.status.name)
+                    .put(it.file.title).put(it.file.serviceDate.toEpochDay())
+                    .put(it.file.leaveDays).put(it.file.version)
+                    .put(it.file.originalId ?: JSONObject.NULL)
+                    .put(it.file.createdAt)
+                    .put(it.file.cancelledReason ?: JSONObject.NULL)
+                    .put(it.file.cancelledAt ?: JSONObject.NULL)
+                    .putReference(it.content))
+            }
+        })
         .toString()
         .toByteArray(Charsets.UTF_8)
 
     fun attachments(): List<AttachmentContent> =
         radiographs.map { it.content } + prescriptions.map { it.content } +
-            documentPhotos.map { it.content } + digitalSignatures.map { it.content }
+            documentPhotos.map { it.content } + digitalSignatures.map { it.content } +
+            medicalCertificates.map { it.content }
 
     fun mapAttachments(transform: (AttachmentContent) -> AttachmentContent): ClinicSnapshot = copy(
         radiographs = radiographs.map { it.copy(content = transform(it.content)) },
         prescriptions = prescriptions.map { it.copy(content = transform(it.content)) },
         documentPhotos = documentPhotos.map { it.copy(content = transform(it.content)) },
         digitalSignatures = digitalSignatures.map { it.copy(content = transform(it.content)) },
+        medicalCertificates = medicalCertificates.map { it.copy(content = transform(it.content)) },
     )
 
     private fun JSONArray.putReference(content: AttachmentContent): JSONArray {
@@ -172,6 +188,10 @@ internal data class ClinicSnapshot(
                 it.file.id <= 0 ||
                     (it.file.patientId != null && it.file.patientId !in patientIds)
             }
+            || medicalCertificates.map { it.file.id }.toSet().size != medicalCertificates.size
+            || medicalCertificates.any { it.file.id <= 0 || it.file.patientId !in patientIds }
+            || medicalCertificates.any { it.file.title.length !in 1..120 }
+            || medicalCertificates.any { !it.content.valid }
             || contents.any { !it.valid }
             || references.map { it.token }.toSet().size != references.size
             || references.sumOf { it.size.toLong() } > maxAttachmentTotal
@@ -295,6 +315,33 @@ internal data class ClinicSnapshot(
                 }
             } else emptyList()
 
+            val medicalCertificates = if (version >= 12 && root.has("medicalCertificates")) {
+                root.getJSONArray("medicalCertificates").rows {
+                    val type = CertificateType.valueOf(it.getString(2))
+                    val status = CertificateStatus.valueOf(it.getString(3))
+                    val serviceDate = LocalDate.ofEpochDay(it.integer(4))
+                    val cancelledReason = if (it.isNull(10)) null else it.getString(10)
+                    val cancelledAt = if (it.isNull(11)) null else LocalDate.ofEpochDay(it.integer(11))
+                    StoredMedicalCertificate(
+                        MedicalCertificateFile(
+                            id = it.integer(0),
+                            patientId = it.integer(1),
+                            type = type,
+                            status = status,
+                            title = it.getString(4),
+                            serviceDate = serviceDate,
+                            leaveDays = it.integer(5).toInt(),
+                            version = it.integer(6).toInt(),
+                            originalId = if (it.isNull(7)) null else it.integer(7),
+                            createdAt = it.optLong(8, System.currentTimeMillis()),
+                            cancelledReason = cancelledReason,
+                            cancelledAt = cancelledAt,
+                        ),
+                        it.attachment(version, 9),
+                    )
+                }
+            } else emptyList()
+
             val professional = if (version >= 7 && root.has("professional")) {
                 val json = root.getJSONObject("professional")
                 ProfessionalProfile(
@@ -316,13 +363,13 @@ internal data class ClinicSnapshot(
             val schedule = if (version < 6) appointments.withLegacyDurations() else appointments
             return ClinicSnapshot(
                 patients, schedule, patientRecords, visits, radiographs, prescriptions,
-                documentPhotos, digitalSignatures, professional,
+                documentPhotos, digitalSignatures, medicalCertificates, professional,
             ).apply { validate() }
         }
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 11
+        private const val currentVersion = 12
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)

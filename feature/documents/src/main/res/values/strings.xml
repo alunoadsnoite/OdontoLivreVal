@@ -94,4 +94,58 @@ Paciente ou responsável: %1$s</string>
     <string name="signature_cfo">Portal CFO (Prescrição)</string>
     <string name="signature_validate">Validar assinatura</string>
     <string name="signature_portal_error">Não foi possível abrir o portal.</string>
+
+    <!-- Atestados e declarações -->
+    <string name="certificates_title">Atestados e Declarações</string>
+    <string name="certificates_patient">Paciente: %1$s</string>
+    <string name="certificates_create">Novo atestado/declaração</string>
+    <string name="certificates_history">Histórico</string>
+    <string name="certificates_empty">Nenhum atestado ou declaração cadastrado.</string>
+    <string name="certificates_loading">Carregando…</string>
+    <string name="certificates_load_error">Erro ao carregar atestados e declarações.</string>
+    <string name="certificates_type">Tipo: %1$s</string>
+    <string name="certificates_status">Status: %1$s</string>
+    <string name="certificates_edit">Editar</string>
+    <string name="certificates_view">Visualizar</string>
+    <string name="certificates_new_version">Nova versão</string>
+    <string name="certificates_cancel">Cancelar</string>
+    <string name="certificates_cancel_title">Cancelar documento</string>
+    <string name="certificates_cancel_reason">Informe o motivo do cancelamento:</string>
+    <string name="certificates_cancel_reason_field">Motivo</string>
+    <string name="certificates_cancel_confirm">Confirmar cancelamento</string>
+    <string name="certificates_cancel_dismiss">Descartar</string>
+    <string name="certificates_create_title">Novo atestado ou declaração</string>
+    <string name="certificates_edit_title">Editar atestado ou declaração</string>
+    <string name="certificates_preparing_pdf">Preparando PDF…</string>
+    <string name="certificates_type_field">Tipo de documento</string>
+    <string name="certificates_title_field">Título</string>
+    <string name="certificates_content">Conteúdo</string>
+    <string name="certificates_service_date">Data do atendimento</string>
+    <string name="certificates_place_of_issue">Local de emissão</string>
+    <string name="certificates_leave_days">Dias de afastamento</string>
+    <string name="certificates_leave_days_notice">Preencha apenas se clinicamente indicado.</string>
+    <string name="certificates_entry_time">Horário de entrada</string>
+    <string name="certificates_exit_time">Horário de saída</string>
+    <string name="certificates_companion_name">Nome do acompanhante</string>
+    <string name="certificates_cid_authorize">Autorizar inclusão de CID</string>
+    <string name="certificates_cid_field">CID</string>
+    <string name="certificates_cid_notice">Inclua o CID apenas quando juridicamente apropriado e autorizado pelo paciente.</string>
+    <string name="certificates_error_incomplete">Preencha todos os campos obrigatórios.</string>
+    <string name="certificates_error_save">Erro ao salvar o documento.</string>
+    <string name="certificates_error_unknown">Erro desconhecido.</string>
+    <string name="certificates_saving">Salvando…</string>
+    <string name="certificates_save_draft">Salvar rascunho</string>
+    <string name="certificates_finalize">Finalizar</string>
+    <string name="certificates_preview_title">Pré-visualização</string>
+    <string name="certificates_not_found">Certificado não encontrado.</string>
+    <string name="certificates_pdf_notice">O PDF será gerado com base no conteúdo preenchido. O documento exportado fica fora da proteção criptográfica do aplicativo.</string>
+    <string name="certificates_share">Compartilhar</string>
+    <string name="certificates_sharing">Compartilhando…</string>
+    <string name="certificates_share_title">Compartilhar atestado</string>
+    <string name="certificates_share_error">Falha ao compartilhar.</string>
+
+    <!-- Tipos de documento -->
+    <string name="certificates_type_medical">Atestado odontológico</string>
+    <string name="certificates_type_attendance">Declaração de comparecimento</string>
+    <string name="certificates_type_companion">Declaração de acompanhamento</string>
 </resources>

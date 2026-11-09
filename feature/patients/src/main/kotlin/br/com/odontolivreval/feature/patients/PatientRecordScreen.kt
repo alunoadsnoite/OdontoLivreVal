@@ -49,6 +49,7 @@ fun PatientRecordScreen(
     exportOdontogram: @Composable (Long?) -> Unit = {},
     documentPhotos: @Composable (Long) -> Unit = {},
     onDocuments: () -> Unit = {},
+    onCertificates: () -> Unit = {},
     onClose: () -> Unit,
 ) {
     val model: PatientRecordViewModel = viewModel(factory = PatientRecordViewModel.factory(store, patient))
@@ -177,6 +178,9 @@ fun PatientRecordScreen(
         documentPhotos(patient.id)
         OutlinedButton(onClick = onDocuments, enabled = !state.saving) {
             Text(stringResource(R.string.demo_patient_documents))
+        }
+        OutlinedButton(onClick = onCertificates, enabled = !state.saving) {
+            Text(stringResource(R.string.demo_patient_certificates))
         }
 
         Text(
