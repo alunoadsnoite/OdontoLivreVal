@@ -113,6 +113,36 @@ interface ClinicStore {
     suspend fun createMedicalCertificateVersion(patientId: Long, id: Long): MedicalCertificate
 
     suspend fun deleteMedicalCertificate(patientId: Long, id: Long)
+
+    // --- Planos de tratamento e orçamentos ---
+
+    suspend fun listTreatmentPlans(patientId: Long): List<TreatmentPlanFile>
+
+    suspend fun getTreatmentPlan(patientId: Long, id: Long): TreatmentPlan?
+
+    suspend fun saveTreatmentPlan(patientId: Long, plan: TreatmentPlan): TreatmentPlan
+
+    suspend fun deleteTreatmentPlan(patientId: Long, id: Long)
+
+    suspend fun listTreatmentProcedures(planId: Long): List<TreatmentProcedureFile>
+
+    suspend fun saveTreatmentProcedure(planId: Long, procedure: TreatmentProcedure): TreatmentProcedure
+
+    suspend fun deleteTreatmentProcedure(planId: Long, procedureId: Long)
+
+    suspend fun reorderTreatmentProcedures(planId: Long, procedureIds: List<Long>)
+
+    suspend fun listTreatmentBudgets(patientId: Long): List<TreatmentBudgetFile>
+
+    suspend fun getTreatmentBudget(patientId: Long, id: Long): TreatmentBudget?
+
+    suspend fun saveTreatmentBudget(patientId: Long, budget: TreatmentBudget): TreatmentBudget
+
+    suspend fun cancelTreatmentBudget(patientId: Long, id: Long, reason: String)
+
+    suspend fun createTreatmentBudgetRevision(patientId: Long, id: Long): TreatmentBudget
+
+    suspend fun deleteTreatmentBudget(patientId: Long, id: Long)
 }
 
 data class SavedRecord(val record: PatientRecord, val visit: VisitRecord)

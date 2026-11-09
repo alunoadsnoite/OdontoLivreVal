@@ -1,6 +1,7 @@
 package br.com.odontolivreval.core.demo
 
 import java.io.IOException
+import java.math.BigDecimal
 import java.time.LocalDate
 import org.json.JSONArray
 import org.json.JSONObject
@@ -52,6 +53,9 @@ internal data class ClinicSnapshot(
     val documentPhotos: List<StoredDocumentPhoto> = emptyList(),
     val digitalSignatures: List<StoredDigitalSignature> = emptyList(),
     val medicalCertificates: List<StoredMedicalCertificate> = emptyList(),
+    val treatmentPlans: List<StoredTreatmentPlan> = emptyList(),
+    val treatmentProcedures: List<StoredTreatmentProcedure> = emptyList(),
+    val treatmentBudgets: List<StoredTreatmentBudget> = emptyList(),
     val professional: ProfessionalProfile = ProfessionalProfile(),
 ) {
     fun encode(): ByteArray = JSONObject()
@@ -126,13 +130,46 @@ internal data class ClinicSnapshot(
                     .putReference(it.content))
             }
         })
+        .put("treatmentPlans", JSONArray().apply {
+            treatmentPlans.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.patientId)
+                    .put(it.file.title).put(it.file.description)
+                    .put(it.file.estimatedSessions).put(it.file.status)
+                    .put(it.file.createdAt).put(it.file.updatedAt)
+                    .putReference(it.content))
+            }
+        })
+        .put("treatmentProcedures", JSONArray().apply {
+            treatmentProcedures.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.planId)
+                    .put(it.file.description).put(it.file.tooth ?: JSONObject.NULL)
+                    .put(it.file.surface ?: JSONObject.NULL)
+                    .put(it.file.quantity).put(it.file.unitValue.toPlainString())
+                    .put(it.file.totalValue.toPlainString())
+                    .put(it.file.treatmentStage).put(it.file.status.name)
+                    .putReference(it.content))
+            }
+        })
+        .put("treatmentBudgets", JSONArray().apply {
+            treatmentBudgets.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.patientId).put(it.file.planId)
+                    .put(it.file.budgetNumber).put(it.file.status.name)
+                    .put(it.file.revision).put(it.file.originalId ?: JSONObject.NULL)
+                    .put(it.file.issueDate.toEpochDay()).put(it.file.validityDays)
+                    .put(it.file.createdAt).put(it.file.updatedAt)
+                    .putReference(it.content))
+            }
+        })
         .toString()
         .toByteArray(Charsets.UTF_8)
 
     fun attachments(): List<AttachmentContent> =
         radiographs.map { it.content } + prescriptions.map { it.content } +
             documentPhotos.map { it.content } + digitalSignatures.map { it.content } +
-            medicalCertificates.map { it.content }
+            medicalCertificates.map { it.content } +
+            treatmentPlans.map { it.content } +
+            treatmentProcedures.map { it.content } +
+            treatmentBudgets.map { it.content }
 
     fun mapAttachments(transform: (AttachmentContent) -> AttachmentContent): ClinicSnapshot = copy(
         radiographs = radiographs.map { it.copy(content = transform(it.content)) },
@@ -140,6 +177,9 @@ internal data class ClinicSnapshot(
         documentPhotos = documentPhotos.map { it.copy(content = transform(it.content)) },
         digitalSignatures = digitalSignatures.map { it.copy(content = transform(it.content)) },
         medicalCertificates = medicalCertificates.map { it.copy(content = transform(it.content)) },
+        treatmentPlans = treatmentPlans.map { it.copy(content = transform(it.content)) },
+        treatmentProcedures = treatmentProcedures.map { it.copy(content = transform(it.content)) },
+        treatmentBudgets = treatmentBudgets.map { it.copy(content = transform(it.content)) },
     )
 
     private fun JSONArray.putReference(content: AttachmentContent): JSONArray {
@@ -192,6 +232,18 @@ internal data class ClinicSnapshot(
             || medicalCertificates.any { it.file.id <= 0 || it.file.patientId !in patientIds }
             || medicalCertificates.any { it.file.title.length !in 1..120 }
             || medicalCertificates.any { !it.content.valid }
+            || treatmentPlans.map { it.file.id }.toSet().size != treatmentPlans.size
+            || treatmentPlans.any { it.file.id <= 0 || it.file.patientId !in patientIds }
+            || treatmentPlans.any { it.file.title.length !in 1..120 }
+            || treatmentPlans.any { !it.content.valid }
+            || treatmentProcedures.map { it.file.id }.toSet().size != treatmentProcedures.size
+            || treatmentProcedures.any { it.file.id <= 0 || it.file.planId <= 0 }
+            || treatmentProcedures.any { it.file.description.isBlank() }
+            || treatmentProcedures.any { it.file.quantity < 1 }
+            || treatmentProcedures.any { !it.content.valid }
+            || treatmentBudgets.map { it.file.id }.toSet().size != treatmentBudgets.size
+            || treatmentBudgets.any { it.file.id <= 0 || it.file.patientId !in patientIds }
+            || treatmentBudgets.any { !it.content.valid }
             || contents.any { !it.valid }
             || references.map { it.token }.toSet().size != references.size
             || references.sumOf { it.size.toLong() } > maxAttachmentTotal
@@ -342,6 +394,65 @@ internal data class ClinicSnapshot(
                 }
             } else emptyList()
 
+            val treatmentPlans = if (version >= 13 && root.has("treatmentPlans")) {
+                root.getJSONArray("treatmentPlans").rows {
+                    StoredTreatmentPlan(
+                        TreatmentPlanFile(
+                            id = it.integer(0),
+                            patientId = it.integer(1),
+                            title = it.getString(2),
+                            description = it.getString(3),
+                            estimatedSessions = it.integer(4).toInt(),
+                            status = it.getString(5),
+                            createdAt = it.optLong(6, System.currentTimeMillis()),
+                            updatedAt = it.optLong(7, System.currentTimeMillis()),
+                        ),
+                        it.attachment(version, 8),
+                    )
+                }
+            } else emptyList()
+
+            val treatmentProcedures = if (version >= 13 && root.has("treatmentProcedures")) {
+                root.getJSONArray("treatmentProcedures").rows {
+                    StoredTreatmentProcedure(
+                        TreatmentProcedureFile(
+                            id = it.integer(0),
+                            planId = it.integer(1),
+                            description = it.getString(2),
+                            tooth = if (it.isNull(3)) null else it.getString(3),
+                            surface = if (it.isNull(4)) null else it.getString(4),
+                            quantity = it.integer(5).toInt(),
+                            unitValue = BigDecimal(it.getString(6)),
+                            totalValue = BigDecimal(it.getString(7)),
+                            treatmentStage = it.integer(8).toInt(),
+                            status = ProcedureStatus.valueOf(it.getString(9)),
+                        ),
+                        it.attachment(version, 10),
+                    )
+                }
+            } else emptyList()
+
+            val treatmentBudgets = if (version >= 13 && root.has("treatmentBudgets")) {
+                root.getJSONArray("treatmentBudgets").rows {
+                    StoredTreatmentBudget(
+                        TreatmentBudgetFile(
+                            id = it.integer(0),
+                            patientId = it.integer(1),
+                            planId = it.integer(2),
+                            budgetNumber = it.getString(3),
+                            status = BudgetStatus.valueOf(it.getString(4)),
+                            revision = it.integer(5).toInt(),
+                            originalId = if (it.isNull(6)) null else it.integer(6),
+                            issueDate = LocalDate.ofEpochDay(it.integer(7)),
+                            validityDays = it.integer(8).toInt(),
+                            createdAt = it.optLong(9, System.currentTimeMillis()),
+                            updatedAt = it.optLong(10, System.currentTimeMillis()),
+                        ),
+                        it.attachment(version, 11),
+                    )
+                }
+            } else emptyList()
+
             val professional = if (version >= 7 && root.has("professional")) {
                 val json = root.getJSONObject("professional")
                 ProfessionalProfile(
@@ -363,13 +474,14 @@ internal data class ClinicSnapshot(
             val schedule = if (version < 6) appointments.withLegacyDurations() else appointments
             return ClinicSnapshot(
                 patients, schedule, patientRecords, visits, radiographs, prescriptions,
-                documentPhotos, digitalSignatures, medicalCertificates, professional,
+                documentPhotos, digitalSignatures, medicalCertificates,
+                treatmentPlans, treatmentProcedures, treatmentBudgets, professional,
             ).apply { validate() }
         }
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 12
+        private const val currentVersion = 13
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)

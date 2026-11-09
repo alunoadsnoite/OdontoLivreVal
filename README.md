@@ -18,6 +18,7 @@ Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista p
 - **Receitas odontológicas** no prontuário, com importação de arquivos PDF/DOCX já emitidos e opção de salvar uma cópia.
 - **Documentos** com modelos de receita, atestado, orçamento e consentimento, exportação em PDF e arquivo de PDFs devolvidos pelo assinador.
 - **Atestados e declarações** (atestado odontológico, declaração de comparecimento, declaração de acompanhamento) no prontuário, com ciclo de vida rascunho/finalizado/cancelado, nova versão para correções, PDF A4 e compartilhamento.
+- **Planos de tratamento e orçamentos** no prontuário: criar planos, adicionar procedimentos vinculados a dentes, definir valores e etapas, gerar orçamento com cálculos corretos em PDF A4, registrar aprovação e acompanhar execução, consultar versões anteriores.
 - **Agenda** diária e mensal, com duração da consulta, prevenção de sobreposição, retornos vinculados e lembretes locais. A visão mensal mostra quantas consultas ativas há por dia.
 
 A interface está em português do Brasil. A versão atual funciona sem conta, servidor, anúncios ou serviços de análise. O app declara acesso à autenticação biométrica do Android para o bloqueio opcional.

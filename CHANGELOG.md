@@ -72,3 +72,16 @@
 - Compartilhamento via Android Sharesheet e FileProvider
 - Armazenamento criptografado no snapshot (versão 12)
 - Inclusão no backup criptografado
+
+### Planos de tratamento e orçamentos odontológicos (Etapa 13B)
+
+- Planos de tratamento por paciente com título, descrição, objetivos clínicos, sessões estimadas
+- Procedimentos vinculados a dentes e faces (numeração FDI), com valores e etapas
+- Status de procedimento: Planejado, Aprovado, Em andamento, Concluído, Cancelado
+- Orçamento a partir do plano, com BigDecimal para precisão monetária
+- Status do orçamento: Rascunho, Apresentado, Aprovado, Recusado, Expirado, Cancelado
+- Versionamento de orçamentos (novas revisões para alterações)
+- PDF A4 com tabela de procedimentos, resumo financeiro, condições de pagamento
+- Integração com prontuário e odontograma
+- Armazenamento criptografado no snapshot (versão 13)
+- Compartilhamento via Android Sharesheet e FileProvider

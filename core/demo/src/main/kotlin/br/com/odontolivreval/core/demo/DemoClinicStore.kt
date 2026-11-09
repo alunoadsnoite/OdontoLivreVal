@@ -16,13 +16,14 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.math.BigDecimal
+import java.nio.charset.StandardCharsets
 import java.security.GeneralSecurityException
 import java.security.KeyStore
 import java.security.ProviderException
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth
-import java.nio.charset.StandardCharsets
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import kotlinx.coroutines.Dispatchers
@@ -381,6 +382,421 @@ class DemoClinicStore(context: Context) : ClinicStore {
         if (existing.file.status == CertificateStatus.FINALIZED) throw IOException("Cannot delete finalized certificate")
         persist(snapshot.copy(
             medicalCertificates = snapshot.medicalCertificates.filterNot {
+                it.file.patientId == patientId && it.file.id == id
+            },
+        ))
+    }
+
+    // --- Planos de tratamento ---
+
+    override suspend fun listTreatmentPlans(patientId: Long): List<TreatmentPlanFile> = access {
+        load().treatmentPlans.map { it.file }.filter { it.patientId == patientId }
+    }
+
+    override suspend fun getTreatmentPlan(patientId: Long, id: Long): TreatmentPlan? = access {
+        val stored = load().treatmentPlans.find { it.file.patientId == patientId && it.file.id == id }
+            ?: return@access null
+        val file = stored.file
+        val content = try {
+            String(readAttachment(stored.content), StandardCharsets.UTF_8)
+        } catch (_: IOException) {
+            ""
+        }
+        val obj = org.json.JSONObject(content)
+        TreatmentPlan(
+            id = file.id,
+            patientId = file.patientId,
+            title = file.title,
+            description = obj.optString("description", ""),
+            clinicalObjectives = obj.optString("clinicalObjectives", ""),
+            estimatedSessions = obj.optInt("estimatedSessions", 1),
+            startDate = if (obj.isNull("startDate")) null else LocalDate.ofEpochDay(obj.optLong("startDate")),
+            observations = obj.optString("observations", ""),
+            status = obj.optString("status", "active"),
+            createdAt = file.createdAt,
+            updatedAt = file.updatedAt,
+        )
+    }
+
+    override suspend fun saveTreatmentPlan(patientId: Long, plan: TreatmentPlan): TreatmentPlan = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val now = System.currentTimeMillis()
+        val existing = snapshot.treatmentPlans.find { it.file.patientId == patientId && it.file.id == plan.id }
+        val savedFile = when {
+            existing != null -> {
+                val updatedFile = existing.file.copy(
+                    title = plan.title,
+                    description = plan.description,
+                    estimatedSessions = plan.estimatedSessions,
+                    status = plan.status,
+                    updatedAt = now,
+                )
+                val updated = snapshot.treatmentPlans.map {
+                    if (it.file.patientId == patientId && it.file.id == plan.id) {
+                        it.copy(file = updatedFile)
+                    } else it
+                }
+                persist(snapshot.copy(treatmentPlans = updated))
+                updatedFile
+            }
+            else -> {
+                val newId = nextId(snapshot.treatmentPlans.map { it.file.id })
+                val newFile = TreatmentPlanFile(
+                    id = newId,
+                    patientId = patientId,
+                    title = plan.title,
+                    description = plan.description,
+                    estimatedSessions = plan.estimatedSessions,
+                    status = plan.status,
+                    createdAt = now,
+                    updatedAt = now,
+                )
+                val bytes = plan.toJsonBytes()
+                val content = writeNewAttachment(snapshot, bytes)
+                persist(snapshot.copy(
+                    treatmentPlans = snapshot.treatmentPlans + StoredTreatmentPlan(newFile, content),
+                ))
+                newFile
+            }
+        }
+        TreatmentPlan(
+            id = savedFile.id,
+            patientId = patientId,
+            title = savedFile.title,
+            description = savedFile.description,
+            clinicalObjectives = plan.clinicalObjectives,
+            estimatedSessions = savedFile.estimatedSessions,
+            startDate = plan.startDate,
+            observations = plan.observations,
+            status = savedFile.status,
+            createdAt = savedFile.createdAt,
+            updatedAt = savedFile.updatedAt,
+        )
+    }
+
+    override suspend fun deleteTreatmentPlan(patientId: Long, id: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.treatmentPlans.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Treatment plan missing")
+        // Remove procedimentos e orçamentos vinculados
+        persist(snapshot.copy(
+            treatmentPlans = snapshot.treatmentPlans.filterNot {
+                it.file.patientId == patientId && it.file.id == id
+            },
+            treatmentProcedures = snapshot.treatmentProcedures.filterNot {
+                it.file.planId == id
+            },
+            treatmentBudgets = snapshot.treatmentBudgets.filterNot {
+                it.file.planId == id
+            },
+        ))
+    }
+
+    // --- Procedimentos ---
+
+    override suspend fun listTreatmentProcedures(planId: Long): List<TreatmentProcedureFile> = access {
+        load().treatmentProcedures.map { it.file }.filter { it.planId == planId }
+            .sortedWith(compareBy({ it.treatmentStage }, { it.id }))
+    }
+
+    override suspend fun saveTreatmentProcedure(planId: Long, procedure: TreatmentProcedure): TreatmentProcedure = access {
+        val snapshot = load()
+        val planExists = snapshot.treatmentPlans.any { it.file.id == planId }
+        if (!planExists) throw IOException("Treatment plan missing")
+        val now = System.currentTimeMillis()
+        val existing = snapshot.treatmentProcedures.find { it.file.id == procedure.id && it.file.planId == planId }
+        val savedFile = when {
+            existing != null -> {
+                val updatedFile = existing.file.copy(
+                    description = procedure.description,
+                    tooth = procedure.tooth,
+                    surface = procedure.surface,
+                    quantity = procedure.quantity,
+                    unitValue = procedure.unitValue,
+                    totalValue = procedure.totalValue,
+                    treatmentStage = procedure.treatmentStage,
+                    status = procedure.status,
+                )
+                val updated = snapshot.treatmentProcedures.map {
+                    if (it.file.id == procedure.id && it.file.planId == planId) {
+                        it.copy(file = updatedFile)
+                    } else it
+                }
+                persist(snapshot.copy(treatmentProcedures = updated))
+                updatedFile
+            }
+            else -> {
+                val newId = nextId(snapshot.treatmentProcedures.map { it.file.id })
+                val newFile = TreatmentProcedureFile(
+                    id = newId,
+                    planId = planId,
+                    description = procedure.description,
+                    tooth = procedure.tooth,
+                    surface = procedure.surface,
+                    quantity = procedure.quantity,
+                    unitValue = procedure.unitValue,
+                    totalValue = procedure.totalValue,
+                    treatmentStage = procedure.treatmentStage,
+                    status = procedure.status,
+                )
+                val bytes = procedure.toJsonBytes()
+                val content = writeNewAttachment(snapshot, bytes)
+                persist(snapshot.copy(
+                    treatmentProcedures = snapshot.treatmentProcedures + StoredTreatmentProcedure(newFile, content),
+                ))
+                newFile
+            }
+        }
+        TreatmentProcedure(
+            id = savedFile.id,
+            planId = planId,
+            description = savedFile.description,
+            tooth = savedFile.tooth,
+            surface = savedFile.surface,
+            quantity = savedFile.quantity,
+            unitValue = savedFile.unitValue,
+            totalValue = savedFile.totalValue,
+            treatmentStage = savedFile.treatmentStage,
+            status = savedFile.status,
+            observations = procedure.observations,
+        )
+    }
+
+    override suspend fun deleteTreatmentProcedure(planId: Long, procedureId: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.treatmentProcedures.find {
+            it.file.planId == planId && it.file.id == procedureId
+        } ?: throw IOException("Procedure missing")
+        persist(snapshot.copy(
+            treatmentProcedures = snapshot.treatmentProcedures.filterNot {
+                it.file.planId == planId && it.file.id == procedureId
+            },
+        ))
+    }
+
+    override suspend fun reorderTreatmentProcedures(planId: Long, procedureIds: List<Long>) = access {
+        val snapshot = load()
+        val procedures = snapshot.treatmentProcedures.filter { it.file.planId == planId }
+        val ids = procedures.map { it.file.id }.toSet()
+        if (procedureIds.toSet() != ids) throw IOException("Invalid procedure list")
+        val updated = procedureIds.mapIndexed { index, id ->
+            val proc = procedures.find { it.file.id == id }!!
+            val newFile = proc.file.copy(treatmentStage = index + 1)
+            StoredTreatmentProcedure(newFile, proc.content)
+        }
+        persist(snapshot.copy(
+            treatmentProcedures = snapshot.treatmentProcedures.map {
+                if (it.file.planId == planId) {
+                    updated.find { it.file.id == it.file.id }!!
+                } else it
+            },
+        ))
+    }
+
+    // --- Orçamentos ---
+
+    override suspend fun listTreatmentBudgets(patientId: Long): List<TreatmentBudgetFile> = access {
+        load().treatmentBudgets.map { it.file }.filter { it.patientId == patientId }
+            .sortedWith(compareBy({ -it.createdAt }, { -it.id }))
+    }
+
+    override suspend fun getTreatmentBudget(patientId: Long, id: Long): TreatmentBudget? = access {
+        val stored = load().treatmentBudgets.find { it.file.patientId == patientId && it.file.id == id }
+            ?: return@access null
+        val file = stored.file
+        val content = try {
+            String(readAttachment(stored.content), StandardCharsets.UTF_8)
+        } catch (_: IOException) {
+            ""
+        }
+        val obj = org.json.JSONObject(content)
+        val itemsArray = obj.getJSONArray("items")
+        val items = (0 until itemsArray.length()).map { i ->
+            val row = itemsArray.getJSONArray(i)
+            BudgetItem(
+                procedureId = row.getLong(0),
+                description = row.getString(1),
+                tooth = if (row.isNull(2)) null else row.getString(2),
+                quantity = row.getInt(3).toInt(),
+                unitValue = BigDecimal(row.getString(4)),
+                totalValue = BigDecimal(row.getString(5)),
+            )
+        }
+        TreatmentBudget(
+            id = file.id,
+            patientId = file.patientId,
+            planId = file.planId,
+            budgetNumber = file.budgetNumber,
+            status = file.status,
+            items = items,
+            discount = BigDecimal(obj.optString("discount", "0")),
+            paymentConditions = obj.optString("paymentConditions", ""),
+            validityDays = obj.optInt("validityDays", 30),
+            observations = obj.optString("observations", ""),
+            issueDate = file.issueDate,
+            approvedAt = if (obj.isNull("approvedAt")) null else LocalDate.ofEpochDay(obj.optLong("approvedAt")),
+            approvalObservations = if (obj.isNull("approvalObservations")) null else obj.optString("approvalObservations"),
+            revision = file.revision,
+            originalId = file.originalId,
+        )
+    }
+
+    override suspend fun saveTreatmentBudget(patientId: Long, budget: TreatmentBudget): TreatmentBudget = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val now = System.currentTimeMillis()
+        val existing = snapshot.treatmentBudgets.find { it.file.patientId == patientId && it.file.id == budget.id }
+        val savedFile = when {
+            existing != null -> {
+                // Só permite editar se estiver em rascunho
+                if (existing.file.status != BudgetStatus.DRAFT) throw IOException("Only draft budgets can be edited")
+                val updatedFile = existing.file.copy(
+                    budgetNumber = budget.budgetNumber,
+                    validityDays = budget.validityDays,
+                    updatedAt = now,
+                )
+                val bytes = budget.toJsonBytes()
+                val content = writeNewAttachment(snapshot, bytes)
+                val updated = snapshot.treatmentBudgets.map {
+                    if (it.file.patientId == patientId && it.file.id == budget.id) {
+                        it.copy(file = updatedFile, content = content)
+                    } else it
+                }
+                persist(snapshot.copy(treatmentBudgets = updated))
+                updatedFile
+            }
+            else -> {
+                val newId = nextId(snapshot.treatmentBudgets.map { it.file.id })
+                val newFile = TreatmentBudgetFile(
+                    id = newId,
+                    patientId = patientId,
+                    planId = budget.planId,
+                    budgetNumber = budget.budgetNumber,
+                    status = budget.status,
+                    revision = budget.revision,
+                    originalId = budget.originalId,
+                    issueDate = budget.issueDate,
+                    validityDays = budget.validityDays,
+                    createdAt = now,
+                    updatedAt = now,
+                )
+                val bytes = budget.toJsonBytes()
+                val content = writeNewAttachment(snapshot, bytes)
+                persist(snapshot.copy(
+                    treatmentBudgets = snapshot.treatmentBudgets + StoredTreatmentBudget(newFile, content),
+                ))
+                newFile
+            }
+        }
+        TreatmentBudget(
+            id = savedFile.id,
+            patientId = patientId,
+            planId = savedFile.planId,
+            budgetNumber = savedFile.budgetNumber,
+            status = savedFile.status,
+            items = budget.items,
+            discount = budget.discount,
+            paymentConditions = budget.paymentConditions,
+            validityDays = savedFile.validityDays,
+            observations = budget.observations,
+            issueDate = savedFile.issueDate,
+            approvedAt = budget.approvedAt,
+            approvalObservations = budget.approvalObservations,
+            revision = savedFile.revision,
+            originalId = savedFile.originalId,
+        )
+    }
+
+    override suspend fun cancelTreatmentBudget(patientId: Long, id: Long, reason: String) = access {
+        val snapshot = load()
+        val existing = snapshot.treatmentBudgets.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Budget missing")
+        if (existing.file.status == BudgetStatus.APPROVED) throw IOException("Cannot cancel approved budget")
+        persist(snapshot.copy(
+            treatmentBudgets = snapshot.treatmentBudgets.map {
+                if (it.file.patientId == patientId && it.file.id == id) {
+                    it.copy(file = it.file.copy(status = BudgetStatus.CANCELLED))
+                } else it
+            },
+        ))
+    }
+
+    override suspend fun createTreatmentBudgetRevision(patientId: Long, id: Long): TreatmentBudget = access {
+        val snapshot = load()
+        val existing = snapshot.treatmentBudgets.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Budget missing")
+        if (existing.file.status != BudgetStatus.PRESENTED && existing.file.status != BudgetStatus.REJECTED) {
+            throw IOException("Only presented or rejected budgets can have a new revision")
+        }
+        val content = try {
+            String(readAttachment(existing.content), StandardCharsets.UTF_8)
+        } catch (_: IOException) {
+            ""
+        }
+        val obj = org.json.JSONObject(content)
+        val itemsArray = obj.getJSONArray("items")
+        val items = (0 until itemsArray.length()).map { i ->
+            val row = itemsArray.getJSONArray(i)
+            BudgetItem(
+                procedureId = row.getLong(0),
+                description = row.getString(1),
+                tooth = if (row.isNull(2)) null else row.getString(2),
+                quantity = row.getInt(3).toInt(),
+                unitValue = BigDecimal(row.getString(4)),
+                totalValue = BigDecimal(row.getString(5)),
+            )
+        }
+        val current = TreatmentBudget(
+            id = existing.file.id,
+            patientId = patientId,
+            planId = existing.file.planId,
+            budgetNumber = existing.file.budgetNumber,
+            status = existing.file.status,
+            items = items,
+            discount = BigDecimal(obj.optString("discount", "0")),
+            paymentConditions = obj.optString("paymentConditions", ""),
+            validityDays = existing.file.validityDays,
+            observations = obj.optString("observations", ""),
+            issueDate = existing.file.issueDate,
+            approvedAt = if (obj.isNull("approvedAt")) null else LocalDate.ofEpochDay(obj.optLong("approvedAt")),
+            approvalObservations = if (obj.isNull("approvalObservations")) null else obj.optString("approvalObservations"),
+            revision = existing.file.revision,
+            originalId = existing.file.originalId,
+        )
+        val newFile = TreatmentBudgetFile(
+            id = nextId(snapshot.treatmentBudgets.map { it.file.id }),
+            patientId = patientId,
+            planId = existing.file.planId,
+            budgetNumber = existing.file.budgetNumber,
+            status = BudgetStatus.DRAFT,
+            revision = existing.file.revision + 1,
+            originalId = existing.file.originalId ?: id,
+            issueDate = LocalDate.now(),
+            validityDays = existing.file.validityDays,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis(),
+        )
+        val bytes = current.toJsonBytes()
+        val contentRef = writeNewAttachment(snapshot, bytes)
+        persist(snapshot.copy(
+            treatmentBudgets = snapshot.treatmentBudgets + StoredTreatmentBudget(newFile, contentRef),
+        ))
+        current.copy(
+            id = newFile.id,
+            status = BudgetStatus.DRAFT,
+            revision = newFile.revision,
+            originalId = newFile.originalId,
+        )
+    }
+
+    override suspend fun deleteTreatmentBudget(patientId: Long, id: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.treatmentBudgets.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Budget missing")
+        if (existing.file.status == BudgetStatus.APPROVED) throw IOException("Cannot delete approved budget")
+        persist(snapshot.copy(
+            treatmentBudgets = snapshot.treatmentBudgets.filterNot {
                 it.file.patientId == patientId && it.file.id == id
             },
         ))

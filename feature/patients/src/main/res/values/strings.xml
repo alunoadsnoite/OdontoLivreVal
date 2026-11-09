@@ -110,6 +110,7 @@
     </plurals>
     <string name="demo_patient_documents">Documentos</string>
     <string name="demo_patient_certificates">Atestados e declarações</string>
+    <string name="demo_patient_treatment_plans">Planos de tratamento</string>
     <string name="document_photos_title">Fotos de documentos</string>
     <string name="document_photos_hint">Anexe uma foto JPG ou PNG de até 10 MiB, ou tire uma foto da receita, atestado, orçamento ou consentimento.</string>
     <string name="document_photos_import">Anexar imagem</string>

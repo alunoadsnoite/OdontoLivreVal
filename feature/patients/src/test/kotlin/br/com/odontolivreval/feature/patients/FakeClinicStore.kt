@@ -3,6 +3,7 @@ package br.com.odontolivreval.feature.patients
 import android.graphics.Bitmap
 import android.net.Uri
 import br.com.odontolivreval.core.demo.AppointmentSaveResult
+import br.com.odontolivreval.core.demo.BudgetStatus
 import br.com.odontolivreval.core.demo.CertificateStatus
 import br.com.odontolivreval.core.demo.CertificateType
 import br.com.odontolivreval.core.demo.ClinicStore
@@ -17,10 +18,18 @@ import br.com.odontolivreval.core.demo.ProfessionalProfile
 import br.com.odontolivreval.core.demo.DocumentPhoto
 import br.com.odontolivreval.core.demo.DigitalSignature
 import br.com.odontolivreval.core.demo.SavedRecord
+import br.com.odontolivreval.core.demo.TreatmentBudget
+import br.com.odontolivreval.core.demo.TreatmentBudgetFile
+import br.com.odontolivreval.core.demo.TreatmentPlan
+import br.com.odontolivreval.core.demo.TreatmentPlanFile
+import br.com.odontolivreval.core.demo.TreatmentProcedure
+import br.com.odontolivreval.core.demo.TreatmentProcedureFile
 import br.com.odontolivreval.core.demo.VisitRecord
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth
+import kotlin.comparisons.compareBy
 
 internal class FakeClinicStore : ClinicStore {
     val patients = mutableListOf<DemoPatient>()
@@ -256,5 +265,280 @@ internal class FakeClinicStore : ClinicStore {
 
     override suspend fun deleteMedicalCertificate(patientId: Long, id: Long) {
         medicalCertificates.removeAll { it.patientId == patientId && it.id == id }
+    }
+
+    // --- Planos de tratamento e orçamentos (fake para testes) ---
+
+    val treatmentPlans = mutableListOf<TreatmentPlanFile>()
+    val treatmentProcedures = mutableListOf<TreatmentProcedureFile>()
+    val treatmentBudgets = mutableListOf<TreatmentBudgetFile>()
+
+    override suspend fun listTreatmentPlans(patientId: Long): List<TreatmentPlanFile> =
+        treatmentPlans.filter { it.patientId == patientId }
+
+    override suspend fun getTreatmentPlan(patientId: Long, id: Long): TreatmentPlan? =
+        treatmentPlans.find { it.patientId == patientId && it.id == id }
+            ?.let { file ->
+                TreatmentPlan(
+                    id = file.id,
+                    patientId = file.patientId,
+                    title = file.title,
+                    description = file.description,
+                    clinicalObjectives = "",
+                    estimatedSessions = file.estimatedSessions,
+                    startDate = null,
+                    observations = "",
+                    status = file.status,
+                    createdAt = file.createdAt,
+                    updatedAt = file.updatedAt,
+                )
+            }
+
+    override suspend fun saveTreatmentPlan(patientId: Long, plan: TreatmentPlan): TreatmentPlan {
+        val existing = treatmentPlans.find { it.patientId == patientId && it.id == plan.id }
+        val savedFile = if (existing != null) {
+            val updated = treatmentPlans.map {
+                if (it.patientId == patientId && it.id == plan.id) {
+                    it.copy(
+                        title = plan.title,
+                        description = plan.description,
+                        estimatedSessions = plan.estimatedSessions,
+                        status = plan.status,
+                    )
+                } else it
+            }
+            treatmentPlans.clear()
+            treatmentPlans.addAll(updated)
+            existing
+        } else {
+            val newId = (treatmentPlans.maxOfOrNull { it.id } ?: 0) + 1
+            val file = TreatmentPlanFile(
+                id = newId,
+                patientId = patientId,
+                title = plan.title,
+                description = plan.description,
+                estimatedSessions = plan.estimatedSessions,
+                status = plan.status,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+            )
+            treatmentPlans.add(file)
+            file
+        }
+        saves++
+        return TreatmentPlan(
+            id = savedFile.id,
+            patientId = patientId,
+            title = savedFile.title,
+            description = savedFile.description,
+            clinicalObjectives = plan.clinicalObjectives,
+            estimatedSessions = savedFile.estimatedSessions,
+            startDate = plan.startDate,
+            observations = plan.observations,
+            status = savedFile.status,
+            createdAt = savedFile.createdAt,
+            updatedAt = savedFile.updatedAt,
+        )
+    }
+
+    override suspend fun deleteTreatmentPlan(patientId: Long, id: Long) {
+        treatmentPlans.removeAll { it.patientId == patientId && it.id == id }
+        treatmentProcedures.removeAll { it.planId == id }
+        treatmentBudgets.removeAll { it.planId == id }
+    }
+
+    override suspend fun listTreatmentProcedures(planId: Long): List<TreatmentProcedureFile> =
+        treatmentProcedures.filter { it.planId == planId }
+            .sortedWith(compareBy({ it.treatmentStage }, { it.id }))
+
+    override suspend fun saveTreatmentProcedure(planId: Long, procedure: TreatmentProcedure): TreatmentProcedure {
+        val existing = treatmentProcedures.find { it.planId == planId && it.id == procedure.id }
+        val savedFile = if (existing != null) {
+            val updated = treatmentProcedures.map {
+                if (it.planId == planId && it.id == procedure.id) {
+                    it.copy(
+                        description = procedure.description,
+                        tooth = procedure.tooth,
+                        surface = procedure.surface,
+                        quantity = procedure.quantity,
+                        unitValue = procedure.unitValue,
+                        totalValue = procedure.totalValue,
+                        treatmentStage = procedure.treatmentStage,
+                        status = procedure.status,
+                    )
+                } else it
+            }
+            treatmentProcedures.clear()
+            treatmentProcedures.addAll(updated)
+            existing
+        } else {
+            val newId = (treatmentProcedures.maxOfOrNull { it.id } ?: 0) + 1
+            val file = TreatmentProcedureFile(
+                id = newId,
+                planId = planId,
+                description = procedure.description,
+                tooth = procedure.tooth,
+                surface = procedure.surface,
+                quantity = procedure.quantity,
+                unitValue = procedure.unitValue,
+                totalValue = procedure.totalValue,
+                treatmentStage = procedure.treatmentStage,
+                status = procedure.status,
+            )
+            treatmentProcedures.add(file)
+            file
+        }
+        return TreatmentProcedure(
+            id = savedFile.id,
+            planId = planId,
+            description = savedFile.description,
+            tooth = savedFile.tooth,
+            surface = savedFile.surface,
+            quantity = savedFile.quantity,
+            unitValue = savedFile.unitValue,
+            totalValue = savedFile.totalValue,
+            treatmentStage = savedFile.treatmentStage,
+            status = savedFile.status,
+            observations = procedure.observations,
+        )
+    }
+
+    override suspend fun deleteTreatmentProcedure(planId: Long, procedureId: Long) {
+        treatmentProcedures.removeAll { it.planId == planId && it.id == procedureId }
+    }
+
+    override suspend fun reorderTreatmentProcedures(planId: Long, procedureIds: List<Long>) {
+        val procedures = treatmentProcedures.filter { it.planId == planId }
+        val ids = procedures.map { it.id }.toSet()
+        if (procedureIds.toSet() != ids) throw IllegalStateException("Invalid procedure list")
+        procedureIds.mapIndexed { index, id ->
+            val proc = procedures.find { it.id == id }!!
+            val newFile = proc.copy(treatmentStage = index + 1)
+            treatmentProcedures[treatmentProcedures.indexOfFirst { it.id == id }] = newFile
+        }
+    }
+
+    override suspend fun listTreatmentBudgets(patientId: Long): List<TreatmentBudgetFile> =
+        treatmentBudgets.filter { it.patientId == patientId }
+
+    override suspend fun getTreatmentBudget(patientId: Long, id: Long): TreatmentBudget? =
+        treatmentBudgets.find { it.patientId == patientId && it.id == id }
+            ?.let { file ->
+                TreatmentBudget(
+                    id = file.id,
+                    patientId = file.patientId,
+                    planId = file.planId,
+                    budgetNumber = file.budgetNumber,
+                    status = file.status,
+                    items = emptyList(),
+                    discount = BigDecimal.ZERO,
+                    paymentConditions = "",
+                    validityDays = file.validityDays,
+                    observations = "",
+                    issueDate = file.issueDate,
+                    approvedAt = null,
+                    approvalObservations = null,
+                    revision = file.revision,
+                    originalId = file.originalId,
+                )
+            }
+
+    override suspend fun saveTreatmentBudget(patientId: Long, budget: TreatmentBudget): TreatmentBudget {
+        val existing = treatmentBudgets.find { it.patientId == patientId && it.id == budget.id }
+        val savedFile = if (existing != null) {
+            val updated = treatmentBudgets.map {
+                if (it.patientId == patientId && it.id == budget.id) {
+                    it.copy(
+                        budgetNumber = budget.budgetNumber,
+                        validityDays = budget.validityDays,
+                    )
+                } else it
+            }
+            treatmentBudgets.clear()
+            treatmentBudgets.addAll(updated)
+            existing
+        } else {
+            val newId = (treatmentBudgets.maxOfOrNull { it.id } ?: 0) + 1
+            val file = TreatmentBudgetFile(
+                id = newId,
+                patientId = patientId,
+                planId = budget.planId,
+                budgetNumber = budget.budgetNumber,
+                status = budget.status,
+                revision = budget.revision,
+                originalId = budget.originalId,
+                issueDate = budget.issueDate,
+                validityDays = budget.validityDays,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+            )
+            treatmentBudgets.add(file)
+            file
+        }
+        return TreatmentBudget(
+            id = savedFile.id,
+            patientId = patientId,
+            planId = savedFile.planId,
+            budgetNumber = savedFile.budgetNumber,
+            status = savedFile.status,
+            items = budget.items,
+            discount = budget.discount,
+            paymentConditions = budget.paymentConditions,
+            validityDays = savedFile.validityDays,
+            observations = budget.observations,
+            issueDate = savedFile.issueDate,
+            approvedAt = budget.approvedAt,
+            approvalObservations = budget.approvalObservations,
+            revision = savedFile.revision,
+            originalId = savedFile.originalId,
+        )
+    }
+
+    override suspend fun cancelTreatmentBudget(patientId: Long, id: Long, reason: String) {
+        val idx = treatmentBudgets.indexOfFirst { it.patientId == patientId && it.id == id }
+        if (idx >= 0) {
+            treatmentBudgets[idx] = treatmentBudgets[idx].copy(status = BudgetStatus.CANCELLED)
+        }
+    }
+
+    override suspend fun createTreatmentBudgetRevision(patientId: Long, id: Long): TreatmentBudget {
+        val existing = treatmentBudgets.find { it.patientId == patientId && it.id == id }
+            ?: throw IllegalStateException("Budget not found")
+        val newId = (treatmentBudgets.maxOfOrNull { it.id } ?: 0) + 1
+        val newFile = TreatmentBudgetFile(
+            id = newId,
+            patientId = patientId,
+            planId = existing.planId,
+            budgetNumber = existing.budgetNumber,
+            status = BudgetStatus.DRAFT,
+            revision = existing.revision + 1,
+            originalId = existing.originalId ?: id,
+            issueDate = java.time.LocalDate.now(),
+            validityDays = existing.validityDays,
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis(),
+        )
+        treatmentBudgets.add(newFile)
+        return TreatmentBudget(
+            id = newId,
+            patientId = patientId,
+            planId = newFile.planId,
+            budgetNumber = newFile.budgetNumber,
+            status = BudgetStatus.DRAFT,
+            items = emptyList(),
+            discount = BigDecimal.ZERO,
+            paymentConditions = "",
+            validityDays = newFile.validityDays,
+            observations = "",
+            issueDate = newFile.issueDate,
+            approvedAt = null,
+            approvalObservations = null,
+            revision = newFile.revision,
+            originalId = newFile.originalId,
+        )
+    }
+
+    override suspend fun deleteTreatmentBudget(patientId: Long, id: Long) {
+        treatmentBudgets.removeAll { it.patientId == patientId && it.id == id }
     }
 }

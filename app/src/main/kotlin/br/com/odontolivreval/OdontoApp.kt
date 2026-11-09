@@ -25,6 +25,11 @@ import br.com.odontolivreval.feature.patients.PatientRecordScreen
 import br.com.odontolivreval.feature.patients.PatientsScreen
 import br.com.odontolivreval.feature.schedule.ScheduleScreen
 import br.com.odontolivreval.feature.settings.*
+import br.com.odontolivreval.feature.treatment.TreatmentBudgetFormScreen
+import br.com.odontolivreval.feature.treatment.TreatmentBudgetListScreen
+import br.com.odontolivreval.feature.treatment.TreatmentBudgetPreviewScreen
+import br.com.odontolivreval.feature.treatment.TreatmentPlanFormScreen
+import br.com.odontolivreval.feature.treatment.TreatmentPlanListScreen
 
 private enum class Destination(@param:StringRes val label: Int) {
     HOME(R.string.home), PATIENTS(R.string.patients), SCHEDULE(R.string.schedule),
@@ -241,6 +246,124 @@ fun OdontoApp(
                                 }
                             }
                         }
+                        composable("treatment_plan_list") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    TreatmentPlanListScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        onClose = { nav.popBackStack() },
+                                        onCreatePlan = {
+                                            nav.navigate("treatment_plan_form") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                        onOpenPlan = { planId ->
+                                            nav.navigate("treatment_plan_form?planId=$planId") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("treatment_plan_form") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                val planId = nav.currentBackStackEntry?.arguments?.getLong("planId")
+                                if (patient != null) {
+                                    TreatmentPlanFormScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        planId = planId,
+                                        onClose = { nav.popBackStack() },
+                                        onSaveComplete = {
+                                            nav.popBackStack()
+                                            nav.navigate("treatment_budget_list") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("treatment_budget_list") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    TreatmentBudgetListScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        onClose = { nav.popBackStack() },
+                                        onCreateBudget = { planId ->
+                                            nav.navigate("treatment_budget_form?planId=$planId") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                        onOpenBudget = { budgetId ->
+                                            nav.navigate("treatment_budget_form?budgetId=$budgetId") {
+                                                launchSingleTop = true
+                                            }
+                                        },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("treatment_budget_form") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                val planId = nav.currentBackStackEntry?.arguments?.getLong("planId") ?: -1L
+                                val budgetId = nav.currentBackStackEntry?.arguments?.getLong("budgetId")
+                                if (patient != null) {
+                                    TreatmentBudgetFormScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        planId = planId,
+                                        budgetId = budgetId,
+                                        onClose = { nav.popBackStack() },
+                                        onSaveComplete = { nav.popBackStack() },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("treatment_budget_preview") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                val budgetId = nav.currentBackStackEntry?.arguments?.getLong("budgetId") ?: -1L
+                                val planId = nav.currentBackStackEntry?.arguments?.getLong("planId") ?: -1L
+                                if (patient != null && budgetId > 0) {
+                                    TreatmentBudgetPreviewScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        budgetId = budgetId,
+                                        planId = planId,
+                                        onClose = { nav.popBackStack() },
+                                        onShare = { /* handled internally */ },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
                         composable("protection") {
                             ScreenContent {
                                 protection()
@@ -272,6 +395,7 @@ fun OdontoApp(
                                         documentPhotos = { documentPhotos(patient.id) },
                                         onDocuments = { nav.navigate("documents") { launchSingleTop = true } },
                                         onCertificates = { nav.navigate("certificates_list") { launchSingleTop = true } },
+                                        onTreatmentPlans = { nav.navigate("treatment_plan_list") { launchSingleTop = true } },
                                         onClose = { selectedPatient = null; nav.popBackStack() },
                                     )
                                 } else {

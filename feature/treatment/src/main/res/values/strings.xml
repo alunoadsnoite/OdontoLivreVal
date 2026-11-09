@@ -1,0 +1,77 @@
+<resources>
+    <!-- Planos de tratamento -->
+    <string name="treatment_plans_title">Planos de Tratamento</string>
+    <string name="treatment_plans_patient">Paciente: %1$s</string>
+    <string name="treatment_plans_create">Novo plano de tratamento</string>
+    <string name="treatment_plans_history">Histórico de planos</string>
+    <string name="treatment_plans_empty">Nenhum plano de tratamento cadastrado.</string>
+    <string name="treatment_plans_loading">Carregando…</string>
+    <string name="treatment_plans_error">Erro ao carregar planos de tratamento.</string>
+    <string name="treatment_plans_retry">Tentar novamente</string>
+    <string name="treatment_plans_sessions">%1$d sessão(s)</string>
+    <string name="treatment_plans_open">Abrir plano</string>
+    <string name="treatment_plans_back">Voltar</string>
+
+    <!-- Plano de tratamento -->
+    <string name="treatment_plan_new_title">Novo Plano de Tratamento</string>
+    <string name="treatment_plan_edit_title">Editar Plano de Tratamento</string>
+    <string name="treatment_plan_title">Título do plano</string>
+    <string name="treatment_plan_description">Descrição</string>
+    <string name="treatment_plan_sessions">Sessões estimadas</string>
+    <string name="treatment_plan_save">Salvar plano</string>
+    <string name="treatment_plan_generate_budget">Gerar orçamento</string>
+    <string name="treatment_plan_saving">Salvando…</string>
+    <string name="treatment_plan_error_incomplete">Preencha todos os campos obrigatórios.</string>
+    <string name="treatment_plan_error_save">Erro ao salvar o plano.</string>
+    <string name="treatment_plan_error_not_found">Plano não encontrado.</string>
+    <string name="treatment_plan_error_unknown">Erro desconhecido.</string>
+
+    <!-- Procedimentos -->
+    <string name="treatment_procedures_title">Procedimentos</string>
+    <string name="treatment_procedure_description">Descrição do procedimento</string>
+    <string name="treatment_procedure_delete">Excluir procedimento</string>
+
+    <!-- Orçamentos -->
+    <string name="treatment_budgets_title">Orçamentos</string>
+    <string name="treatment_budgets_patient">Paciente: %1$s</string>
+    <string name="treatment_budgets_history">Histórico de orçamentos</string>
+    <string name="treatment_budgets_empty">Nenhum orçamento cadastrado.</string>
+    <string name="treatment_budgets_loading">Carregando…</string>
+    <string name="treatment_budgets_error">Erro ao carregar orçamentos.</string>
+    <string name="treatment_budgets_retry">Tentar novamente</string>
+    <string name="treatment_budget_revision">Revisão %1$d</string>
+    <string name="treatment_budget_view">Ver orçamento</string>
+
+    <string name="treatment_budget_new_title">Novo Orçamento</string>
+    <string name="treatment_budget_edit_title">Editar Orçamento</string>
+    <string name="treatment_budget_number">Número do orçamento</string>
+    <string name="treatment_budget_payment_conditions">Condições de pagamento</string>
+    <string name="treatment_budget_validity_days">Validade (dias)</string>
+    <string name="treatment_budget_discount">Desconto</string>
+    <string name="treatment_budget_observations">Observações</string>
+    <string name="treatment_budget_items">Itens do orçamento</string>
+    <string name="treatment_budget_items_empty">Nenhum item adicionado.</string>
+    <string name="treatment_budget_total">Total: %1$s</string>
+    <string name="treatment_budget_save">Salvar orçamento</string>
+    <string name="treatment_budget_present">Apresentar ao paciente</string>
+    <string name="treatment_budget_approve">Aprovar orçamento</string>
+    <string name="treatment_budget_share">Compartilhar PDF</string>
+    <string name="treatment_budget_sharing">Compartilhando…</string>
+    <string name="treatment_budget_share_title">Compartilhar orçamento</string>
+    <string name="treatment_budget_pdf_notice">O PDF será gerado com base nos dados do orçamento. O documento exportado fica fora da proteção criptográfica do aplicativo.</string>
+    <string name="treatment_budget_preview_title">Pré-visualização do Orçamento</string>
+    <string name="treatment_budget_not_found">Orçamento não encontrado.</string>
+    <string name="treatment_budget_error_incomplete">Preencha todos os campos obrigatórios.</string>
+    <string name="treatment_budget_error_save">Erro ao salvar o orçamento.</string>
+    <string name="treatment_budget_error_not_found">Orçamento não encontrado.</string>
+    <!-- Labels do PDF (reutilizados do módulo documents) -->
+    <string name="pdf_cro">CRO</string>
+    <string name="pdf_patient">Paciente</string>
+    <string name="pdf_birth">Nascimento</string>
+    <string name="pdf_phone">Telefone</string>
+    <string name="pdf_date">Data</string>
+
+    <string name="treatment_budget_error_unknown">Erro desconhecido.</string>
+    <string name="treatment_budget_share_error">Falha ao compartilhar o orçamento.</string>
+    <string name="treatment_budget_saving">Salvando…</string>
+</resources>
