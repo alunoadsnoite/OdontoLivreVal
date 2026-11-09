@@ -105,6 +105,33 @@ internal class FakeScheduleStore : ClinicStore {
             .filterNot { it.cancelled }
             .sortedWith(compareBy<DemoAppointment> { it.day }.thenBy { it.time })
 
+    override suspend fun listReminders(patientId: Long): List<br.com.odontolivreval.core.demo.ReminderFile> = emptyList()
+
+    override suspend fun getReminder(patientId: Long, id: Long): br.com.odontolivreval.core.demo.Reminder? = null
+
+    override suspend fun saveReminder(
+        patientId: Long,
+        reminder: br.com.odontolivreval.core.demo.Reminder,
+    ): br.com.odontolivreval.core.demo.Reminder = error("Not used")
+
+    override suspend fun deleteReminder(patientId: Long, id: Long) = error("Not used")
+
+    override suspend fun listReminderSettings(patientId: Long): br.com.odontolivreval.core.demo.ReminderSettingsFile? = null
+
+    override suspend fun saveReminderSettings(
+        patientId: Long,
+        settings: br.com.odontolivreval.core.demo.ReminderSettings,
+    ): br.com.odontolivreval.core.demo.ReminderSettingsFile = error("Not used")
+
+    override suspend fun deleteReminderSettings(patientId: Long) = error("Not used")
+
+    override suspend fun updateReminderSent(patientId: Long, reminderId: Long, sentAt: Long) = error("Not used")
+
+    override suspend fun getRemindersForAppointment(
+        patientId: Long,
+        appointmentId: Long,
+    ): List<br.com.odontolivreval.core.demo.ReminderFile> = emptyList()
+
     override suspend fun getProfessionalProfile(): ProfessionalProfile = ProfessionalProfile()
 
     override suspend fun saveProfessionalProfile(profile: ProfessionalProfile): ProfessionalProfile = profile

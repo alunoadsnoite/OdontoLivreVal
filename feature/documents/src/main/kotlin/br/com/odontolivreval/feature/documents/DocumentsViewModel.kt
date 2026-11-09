@@ -34,14 +34,14 @@ internal class DocumentsViewModel(
     private val store: ClinicStore,
     private val patientId: Long,
 ) : ViewModel() {
-    init {
-        load()
-    }
-
     private val mutableState = MutableStateFlow(DocumentsState())
     val state = mutableState.asStateFlow()
 
     private var loadJob: Job? = null
+
+    init {
+        load()
+    }
 
     fun load() {
         loadJob?.cancel()

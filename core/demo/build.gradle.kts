@@ -13,6 +13,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.exifinterface)
     implementation(libs.coroutines.core)
     testImplementation(libs.junit)
 }

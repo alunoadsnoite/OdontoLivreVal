@@ -8,7 +8,10 @@
     <string name="treatment_plans_loading">Carregando…</string>
     <string name="treatment_plans_error">Erro ao carregar planos de tratamento.</string>
     <string name="treatment_plans_retry">Tentar novamente</string>
-    <string name="treatment_plans_sessions">%1$d sessão(s)</string>
+    <plurals name="treatment_plans_sessions">
+        <item quantity="one">%1$d sessão</item>
+        <item quantity="other">%1$d sessões</item>
+    </plurals>
     <string name="treatment_plans_open">Abrir plano</string>
     <string name="treatment_plans_back">Voltar</string>
 

@@ -4,6 +4,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.Rule
 import org.junit.Test
 
@@ -13,6 +14,9 @@ class NavigationTest {
 
     @Test
     fun destinationsAndAboutRemainAvailableAfterRecreation() {
+        val app = compose.activity.application as OdontoApplication
+        val previousTheme = runBlocking { app.themes.theme.first() }
+        try {
         compose.onNodeWithText(text(R.string.welcome)).assertIsDisplayed()
         compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
         compose.onNodeWithText("Cadastro de pacientes").assertIsDisplayed()
@@ -28,6 +32,9 @@ class NavigationTest {
         compose.onNodeWithText(compose.activity.getString(br.com.odontolivreval.feature.settings.R.string.dark)).assertIsSelected()
         compose.onAllNodesWithText(text(R.string.home)).onFirst().performClick()
         compose.onNodeWithText(text(R.string.welcome)).assertIsDisplayed()
+        } finally {
+            runBlocking { app.themes.setTheme(previousTheme) }
+        }
     }
 
     @Test
@@ -35,6 +42,8 @@ class NavigationTest {
         val suffix = UUID.randomUUID().toString().take(8)
         val original = "Paciente Ágata $suffix"
         val revised = "Paciente Ágata $suffix revisada"
+        val store = (compose.activity.application as OdontoApplication).demoClinic
+        try {
         compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
         compose.waitUntil(5_000) {
             compose.onAllNodesWithText("Novo paciente").fetchSemanticsNodes().isNotEmpty()
@@ -58,12 +67,19 @@ class NavigationTest {
         compose.onNodeWithText("Editar $original").assertDoesNotExist()
         compose.activityRule.scenario.recreate()
         compose.onNodeWithText("Editar $revised").assertIsDisplayed()
+        } finally {
+            runBlocking {
+                store.listPatients().filter { suffix in it.name }.forEach { store.deletePatient(it.id) }
+            }
+        }
     }
 
     @Test
     fun opensRecordAndMarksATooth() {
         val suffix = UUID.randomUUID().toString().take(8)
         val name = "Paciente Dente $suffix"
+        val store = (compose.activity.application as OdontoApplication).demoClinic
+        try {
         compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
         compose.waitUntil(5_000) {
             compose.onAllNodesWithText("Novo paciente").fetchSemanticsNodes().isNotEmpty()
@@ -91,6 +107,11 @@ class NavigationTest {
             compose.onAllNodesWithText("Consulta ativa").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithContentDescription("Dente 11: Canal. 1 superfície marcada").assertExists()
+        } finally {
+            runBlocking {
+                store.listPatients().filter { suffix in it.name }.forEach { store.deletePatient(it.id) }
+            }
+        }
     }
 
     @OptIn(ExperimentalTestApi::class)

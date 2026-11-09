@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -251,7 +252,7 @@ private fun AppointmentDialog(state: ScheduleState, model: ScheduleViewModel) {
                         model.changeForm(form.copy(duration = value.filter { it in '0'..'9' }.take(3)))
                     },
                     label = { Text(stringResource(R.string.schedule_duration)) },
-                    supportingText = { Text(stringResource(R.string.schedule_duration_hint, maxAppointmentMinutes)) },
+                    supportingText = { Text(pluralStringResource(R.plurals.schedule_duration_hint, maxAppointmentMinutes, maxAppointmentMinutes)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     enabled = !state.writing,

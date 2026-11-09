@@ -69,7 +69,6 @@ fun SignatureHistoryScreen(
                     state.signatures.forEach { sig ->
                         SignatureRow(
                             signature = sig,
-                            onClick = { /* não implementado */ },
                         )
                     }
                 }
@@ -81,7 +80,6 @@ fun SignatureHistoryScreen(
                     state.hashes.forEach { hash ->
                         HashRow(
                             hash = hash,
-                            onClick = { /* não implementado */ },
                         )
                     }
                 }
@@ -97,7 +95,6 @@ fun SignatureHistoryScreen(
 @Composable
 private fun SignatureRow(
     signature: DocumentSignatureFile,
-    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -112,16 +109,12 @@ private fun SignatureRow(
                 style = MaterialTheme.typography.bodySmall,
             )
         }
-        androidx.compose.material3.TextButton(onClick = onClick) {
-            Text(stringResource(R.string.signature_options_view))
-        }
     }
 }
 
 @Composable
 private fun HashRow(
     hash: DocumentHashFile,
-    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -135,9 +128,6 @@ private fun HashRow(
                 text = "Hash: ${hash.hashValue.take(16)}…",
                 style = MaterialTheme.typography.bodySmall,
             )
-        }
-        androidx.compose.material3.TextButton(onClick = onClick) {
-            Text(stringResource(R.string.signature_options_view))
         }
     }
 }

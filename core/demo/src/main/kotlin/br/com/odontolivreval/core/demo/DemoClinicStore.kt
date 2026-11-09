@@ -1081,21 +1081,32 @@ class DemoClinicStore(context: Context) : ClinicStore {
             ""
         }
         val obj = JSONObject(content)
-        val proofObj = obj.optJSONObject("proof")
-        val modality = if (proofObj?.optString("modality") != null) proofObj!!.optString("modality") else SignatureModality.HANDWRITTEN_ON_PAPER.name
-        val status = if (proofObj?.optString("status") != null) proofObj!!.optString("status") else SignatureStatus.PENDING.name
-        val signedAt = if (proofObj?.optLong("signedAt") != null) proofObj!!.optLong("signedAt") else file.signedAt
-        val identification = proofObj?.optJSONObject("identification")?.let { rep ->
+        // Formato atual é plano; também aceitamos o formato aninhado para dados antigos.
+        val proofObj = obj.optJSONObject("proof") ?: obj
+        val modality = proofObj.optString("modality", file.modality.name)
+        val status = proofObj.optString("status", file.status.name)
+        val signedAt = proofObj.optLong("signedAt", file.signedAt)
+        val identification = proofObj.optJSONObject("identification")?.let { rep ->
             SignerIdentification(
                 role = rep.optString("role", ""),
                 name = rep.optString("name", ""),
-                idDocument = rep.optString("idDocument")?.takeIf { it.isNotBlank() },
-                registrationNumber = rep.optString("registrationNumber")?.takeIf { it.isNotBlank() },
+                idDocument = rep.optString("idDocument").takeIf { it.isNotBlank() },
+                registrationNumber = rep.optString("registrationNumber").takeIf { it.isNotBlank() },
+            )
+        } ?: obj.optString("identificationRole").takeIf { it.isNotBlank() }?.let { role ->
+            SignerIdentification(
+                role = role,
+                name = obj.optString("identificationName"),
+                idDocument = obj.optString("identificationDocument")
+                    .takeIf { it.isNotBlank() }
+                    ?: obj.optString("identificationIdDocument").takeIf { it.isNotBlank() },
+                registrationNumber = obj.optString("identificationRegistrationNumber")
+                    .takeIf { it.isNotBlank() },
             )
         }
-        val hasVisualRepresentation = if (proofObj?.optBoolean("hasVisualRepresentation") != null) proofObj!!.optBoolean("hasVisualRepresentation") else false
-        val cryptographicValid = if (proofObj?.optBoolean("cryptographicValid") != null) proofObj!!.optBoolean("cryptographicValid") else false
-        val notes = proofObj?.optString("notes")?.takeIf { it.isNotBlank() }
+        val hasVisualRepresentation = proofObj.optBoolean("hasVisualRepresentation", false)
+        val cryptographicValid = proofObj.optBoolean("cryptographicValid", false)
+        val notes = proofObj.optString("notes").takeIf { it.isNotBlank() }
         val proof = SignatureProof(
             modality = SignatureModality.valueOf(modality),
             status = SignatureStatus.valueOf(status),
@@ -1132,6 +1143,8 @@ class DemoClinicStore(context: Context) : ClinicStore {
                     signedAt = signature.proof.signedAt,
                     identificationRole = signature.proof.identification?.role,
                     identificationName = signature.proof.identification?.name,
+                    identificationDocument = signature.proof.identification?.idDocument,
+                    identificationRegistrationNumber = signature.proof.identification?.registrationNumber,
                 )
                 val updated = snapshot.documentSignatures.map {
                     if (it.file.patientId == patientId && it.file.id == signature.id) {
@@ -1154,6 +1167,8 @@ class DemoClinicStore(context: Context) : ClinicStore {
                     signedAt = signature.proof.signedAt,
                     identificationRole = signature.proof.identification?.role,
                     identificationName = signature.proof.identification?.name,
+                    identificationDocument = signature.proof.identification?.idDocument,
+                    identificationRegistrationNumber = signature.proof.identification?.registrationNumber,
                 )
                 val bytes = signature.toJsonBytes()
                 val content = writeNewAttachment(snapshot, bytes)
@@ -1277,6 +1292,132 @@ class DemoClinicStore(context: Context) : ClinicStore {
                 it.file.patientId == patientId && it.file.id == id
             },
         ))
+    }
+
+    // --- Lembretes de consulta ---
+
+    override suspend fun listReminders(patientId: Long): List<ReminderFile> = access {
+        load().reminders.map { it.file }.filter { it.patientId == patientId }
+    }
+
+    override suspend fun getReminder(patientId: Long, id: Long): Reminder? = access {
+        val stored = load().reminders.find { it.file.patientId == patientId && it.file.id == id }
+            ?: return@access null
+        val file = stored.file
+        Reminder(
+            id = file.id,
+            appointmentId = file.appointmentId,
+            type = file.type,
+            customMinutes = file.customMinutes,
+            enabled = file.enabled,
+            sent = file.sent,
+            sentAt = file.sentAt,
+        )
+    }
+
+    override suspend fun saveReminder(patientId: Long, reminder: Reminder): Reminder = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val existing = snapshot.reminders.find { it.file.patientId == patientId && it.file.id == reminder.id }
+        val savedFile = ReminderFile(
+            id = existing?.file?.id ?: nextId(snapshot.reminders.map { it.file.id }),
+            patientId = patientId,
+            appointmentId = reminder.appointmentId,
+            type = reminder.type,
+            customMinutes = reminder.customMinutes,
+            enabled = reminder.enabled,
+            sent = reminder.sent,
+            sentAt = reminder.sentAt,
+        )
+        val bytes = savedFile.toJsonBytes()
+        val content = writeNewAttachment(snapshot, bytes)
+        val updated = if (existing == null) {
+            snapshot.reminders + StoredReminder(savedFile, content)
+        } else {
+            snapshot.reminders.map {
+                if (it.file.patientId == patientId && it.file.id == savedFile.id) {
+                    it.copy(file = savedFile, content = content)
+                } else it
+            }
+        }
+        persist(snapshot.copy(reminders = updated))
+        Reminder(
+            id = savedFile.id,
+            appointmentId = savedFile.appointmentId,
+            type = savedFile.type,
+            customMinutes = savedFile.customMinutes,
+            enabled = savedFile.enabled,
+            sent = savedFile.sent,
+            sentAt = savedFile.sentAt,
+        )
+    }
+
+    override suspend fun deleteReminder(patientId: Long, id: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.reminders.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Reminder missing")
+        persist(snapshot.copy(
+            reminders = snapshot.reminders.filterNot {
+                it.file.patientId == patientId && it.file.id == id
+            },
+        ))
+    }
+
+    override suspend fun listReminderSettings(patientId: Long): ReminderSettingsFile? = access {
+        load().reminderSettings.find { it.file.patientId == patientId }?.file
+    }
+
+    override suspend fun saveReminderSettings(patientId: Long, settings: ReminderSettings): ReminderSettingsFile = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val existing = snapshot.reminderSettings.find { it.file.patientId == patientId }
+        val savedFile = ReminderSettingsFile(
+            patientId = patientId,
+            reminders24h = settings.reminders24h,
+            reminders2h = settings.reminders2h,
+            reminders30m = settings.reminders30m,
+            customMinutes = settings.customMinutes,
+            customEnabled = settings.customEnabled,
+        )
+        val bytes = savedFile.toJsonBytes()
+        val content = writeNewAttachment(snapshot, bytes)
+        val updated = if (existing == null) {
+            snapshot.reminderSettings + StoredReminderSettings(savedFile, content)
+        } else {
+            snapshot.reminderSettings.map {
+                if (it.file.patientId == patientId) it.copy(file = savedFile, content = content) else it
+            }
+        }
+        persist(snapshot.copy(reminderSettings = updated))
+        savedFile
+    }
+
+    override suspend fun deleteReminderSettings(patientId: Long) = access {
+        val snapshot = load()
+        persist(snapshot.copy(
+            reminderSettings = snapshot.reminderSettings.filterNot {
+                it.file.patientId == patientId
+            },
+        ))
+    }
+
+    override suspend fun updateReminderSent(patientId: Long, reminderId: Long, sentAt: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.reminders.find { it.file.patientId == patientId && it.file.id == reminderId }
+            ?: throw IOException("Reminder missing")
+        val updated = existing.file.copy(sent = true, sentAt = sentAt)
+        val content = writeNewAttachment(snapshot, updated.toJsonBytes())
+        persist(snapshot.copy(
+            reminders = snapshot.reminders.map {
+                if (it.file.patientId == patientId && it.file.id == reminderId) {
+                    it.copy(file = updated, content = content)
+                } else it
+            },
+        ))
+    }
+
+    override suspend fun getRemindersForAppointment(patientId: Long, appointmentId: Long): List<ReminderFile> = access {
+        load().reminders.map { it.file }.filter { it.patientId == patientId && it.appointmentId == appointmentId }
     }
 
     private fun autoBackup(): File {

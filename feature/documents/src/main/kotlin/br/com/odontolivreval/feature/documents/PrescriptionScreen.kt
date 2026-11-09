@@ -4,11 +4,16 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,12 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.ProfessionalProfile
@@ -97,8 +96,7 @@ fun PrescriptionScreen(
                         route = "",
                         duration = "",
                         quantity = "",
-                    )
-                    )
+                    ))
                 }
             },
         ) {
@@ -135,7 +133,7 @@ fun PrescriptionScreen(
             Text(stringResource(R.string.prescription_generate_pdf))
         }
 
-        OutlinedButton(onClick = onClose, enabled = true) {
+        OutlinedButton(onClick = onClose) {
             Text(stringResource(R.string.documents_back))
         }
     }

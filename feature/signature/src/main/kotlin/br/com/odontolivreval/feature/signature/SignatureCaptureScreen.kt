@@ -12,6 +12,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,7 @@ fun SignatureCaptureScreen(
     documentId: Long,
     documentVersion: Int,
     documentTitle: String,
+    initialModality: SignatureModality = SignatureModality.ELECTRONIC_ACKNOWLEDGEMENT,
     onClose: () -> Unit,
     onSignatureCreated: (String) -> Unit,
 ) {
@@ -40,9 +42,14 @@ fun SignatureCaptureScreen(
     val formState by model.formState.collectAsStateWithLifecycle()
 
     var signatureText by remember { mutableStateOf("") }
-    var hasVisualRepresentation by remember { mutableStateOf(false) }
-
-    model.initForm(documentType, documentId, documentVersion)
+    var confirmed by remember { mutableStateOf(false) }
+    LaunchedEffect(patient.id, documentType, documentId, documentVersion, initialModality) {
+        model.initForm(documentType, documentId, documentVersion)
+        model.updateModality(initialModality)
+    }
+    LaunchedEffect(formState.saved) {
+        if (formState.saved) onSignatureCreated(signatureText)
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -67,8 +74,8 @@ fun SignatureCaptureScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             androidx.compose.material3.RadioButton(
-                selected = formState.modality == SignatureModality.HANDWRITTEN_DIGITAL,
-                onClick = { model.updateModality(SignatureModality.HANDWRITTEN_DIGITAL) },
+                selected = formState.modality == SignatureModality.ELECTRONIC_ACKNOWLEDGEMENT,
+                onClick = { model.updateModality(SignatureModality.ELECTRONIC_ACKNOWLEDGEMENT) },
             )
             Text(stringResource(R.string.signature_capture_modality_digital))
 
@@ -79,7 +86,7 @@ fun SignatureCaptureScreen(
             Text(stringResource(R.string.signature_capture_modality_paper))
         }
 
-        // Área de captura de assinatura (simulada como campo de texto)
+        // Registra a confirmação nominal; não representa desenho nem assinatura certificada.
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -133,16 +140,6 @@ fun SignatureCaptureScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-            ) {
-                androidx.compose.material3.Checkbox(
-                    checked = hasVisualRepresentation,
-                    onCheckedChange = { hasVisualRepresentation = it; model.updateHasVisualRepresentation(it) },
-                )
-                Text(stringResource(R.string.signature_capture_has_signature_image))
-            }
         }
 
         formState.error?.let { error ->
@@ -162,15 +159,25 @@ fun SignatureCaptureScreen(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        ) {
+            androidx.compose.material3.Checkbox(
+                checked = confirmed,
+                onCheckedChange = { confirmed = it },
+                enabled = !formState.saving && !formState.saved,
+            )
+            Text(stringResource(R.string.signature_capture_confirmation))
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             OutlinedButton(
-                enabled = !formState.saving && signatureText.isNotEmpty(),
+                enabled = !formState.saving && !formState.saved && signatureText.isNotBlank() && confirmed,
                 onClick = {
+                    model.updateNotes(signatureText.trim())
                     model.saveSignature()
-                    if (formState.saved) {
-                        onSignatureCreated(signatureText)
-                    }
                 },
             ) {
                 Text(stringResource(R.string.signature_capture_save))

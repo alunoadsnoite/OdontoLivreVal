@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.material3)
     implementation(libs.compose.foundation.layout)
+    implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.runtime)
     testImplementation(libs.junit)

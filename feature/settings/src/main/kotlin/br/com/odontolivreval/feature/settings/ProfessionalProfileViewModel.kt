@@ -79,7 +79,7 @@ internal class ProfessionalProfileViewModel(private val store: ClinicStore) : Vi
 
     companion object {
         fun factory(store: ClinicStore) = viewModelFactory {
-            ProfessionalProfileViewModel(store)
+            initializer { ProfessionalProfileViewModel(store) }
         }
     }
 }

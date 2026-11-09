@@ -31,6 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
@@ -68,7 +70,7 @@ fun DocumentsScreen(
     var sharing by remember { mutableStateOf(false) }
     var encryptPdf by remember { mutableStateOf(false) }
     var pdfPassword by remember { mutableStateOf("") }
-    LaunchedEffect(model) { if (!model.state.value.loading) model.load() }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { model.load() }
 
     fun request(): DocumentPdfRequest = DocumentPdfRequest(
         state.type, patient, state.record, state.profile, state.content, pdfTitle,

@@ -198,9 +198,9 @@
 <string name="signature_options_patient">Paciente: %1$s</string>
 <string name="signature_options_document">Documento: %1$s</string>
 <string name="signature_options_choose_modality">Escolha a modalidade de assinatura:</string>
-<string name="signature_options_handwritten_digital">Assinatura na tela</string>
+<string name="signature_options_handwritten_digital">Confirmar eletronicamente neste aparelho</string>
 <string name="signature_options_handwritten_paper">Assinatura em papel</string>
-<string name="signature_options_cryptographic">Assinatura digital criptográfica</string>
+<string name="signature_options_cryptographic">Assinatura criptográfica (indisponível)</string>
 <string name="signature_options_history">Histórico de Assinaturas</string>
 <string name="signature_options_loading">Carregando…</string>
 <string name="signature_options_error">Erro ao carregar assinaturas.</string>
@@ -213,9 +213,9 @@
 <string name="signature_capture_patient">Paciente: %1$s</string>
 <string name="signature_capture_document">Documento: %1$s</string>
 <string name="signature_capture_modality">Modalidade:</string>
-<string name="signature_capture_modality_digital">Na tela</string>
+<string name="signature_capture_modality_digital">Confirmação eletrônica</string>
 <string name="signature_capture_modality_paper">Em papel</string>
-<string name="signature_capture_draw_here">Desenhe a assinatura aqui:</string>
+<string name="signature_capture_draw_here">Digite o nome completo para registrar a confirmação:</string>
 <string name="signature_capture_signer">Identificação do Signatário</string>
 <string name="signature_capture_signer_name">Nome</string>
 <string name="signature_capture_signer_id">Documento (ex: CRO/CPF)</string>

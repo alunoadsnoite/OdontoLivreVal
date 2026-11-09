@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
+import br.com.odontolivreval.core.demo.SignatureModality
 import br.com.odontolivreval.core.model.ThemeMode
 import br.com.odontolivreval.feature.documents.CertificateFormScreen
 import br.com.odontolivreval.feature.documents.CertificateListScreen
@@ -71,7 +72,11 @@ fun OdontoApp(
     var selectedPatient by rememberSaveable(stateSaver = PatientSaver) {
         mutableStateOf<DemoPatient?>(null)
     }
+    var requestedSignatureModality by rememberSaveable {
+        mutableStateOf(SignatureModality.HANDWRITTEN_DIGITAL.name)
+    }
     fun navigate(destination: Destination) {
+        selectedPatient = null
         nav.navigate(destination.name) {
             popUpTo(Destination.HOME.name) { saveState = true }
             launchSingleTop = true
@@ -88,13 +93,8 @@ fun OdontoApp(
             nav.clearBackStack(Destination.SCHEDULE.name)
         }
     }
-    // Mantém a seleção durante o fluxo prontuário → documentos → perfil.
-    LaunchedEffect(entry?.destination?.route) {
-        val currentRoute = nav.currentBackStackEntry?.destination?.route ?: return@LaunchedEffect
-        if (currentRoute !in listOf("patient_record", "documents", "profile")) {
-            selectedPatient = null
-        }
-    }
+    // A seleção só é limpa por ações explícitas de saída; navegar entre telas
+    // do prontuário não pode descartar o paciente durante uma transição.
     Scaffold { padding ->
         BoxWithConstraints(Modifier.fillMaxSize().padding(padding)) {
             val wide = maxWidth >= 600.dp
@@ -137,16 +137,18 @@ fun OdontoApp(
                         }
                         composable(Destination.SETTINGS.name) {
                             ScreenContent {
+                                OutlinedButton(onClick = { nav.navigate("profile") { launchSingleTop = true } }) {
+                                    Text(stringResource(R.string.profile_title))
+                                }
                                 SettingsScreen(
                                     demoClinic,
                                     state,
                                     onTheme,
                                     onAbout = { nav.navigate("about") { launchSingleTop = true } },
-                                    onProfile = { nav.navigate("profile") { launchSingleTop = true } },
                                 )
-                                    OutlinedButton(onClick = { nav.navigate("protection") { launchSingleTop = true } }) {
-                                        Text(stringResource(R.string.security_title))
-                                    }
+                                OutlinedButton(onClick = { nav.navigate("protection") { launchSingleTop = true } }) {
+                                    Text(stringResource(R.string.security_title))
+                                }
                             }
                         }
                         composable("profile") {
@@ -449,12 +451,18 @@ fun OdontoApp(
                                     SignatureOptionsScreen(
                                         store = demoClinic,
                                         patient = patient,
-                                        documentType = "document",
-                                        documentId = -1,
+                                        documentType = "patient_record",
+                                        documentId = patient.id,
                                         documentVersion = 1,
-                                        documentTitle = "Documento",
+                                        documentTitle = "Prontuário clínico",
                                         onClose = { nav.popBackStack() },
-                                        onSignatureCreated = { nav.popBackStack() },
+                                        onCapture = { modality ->
+                                            requestedSignatureModality = modality.name
+                                            nav.navigate("signature_capture") { launchSingleTop = true }
+                                        },
+                                        onImportExternal = {
+                                            nav.navigate("signature_import") { launchSingleTop = true }
+                                        },
                                     )
                                 } else {
                                     OutlinedButton(onClick = { nav.popBackStack() }) {
@@ -470,10 +478,12 @@ fun OdontoApp(
                                     SignatureCaptureScreen(
                                         store = demoClinic,
                                         patient = patient,
-                                        documentType = "document",
-                                        documentId = -1,
+                                        documentType = "patient_record",
+                                        documentId = patient.id,
                                         documentVersion = 1,
-                                        documentTitle = "Documento",
+                                        documentTitle = "Prontuário clínico",
+                                        initialModality = runCatching { SignatureModality.valueOf(requestedSignatureModality) }
+                                            .getOrDefault(SignatureModality.HANDWRITTEN_DIGITAL),
                                         onClose = { nav.popBackStack() },
                                         onSignatureCreated = { nav.popBackStack() },
                                     )
@@ -491,10 +501,10 @@ fun OdontoApp(
                                     SignaturePreviewScreen(
                                         store = demoClinic,
                                         patient = patient,
-                                        documentType = "document",
-                                        documentId = -1,
+                                        documentType = "patient_record",
+                                        documentId = patient.id,
                                         documentVersion = 1,
-                                        documentTitle = "Documento",
+                                        documentTitle = "Prontuário clínico",
                                         documentContent = "Conteúdo do documento",
                                         onClose = { nav.popBackStack() },
                                         onSignatureCreated = { nav.popBackStack() },
@@ -514,10 +524,6 @@ fun OdontoApp(
                                     SignatureImportScreen(
                                         store = demoClinic,
                                         patient = patient,
-                                        documentType = "document",
-                                        documentId = -1,
-                                        documentVersion = 1,
-                                        documentTitle = "Documento",
                                         onClose = { nav.popBackStack() },
                                         onImportCompleted = { nav.popBackStack() },
                                     )

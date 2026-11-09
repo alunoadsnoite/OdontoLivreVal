@@ -15,6 +15,8 @@ import org.json.JSONObject
  * assinatura manuscrita digitalizada com assinatura digital criptográfica.
  */
 enum class SignatureModality {
+    /** Confirmação eletrônica registrada localmente, sem certificado criptográfico. */
+    ELECTRONIC_ACKNOWLEDGEMENT,
     /** Assinatura manuscrita em documento impresso (PDF com campos para assinatura manual posterior). */
     HANDWRITTEN_ON_PAPER,
     /** Assinatura manuscrita capturada na tela (desenho via toque/caneta).
@@ -92,6 +94,8 @@ data class DocumentSignatureFile(
     val signedAt: Long,
     val identificationRole: String? = null,
     val identificationName: String? = null,
+    val identificationDocument: String? = null,
+    val identificationRegistrationNumber: String? = null,
 )
 
 internal data class StoredDocumentSignature(
@@ -161,7 +165,7 @@ internal fun DocumentSignature.toJsonBytes(): ByteArray {
     proof.identification?.let { id ->
         obj.put("identificationRole", id.role)
         obj.put("identificationName", id.name ?: JSONObject.NULL)
-        obj.put("identificationIdDocument", id.idDocument ?: JSONObject.NULL)
+        obj.put("identificationDocument", id.idDocument ?: JSONObject.NULL)
         obj.put("identificationRegistrationNumber", id.registrationNumber ?: JSONObject.NULL)
     }
     proof.notes?.let { obj.put("notes", it) }

@@ -59,6 +59,8 @@ internal data class ClinicSnapshot(
     val informedConsents: List<StoredInformedConsent> = emptyList(),
     val documentSignatures: List<StoredDocumentSignature> = emptyList(),
     val documentHashes: List<StoredDocumentHash> = emptyList(),
+    val reminders: List<StoredReminder> = emptyList(),
+    val reminderSettings: List<StoredReminderSettings> = emptyList(),
     val professional: ProfessionalProfile = ProfessionalProfile(),
 ) {
     fun encode(): ByteArray = JSONObject()
@@ -185,6 +187,8 @@ internal data class ClinicSnapshot(
                     .put(it.file.status.name).put(it.file.signedAt)
                     .put(it.file.identificationRole ?: JSONObject.NULL)
                     .put(it.file.identificationName ?: JSONObject.NULL)
+                    .put(it.file.identificationDocument ?: JSONObject.NULL)
+                    .put(it.file.identificationRegistrationNumber ?: JSONObject.NULL)
                     .putReference(it.content))
             }
         })
@@ -195,6 +199,24 @@ internal data class ClinicSnapshot(
                     .put(it.file.documentVersion).put(it.file.hashAlgorithm)
                     .put(it.file.hashValue).put(it.file.calculatedAt)
                     .put(it.file.integrityState)
+                    .putReference(it.content))
+            }
+        })
+        .put("reminders", JSONArray().apply {
+            reminders.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.appointmentId)
+                    .put(it.file.type.name).put(it.file.enabled)
+                    .put(it.file.customMinutes ?: JSONObject.NULL)
+                    .put(it.file.sent).put(it.file.sentAt ?: JSONObject.NULL)
+                    .putReference(it.content))
+            }
+        })
+        .put("reminderSettings", JSONArray().apply {
+            reminderSettings.forEach {
+                put(JSONArray().put(it.file.patientId)
+                    .put(it.file.reminders24h).put(it.file.reminders2h).put(it.file.reminders30m)
+                    .put(it.file.customMinutes ?: JSONObject.NULL)
+                    .put(it.file.customEnabled)
                     .putReference(it.content))
             }
         })
@@ -210,7 +232,9 @@ internal data class ClinicSnapshot(
             treatmentBudgets.map { it.content } +
             informedConsents.map { it.content } +
             documentSignatures.map { it.content } +
-            documentHashes.map { it.content }
+            documentHashes.map { it.content } +
+            reminders.map { it.content } +
+            reminderSettings.map { it.content }
 
     fun mapAttachments(transform: (AttachmentContent) -> AttachmentContent): ClinicSnapshot = copy(
         radiographs = radiographs.map { it.copy(content = transform(it.content)) },
@@ -224,6 +248,8 @@ internal data class ClinicSnapshot(
         informedConsents = informedConsents.map { it.copy(content = transform(it.content)) },
         documentSignatures = documentSignatures.map { it.copy(content = transform(it.content)) },
         documentHashes = documentHashes.map { it.copy(content = transform(it.content)) },
+        reminders = reminders.map { it.copy(content = transform(it.content)) },
+        reminderSettings = reminderSettings.map { it.copy(content = transform(it.content)) },
     )
 
     private fun JSONArray.putReference(content: AttachmentContent): JSONArray {
@@ -296,6 +322,12 @@ internal data class ClinicSnapshot(
             || documentSignatures.any { it.file.id <= 0 || it.file.patientId !in patientIds }
             || documentHashes.map { it.file.id }.toSet().size != documentHashes.size
             || documentHashes.any { it.file.id <= 0 || it.file.patientId !in patientIds }
+            || reminders.map { it.file.id }.toSet().size != reminders.size
+            || reminders.any { it.file.id <= 0 || it.file.appointmentId <= 0 }
+            || reminders.any { !it.content.valid }
+            || reminderSettings.map { it.file.patientId }.toSet().size != reminderSettings.size
+            || reminderSettings.any { it.file.patientId <= 0 }
+            || reminderSettings.any { !it.content.valid }
             || contents.any { !it.valid }
             || references.map { it.token }.toSet().size != references.size
             || references.sumOf { it.size.toLong() } > maxAttachmentTotal
@@ -543,8 +575,10 @@ internal data class ClinicSnapshot(
                             signedAt = it.optLong(7, System.currentTimeMillis()),
                             identificationRole = if (it.isNull(8)) null else it.getString(8),
                             identificationName = if (it.isNull(9)) null else it.getString(9),
+                            identificationDocument = if (version >= 16 && !it.isNull(10)) it.getString(10) else null,
+                            identificationRegistrationNumber = if (version >= 16 && !it.isNull(11)) it.getString(11) else null,
                         ),
-                        it.attachment(version, 10),
+                        it.attachment(version, if (version >= 16) 12 else 10),
                     )
                 }
             } else emptyList()
@@ -564,6 +598,40 @@ internal data class ClinicSnapshot(
                             integrityState = it.getString(8),
                         ),
                         it.attachment(version, 9),
+                    )
+                }
+            } else emptyList()
+
+            val reminders = if (version >= 16 && root.has("reminders")) {
+                root.getJSONArray("reminders").rows {
+                    StoredReminder(
+                        ReminderFile(
+                            id = it.integer(0),
+                            patientId = it.integer(1),
+                            appointmentId = it.integer(2),
+                            type = ReminderType.valueOf(it.getString(3)),
+                            enabled = it.getBoolean(4),
+                            customMinutes = if (it.isNull(5)) null else it.integer(5).toInt(),
+                            sent = it.getBoolean(6),
+                            sentAt = if (it.isNull(7)) null else it.optLong(7),
+                        ),
+                        it.attachment(version, 8),
+                    )
+                }
+            } else emptyList()
+
+            val reminderSettings = if (version >= 16 && root.has("reminderSettings")) {
+                root.getJSONArray("reminderSettings").rows {
+                    StoredReminderSettings(
+                        ReminderSettingsFile(
+                            patientId = it.integer(0),
+                            reminders24h = it.getBoolean(1),
+                            reminders2h = it.getBoolean(2),
+                            reminders30m = it.getBoolean(3),
+                            customMinutes = if (it.isNull(4)) null else it.integer(4).toInt(),
+                            customEnabled = it.getBoolean(5),
+                        ),
+                        it.attachment(version, 6),
                     )
                 }
             } else emptyList()
@@ -591,14 +659,14 @@ internal data class ClinicSnapshot(
                 patients, schedule, patientRecords, visits, radiographs, prescriptions,
                 documentPhotos, digitalSignatures, medicalCertificates,
                 treatmentPlans, treatmentProcedures, treatmentBudgets, informedConsents,
-                documentSignatures, documentHashes,
+                documentSignatures, documentHashes, reminders, reminderSettings,
                 professional,
             ).apply { validate() }
         }
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 15
+        private const val currentVersion = 16
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)

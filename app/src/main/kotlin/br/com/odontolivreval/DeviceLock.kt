@@ -32,7 +32,7 @@ internal class DeviceLock(private val activity: ComponentActivity) {
         private set
 
     fun refreshCredentialStatus() {
-        secure = keyguard?.isDeviceSecure == false ?: false
+        secure = keyguard?.isDeviceSecure == true
     }
 
     fun lock() {

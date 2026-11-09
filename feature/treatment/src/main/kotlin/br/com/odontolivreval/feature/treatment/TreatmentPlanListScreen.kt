@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -101,7 +102,7 @@ private fun PlanRow(
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                text = "${stringResource(R.string.treatment_plans_sessions, plan.estimatedSessions)} · ${plan.status}",
+                text = "${pluralStringResource(R.plurals.treatment_plans_sessions, plan.estimatedSessions, plan.estimatedSessions)} · ${plan.status}",
                 style = MaterialTheme.typography.bodySmall,
             )
         }

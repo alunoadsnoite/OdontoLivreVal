@@ -1,6 +1,6 @@
 # OdontoLivreVal
 
-Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão **0.13.0** acrescenta assinaturas eletrônicas, digitais e integridade documental.
+Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão de desenvolvimento **0.13.0** (versionCode 13) reúne as etapas 13A–15B; ainda não foi lançada nem submetida ao F-Droid.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 
@@ -20,10 +20,10 @@ Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista p
 - **Atestados e declarações** (atestado odontológico, declaração de comparecimento, declaração de acompanhamento) no prontuário, com ciclo de vida rascunho/finalizado/cancelado, nova versão para correções, PDF A4 e compartilhamento.
 - **Planos de tratamento e orçamentos** no prontuário: criar planos, adicionar procedimentos vinculados a dentes, definir valores e etapas, gerar orçamento com cálculos corretos em PDF A4, registrar aprovação e acompanhar execução, consultar versões anteriores.
 - **Termos de consentimento (TCLE)** no prontuário: criar termos a partir de 9 modelos, editar conteúdo, registrar decisão do paciente (aceito/recusado), revogar, criar revisões, gerar PDF A4 com espaços para assinatura, compartilhar.
-- **Assinaturas eletrônicas e digitais** no prontuário: três modalidades (manuscrito em papel, manuscrito na tela, criptográfica preparada), identificação do signatário, hash SHA-256 para integridade documental, verificação de integridade, importação de PDFs assinados externamente, compartilhamento via FileProvider.
+- **Registros de confirmação e arquivo de PDFs** no prontuário. A confirmação digitada registra nome/data/modalidade localmente; não captura assinatura manuscrita, não certifica identidade e não é assinatura criptográfica. PDFs selecionados podem ser arquivados criptografados por paciente; o hash SHA-256 é uma referência e não valida a assinatura. A modalidade criptográfica está indisponível.
 - **Agenda** diária e mensal, com duração da consulta, prevenção de sobreposição, retornos vinculados e lembretes locais. A visão mensal mostra quantas consultas ativas há por dia.
 
-A interface está em português do Brasil. A versão atual funciona sem conta, servidor, anúncios ou serviços de análise. O app declara acesso à autenticação biométrica do Android para o bloqueio opcional.
+A interface está em português do Brasil. A versão atual funciona sem conta, servidor, anúncios ou serviços de análise. O app declara acesso à autenticação biométrica do Android para o bloqueio opcional. Veja [PRIVACY.md](PRIVACY.md) para tratamento de dados e limitações.
 
 ## Compilar e testar no celular
 
@@ -75,15 +75,14 @@ A assinatura é aplicada pelo serviço externo. A interface abre o navegador e a
 
 ## Verificações
 
-| Comando | Resultado na versão 0.10.0 |
+| Comando | Resultado da candidata 0.13.0 |
 | --- | --- |
-| `./gradlew :app:assembleDebug` | APK de desenvolvimento gerado |
-| `./gradlew test` | 20 testes unitários aprovados |
-| `./gradlew lint` | 0 erros e 3 avisos nos relatórios dos módulos |
-| `./gradlew :app:assembleDebugAndroidTest` | APK de testes instrumentados gerado |
-| `./gradlew :app:connectedDebugAndroidTest` | Execução pendente em um celular ou emulador funcional |
+| `./gradlew :app:assembleDebug` | Ver estado atualizado em [docs/ETAPA_15B_RELEASE_READINESS.md](docs/ETAPA_15B_RELEASE_READINESS.md) |
+| `./gradlew test` | Ver estado atualizado em [docs/ETAPA_15B_RELEASE_READINESS.md](docs/ETAPA_15B_RELEASE_READINESS.md) |
+| `./gradlew lint` | Ver estado atualizado em [docs/ETAPA_15B_RELEASE_READINESS.md](docs/ETAPA_15B_RELEASE_READINESS.md) |
+| `./gradlew :app:assembleDebugAndroidTest` | Compila o APK de testes; execução conectada é registrada separadamente |
 
-Os testes instrumentados cobrem navegação, cadastro de paciente, abertura do prontuário, marcação de dente, migração do banco, agenda, geração de PDF e restauração de anexos. Os testes unitários cobrem tema, criptografia e formato de backup, pacientes, prontuário e agenda.
+Os testes instrumentados existentes cobrem cenários específicos com registros fictícios. A execução final conectada e a validação manual em aparelho estão pendentes; leia [docs/ROTEIRO_TESTES_MANUAIS.md](docs/ROTEIRO_TESTES_MANUAIS.md) e o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md).
 
 ## Estrutura do código
 
@@ -100,7 +99,7 @@ A interface usa Kotlin, Jetpack Compose e Material 3. As versões das dependênc
 | `:feature:schedule` | Agenda diária e mensal de consultas |
 | `:feature:documents` | Modelos de documentos, PDF e acesso aos portais de assinatura |
 
-Consulte a [arquitetura](docs/ARCHITECTURE.md), as [decisões de segurança](docs/SECURITY_DECISIONS.md) e o [histórico de versões](CHANGELOG.md).
+Consulte a [arquitetura](docs/ARCHITECTURE.md), as [decisões de segurança](docs/SECURITY_DECISIONS.md), o [resultado da auditoria](docs/AUDITORIA_FINAL_ETAPA_15A.md), o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md), a [preparação F-Droid](docs/FDROID_READINESS.md) e o [histórico de versões](CHANGELOG.md).
 
 ## Próximas etapas
 

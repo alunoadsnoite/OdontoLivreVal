@@ -20,12 +20,12 @@ internal data class HomeState(
 )
 
 internal class HomeViewModel(private val store: ClinicStore) : ViewModel() {
+    private val mutableState = MutableStateFlow(HomeState())
+    val state = mutableState.asStateFlow()
+
     init {
         load()
     }
-
-    private val mutableState = MutableStateFlow(HomeState())
-    val state = mutableState.asStateFlow()
 
     fun load() {
         mutableState.update { it.copy(loading = true, failed = false) }

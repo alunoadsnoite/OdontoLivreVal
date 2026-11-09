@@ -5,8 +5,8 @@ android {
  defaultConfig { minSdk = 26
 applicationId = "br.com.odontolivreval"
 targetSdk = 37
-versionCode = 10
-versionName = "0.10.0"
+versionCode = 13
+versionName = "0.13.0"
 testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

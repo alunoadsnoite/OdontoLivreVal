@@ -175,6 +175,26 @@ interface ClinicStore {
     suspend fun saveDocumentHash(patientId: Long, hash: DocumentHash): DocumentHash
 
     suspend fun deleteDocumentHash(patientId: Long, id: Long)
+
+    // --- Lembretes de consulta ---
+
+    suspend fun listReminders(patientId: Long): List<ReminderFile>
+
+    suspend fun getReminder(patientId: Long, id: Long): Reminder?
+
+    suspend fun saveReminder(patientId: Long, reminder: Reminder): Reminder
+
+    suspend fun deleteReminder(patientId: Long, id: Long)
+
+    suspend fun listReminderSettings(patientId: Long): ReminderSettingsFile?
+
+    suspend fun saveReminderSettings(patientId: Long, settings: ReminderSettings): ReminderSettingsFile
+
+    suspend fun deleteReminderSettings(patientId: Long)
+
+    suspend fun updateReminderSent(patientId: Long, reminderId: Long, sentAt: Long)
+
+    suspend fun getRemindersForAppointment(patientId: Long, appointmentId: Long): List<ReminderFile>
 }
 
 data class SavedRecord(val record: PatientRecord, val visit: VisitRecord)

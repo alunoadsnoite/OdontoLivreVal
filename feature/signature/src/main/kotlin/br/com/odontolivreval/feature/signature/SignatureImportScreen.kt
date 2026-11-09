@@ -1,8 +1,9 @@
 package br.com.odontolivreval.feature.signature
 
-import android.app.Activity
-import android.content.Intent
+import android.content.Context
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,32 +16,61 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.ClinicStore
+import br.com.odontolivreval.core.demo.DemoPatient
+import java.io.IOException
+import java.security.MessageDigest
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+private const val MAX_IMPORTED_PDF_BYTES = 10L * 1024 * 1024
 
 @Composable
 fun SignatureImportScreen(
     store: ClinicStore,
     patient: DemoPatient,
-    documentType: String,
-    documentId: Long,
-    documentVersion: Int,
-    documentTitle: String,
     onClose: () -> Unit,
     onImportCompleted: () -> Unit,
 ) {
-    val model: SignatureViewModel = viewModel(factory = SignatureViewModel.factory(store, patient.id))
-
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var importing by remember { mutableStateOf(false) }
     var importSuccess by remember { mutableStateOf(false) }
     var importError by remember { mutableStateOf(false) }
     var importedHash by remember { mutableStateOf<String?>(null) }
+
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        if (uri != null && !importing) {
+            importing = true
+            importError = false
+            importSuccess = false
+            importedHash = null
+            scope.launch {
+                try {
+                    importedHash = withContext(Dispatchers.IO) {
+                        val hash = sha256(context, uri)
+                        store.addPrescription(patient.id, uri, archivedDocument = true)
+                        hash
+                    }
+                    importSuccess = true
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    importError = true
+                } finally {
+                    importing = false
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -51,60 +81,61 @@ fun SignatureImportScreen(
             style = MaterialTheme.typography.headlineLarge,
         )
         Text(
-            text = stringResource(R.string.signature_integrity_patient, patient.name),
+            text = stringResource(R.string.signature_options_patient, patient.name),
             style = MaterialTheme.typography.titleMedium,
         )
         Text(
-            text = stringResource(R.string.signature_integrity_document, documentType),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-
-        androidx.compose.material3.Text(
-            text = stringResource(R.string.signature_integrity_import_pdf),
+            text = stringResource(R.string.signature_import_unverified),
             style = MaterialTheme.typography.bodySmall,
         )
 
         Button(
-            onClick = {
-                // Abrir seletor de arquivo para importar PDF
-                // Isso requer ActivityResultLauncher que seria configurado na Activity
-                importing = true
-                importError = false
-                // Simular importação
-                importing = false
-                importSuccess = true
-                importedHash = "abc123..."
-            },
+            enabled = !importing,
+            onClick = { launcher.launch(arrayOf("application/pdf")) },
         ) {
             Text(stringResource(R.string.signature_integrity_import_pdf))
         }
 
-        if (importing) {
-            Text(text = stringResource(R.string.signature_integrity_importing))
-        }
-
+        if (importing) Text(stringResource(R.string.signature_integrity_importing))
         if (importError) {
             Text(
                 text = stringResource(R.string.signature_integrity_import_error),
                 color = MaterialTheme.colorScheme.error,
             )
         }
-
         if (importSuccess) {
             Text(
                 text = stringResource(R.string.signature_integrity_import_success),
                 color = MaterialTheme.colorScheme.primary,
             )
             importedHash?.let { hash ->
-                Text(
-                    text = "Hash do documento: $hash",
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                Text("SHA-256: $hash", style = MaterialTheme.typography.bodySmall)
+            }
+            OutlinedButton(onClick = onImportCompleted) {
+                Text(stringResource(R.string.signature_import_done))
             }
         }
 
-        OutlinedButton(onClick = onClose) {
+        OutlinedButton(onClick = onClose, enabled = !importing) {
             Text(stringResource(R.string.signature_integrity_back))
         }
     }
+}
+
+private fun sha256(context: Context, uri: Uri): String {
+    val input = context.contentResolver.openInputStream(uri) ?: throw IOException("Unable to read selected PDF")
+    val digest = MessageDigest.getInstance("SHA-256")
+    val buffer = ByteArray(8 * 1024)
+    var total = 0L
+    input.use {
+        while (true) {
+            val count = it.read(buffer)
+            if (count < 0) break
+            total += count
+            if (total > MAX_IMPORTED_PDF_BYTES) throw IOException("PDF is too large")
+            digest.update(buffer, 0, count)
+        }
+    }
+    if (total == 0L) throw IOException("PDF is empty")
+    return digest.digest().joinToString("") { byte -> "%02x".format(byte) }
 }

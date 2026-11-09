@@ -9,9 +9,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import br.com.odontolivreval.core.demo.ClinicStorageException
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoAppointment
@@ -109,7 +109,7 @@ object AppointmentReminders {
 
     internal fun alarmIntent(context: Context, id: Long, day: LocalDate, trigger: Long): Intent =
         Intent(context, AppointmentReminderReceiver::class.java)
-            .setData(Uri.parse("odontolivreval://reminder/$id"))
+            .setData("odontolivreval://reminder/$id".toUri())
             .putExtra(EXTRA_ID, id)
             .putExtra(EXTRA_DAY, day.toEpochDay())
             .putExtra(EXTRA_TRIGGER, trigger)

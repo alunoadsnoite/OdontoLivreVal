@@ -1,5 +1,7 @@
 # Changelog
 
+`0.13.0` (versionCode 13) é uma versão de desenvolvimento/candidata. Não foi publicada nem submetida ao F-Droid. Recursos nas etapas 14A–15B têm limitações registradas e não equivalem a prontidão para uso clínico.
+
 # Changelog
 
 ## 0.10.0 — 2026-11-08
@@ -100,17 +102,12 @@
 - Armazenamento criptografado no snapshot (versão 14)
 - Inclusão no backup criptografado
 
-## 0.13.0 — 2026-11-09
+## 0.13.0 — 2026-11-09 (desenvolvimento; não lançado)
 
 ### Assinaturas eletrônicas, digitais e integridade documental (Etapa 14A)
 
-- Três modalidades de assinatura: manuscrita em papel, manuscrita na tela, criptográfica (preparado)
-- Identificação do signatário: papel, nome, documento, registro profissional
-- Fluxo de assinatura: seleção → pré-visualização → identificação → confirmação → registro
-- Hash SHA-256 para integridade documental com verificação local
-- Assinaturas vinculadas às versões corretas dos documentos
-- Preservação de versões finalizadas, impedimento de modificações silenciosas
-- Importação de PDFs assinados externamente com preservação do arquivo original
-- Compartilhamento via Android Sharesheet e FileProvider
-- Armazenamento criptografado no snapshot (versão 15)
-- Inclusão no backup criptografado
+- Registro local de confirmação eletrônica digitada e registro de modalidade em papel; sem captura de traçado manuscrito.
+- A opção de assinatura criptográfica está indisponível; não há provedor, certificado ou validação PAdES implementados.
+- Hash SHA-256 é exibido para o PDF selecionado como referência; não comprova autoria nem valida assinatura.
+- PDF selecionado é copiado sem alterações para o arquivo criptografado do paciente e incluído no backup; ainda não está vinculado a uma versão específica de documento.
+- Não declarar assinatura certificada ou validade jurídica automática.

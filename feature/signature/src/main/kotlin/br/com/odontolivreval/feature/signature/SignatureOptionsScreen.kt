@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -22,6 +23,7 @@ import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DocumentSignatureFile
 import br.com.odontolivreval.core.demo.DocumentHashFile
 import br.com.odontolivreval.core.demo.SignatureStatus
+import br.com.odontolivreval.core.demo.SignatureModality
 
 @Composable
 fun SignatureOptionsScreen(
@@ -32,10 +34,12 @@ fun SignatureOptionsScreen(
     documentVersion: Int,
     documentTitle: String,
     onClose: () -> Unit,
-    onSignatureCreated: () -> Unit,
+    onCapture: (SignatureModality) -> Unit,
+    onImportExternal: () -> Unit,
 ) {
     val model: SignatureViewModel = viewModel(factory = SignatureViewModel.factory(store, patient.id))
     val state by model.listState.collectAsStateWithLifecycle()
+    LaunchedEffect(model) { model.loadSignaturesAndHashes() }
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -58,33 +62,25 @@ fun SignatureOptionsScreen(
             text = stringResource(R.string.signature_options_choose_modality),
             style = MaterialTheme.typography.titleMedium,
         )
+        OutlinedButton(onClick = onImportExternal) {
+            Text(stringResource(R.string.signature_integrity_import_pdf))
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Button(
-                onClick = {
-                    model.initForm(documentType, documentId, documentVersion)
-                    // Abrir tela de captura de assinatura manuscrita
-                },
+                onClick = { onCapture(SignatureModality.ELECTRONIC_ACKNOWLEDGEMENT) },
             ) {
                 Text(stringResource(R.string.signature_options_handwritten_digital))
             }
             Button(
-                onClick = {
-                    model.initForm(documentType, documentId, documentVersion)
-                    // Abrir tela para assinatura em papel (apenas registrar)
-                },
+                onClick = { onCapture(SignatureModality.HANDWRITTEN_ON_PAPER) },
             ) {
                 Text(stringResource(R.string.signature_options_handwritten_paper))
             }
-            Button(
-                onClick = {
-                    model.initForm(documentType, documentId, documentVersion)
-                    // Abrir tela para assinatura criptográfica (preparado para integração futura)
-                },
-            ) {
+            Button(enabled = false, onClick = {}) {
                 Text(stringResource(R.string.signature_options_cryptographic))
             }
         }
@@ -114,7 +110,6 @@ fun SignatureOptionsScreen(
                 state.signatures.forEach { sig ->
                     SignatureRow(
                         signature = sig,
-                        onClick = { /* abrir preview da assinatura */ },
                     )
                 }
             }
@@ -129,7 +124,6 @@ fun SignatureOptionsScreen(
 @Composable
 private fun SignatureRow(
     signature: br.com.odontolivreval.core.demo.DocumentSignatureFile,
-    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -143,9 +137,6 @@ private fun SignatureRow(
                 text = "${stringResource(R.string.signature_options_modality, signature.modality.name)} · ${stringResource(R.string.signature_options_status, signature.status.name)}",
                 style = MaterialTheme.typography.bodySmall,
             )
-        }
-        androidx.compose.material3.TextButton(onClick = onClick) {
-            Text(stringResource(R.string.signature_options_view))
         }
     }
 }

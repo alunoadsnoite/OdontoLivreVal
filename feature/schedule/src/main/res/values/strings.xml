@@ -46,7 +46,10 @@
     <string name="schedule_book_return">Marcar retorno</string>
     <string name="schedule_return_label">Retorno</string>
     <string name="schedule_duration">Duração (minutos)</string>
-    <string name="schedule_duration_hint">De 1 a %1$d minutos</string>
+    <plurals name="schedule_duration_hint">
+        <item quantity="one">De 1 a %1$d minuto</item>
+        <item quantity="other">De 1 a %1$d minutos</item>
+    </plurals>
     <string name="schedule_invalid_duration">Informe uma duração válida. A consulta precisa terminar no mesmo dia ou à meia-noite.</string>
     <string name="schedule_return_before_source">O retorno deve começar depois do fim da consulta original.</string>
     <string name="schedule_return_patient_mismatch">Uma consulta vinculada a um retorno deve manter o mesmo paciente.</string>
