@@ -16,7 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 
 internal class DeviceLock(private val activity: ComponentActivity) {
-    private val keyguard = requireNotNull(activity.getSystemService(KeyguardManager::class.java))
+    private val keyguard = activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
     private val settings = activity.getSharedPreferences("device-lock", Context.MODE_PRIVATE)
     private var completion: ((Boolean) -> Unit)? = null
     private var signal: CancellationSignal? = null
@@ -28,11 +28,11 @@ internal class DeviceLock(private val activity: ComponentActivity) {
         private set
     var unlocked by mutableStateOf(!enabled)
         private set
-    var secure by mutableStateOf(keyguard.isDeviceSecure)
+    var secure by mutableStateOf(keyguard?.isDeviceSecure == true)
         private set
 
     fun refreshCredentialStatus() {
-        secure = keyguard.isDeviceSecure
+        secure = keyguard?.isDeviceSecure == false ?: false
     }
 
     fun lock() {
@@ -61,7 +61,7 @@ internal class DeviceLock(private val activity: ComponentActivity) {
             authenticateModern()
         } else {
             @Suppress("DEPRECATION")
-            val intent = keyguard.createConfirmDeviceCredentialIntent(
+            val intent = keyguard?.createConfirmDeviceCredentialIntent(
                 activity.getString(R.string.app_name),
                 activity.getString(R.string.security_unlock),
             )
