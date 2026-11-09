@@ -5,9 +5,16 @@ import android.net.Uri
 import br.com.odontolivreval.core.demo.ConsentProof
 import br.com.odontolivreval.core.demo.ConsentStatus
 import br.com.odontolivreval.core.demo.ConsentType
+import br.com.odontolivreval.core.demo.DocumentHash
+import br.com.odontolivreval.core.demo.DocumentHashFile
+import br.com.odontolivreval.core.demo.DocumentSignature
+import br.com.odontolivreval.core.demo.DocumentSignatureFile
 import br.com.odontolivreval.core.demo.InformedConsent
 import br.com.odontolivreval.core.demo.InformedConsentFile
 import br.com.odontolivreval.core.demo.LegalRepresentative
+import br.com.odontolivreval.core.demo.SignatureModality
+import br.com.odontolivreval.core.demo.SignatureProof
+import br.com.odontolivreval.core.demo.SignatureStatus
 import br.com.odontolivreval.core.demo.AppointmentSaveResult
 import br.com.odontolivreval.core.demo.BudgetStatus
 import br.com.odontolivreval.core.demo.CertificateStatus
@@ -726,5 +733,155 @@ internal class FakeScheduleStore : ClinicStore {
             revokedReason = null,
             revokedAt = null,
         )
+    }
+
+    // --- Assinaturas e integridade documental (fake para testes) ---
+
+    val documentSignatures = mutableListOf<DocumentSignatureFile>()
+    val documentHashes = mutableListOf<DocumentHashFile>()
+
+    override suspend fun listDocumentSignatures(patientId: Long): List<DocumentSignatureFile> =
+        documentSignatures.filter { it.patientId == patientId }
+
+    override suspend fun getDocumentSignature(patientId: Long, id: Long): DocumentSignature? =
+        documentSignatures.find { it.patientId == patientId && it.id == id }
+            ?.let { file ->
+                DocumentSignature(
+                    id = file.id,
+                    patientId = file.patientId,
+                    documentType = file.documentType,
+                    documentId = file.documentId,
+                    documentVersion = file.documentVersion,
+                    documentHash = null,
+                    proof = SignatureProof(
+                        modality = file.modality,
+                        status = file.status,
+                        signedAt = file.signedAt,
+                        identification = null,
+                        hasVisualRepresentation = false,
+                        cryptographicValid = false,
+                        notes = null,
+                    ),
+                )
+            }
+
+    override suspend fun saveDocumentSignature(patientId: Long, signature: DocumentSignature): DocumentSignature {
+        val existing = documentSignatures.find { it.patientId == patientId && it.id == signature.id }
+        val savedFile = if (existing != null) {
+            val updated = documentSignatures.map {
+                if (it.patientId == patientId && it.id == signature.id) {
+                    it.copy(
+                        documentType = signature.documentType,
+                        documentId = signature.documentId,
+                        documentVersion = signature.documentVersion,
+                        modality = signature.proof.modality,
+                        status = signature.proof.status,
+                        signedAt = signature.proof.signedAt,
+                        identificationRole = signature.proof.identification?.role,
+                        identificationName = signature.proof.identification?.name,
+                    )
+                } else it
+            }
+            documentSignatures.clear()
+            documentSignatures.addAll(updated)
+            existing
+        } else {
+            val newId = (documentSignatures.maxOfOrNull { it.id } ?: 0) + 1
+            val file = DocumentSignatureFile(
+                id = newId,
+                patientId = patientId,
+                documentType = signature.documentType,
+                documentId = signature.documentId,
+                documentVersion = signature.documentVersion,
+                modality = signature.proof.modality,
+                status = signature.proof.status,
+                signedAt = signature.proof.signedAt,
+                identificationRole = signature.proof.identification?.role,
+                identificationName = signature.proof.identification?.name,
+            )
+            documentSignatures.add(file)
+            file
+        }
+        return DocumentSignature(
+            id = savedFile.id,
+            patientId = patientId,
+            documentType = savedFile.documentType,
+            documentId = savedFile.documentId,
+            documentVersion = savedFile.documentVersion,
+            documentHash = signature.documentHash,
+            proof = signature.proof,
+        )
+    }
+
+    override suspend fun deleteDocumentSignature(patientId: Long, id: Long) {
+        documentSignatures.removeAll { it.patientId == patientId && it.id == id }
+    }
+
+    override suspend fun listDocumentHashes(patientId: Long): List<DocumentHashFile> =
+        documentHashes.filter { it.patientId == patientId }
+
+    override suspend fun getDocumentHash(patientId: Long, id: Long): DocumentHash? =
+        documentHashes.find { it.patientId == patientId && it.id == id }
+            ?.let { file ->
+                DocumentHash(
+                    id = file.id,
+                    patientId = file.patientId,
+                    documentType = file.documentType,
+                    documentId = file.documentId,
+                    documentVersion = file.documentVersion,
+                    hashAlgorithm = file.hashAlgorithm,
+                    hashValue = file.hashValue,
+                    calculatedAt = file.calculatedAt,
+                    integrityState = file.integrityState,
+                )
+            }
+
+    override suspend fun saveDocumentHash(patientId: Long, hash: DocumentHash): DocumentHash {
+        val existing = documentHashes.find { it.patientId == patientId && it.id == hash.id }
+        val savedFile = if (existing != null) {
+            val updated = documentHashes.map {
+                if (it.patientId == patientId && it.id == hash.id) {
+                    it.copy(
+                        documentVersion = hash.documentVersion,
+                        hashAlgorithm = hash.hashAlgorithm,
+                        hashValue = hash.hashValue,
+                        integrityState = hash.integrityState,
+                    )
+                } else it
+            }
+            documentHashes.clear()
+            documentHashes.addAll(updated)
+            existing
+        } else {
+            val newId = (documentHashes.maxOfOrNull { it.id } ?: 0) + 1
+            val file = DocumentHashFile(
+                id = newId,
+                patientId = patientId,
+                documentType = hash.documentType,
+                documentId = hash.documentId,
+                documentVersion = hash.documentVersion,
+                hashAlgorithm = hash.hashAlgorithm,
+                hashValue = hash.hashValue,
+                calculatedAt = System.currentTimeMillis(),
+                integrityState = hash.integrityState,
+            )
+            documentHashes.add(file)
+            file
+        }
+        return DocumentHash(
+            id = savedFile.id,
+            patientId = patientId,
+            documentType = savedFile.documentType,
+            documentId = savedFile.documentId,
+            documentVersion = savedFile.documentVersion,
+            hashAlgorithm = savedFile.hashAlgorithm,
+            hashValue = savedFile.hashValue,
+            calculatedAt = savedFile.calculatedAt,
+            integrityState = savedFile.integrityState,
+        )
+    }
+
+    override suspend fun deleteDocumentHash(patientId: Long, id: Long) {
+        documentHashes.removeAll { it.patientId == patientId && it.id == id }
     }
 }

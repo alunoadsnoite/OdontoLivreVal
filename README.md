@@ -1,6 +1,6 @@
 # OdontoLivreVal
 
-Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão **0.11.0** acrescenta um fluxo de assinatura eletrônica externa e arquivamento dos PDFs recebidos do assinador.
+Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão **0.13.0** acrescenta assinaturas eletrônicas, digitais e integridade documental.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 
@@ -20,6 +20,7 @@ Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista p
 - **Atestados e declarações** (atestado odontológico, declaração de comparecimento, declaração de acompanhamento) no prontuário, com ciclo de vida rascunho/finalizado/cancelado, nova versão para correções, PDF A4 e compartilhamento.
 - **Planos de tratamento e orçamentos** no prontuário: criar planos, adicionar procedimentos vinculados a dentes, definir valores e etapas, gerar orçamento com cálculos corretos em PDF A4, registrar aprovação e acompanhar execução, consultar versões anteriores.
 - **Termos de consentimento (TCLE)** no prontuário: criar termos a partir de 9 modelos, editar conteúdo, registrar decisão do paciente (aceito/recusado), revogar, criar revisões, gerar PDF A4 com espaços para assinatura, compartilhar.
+- **Assinaturas eletrônicas e digitais** no prontuário: três modalidades (manuscrito em papel, manuscrito na tela, criptográfica preparada), identificação do signatário, hash SHA-256 para integridade documental, verificação de integridade, importação de PDFs assinados externamente, compartilhamento via FileProvider.
 - **Agenda** diária e mensal, com duração da consulta, prevenção de sobreposição, retornos vinculados e lembretes locais. A visão mensal mostra quantas consultas ativas há por dia.
 
 A interface está em português do Brasil. A versão atual funciona sem conta, servidor, anúncios ou serviços de análise. O app declara acesso à autenticação biométrica do Android para o bloqueio opcional.

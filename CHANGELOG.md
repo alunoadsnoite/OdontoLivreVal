@@ -99,3 +99,18 @@
 - Compartilhamento via Android Sharesheet e FileProvider
 - Armazenamento criptografado no snapshot (versão 14)
 - Inclusão no backup criptografado
+
+## 0.13.0 — 2026-11-09
+
+### Assinaturas eletrônicas, digitais e integridade documental (Etapa 14A)
+
+- Três modalidades de assinatura: manuscrita em papel, manuscrita na tela, criptográfica (preparado)
+- Identificação do signatário: papel, nome, documento, registro profissional
+- Fluxo de assinatura: seleção → pré-visualização → identificação → confirmação → registro
+- Hash SHA-256 para integridade documental com verificação local
+- Assinaturas vinculadas às versões corretas dos documentos
+- Preservação de versões finalizadas, impedimento de modificações silenciosas
+- Importação de PDFs assinados externamente com preservação do arquivo original
+- Compartilhamento via Android Sharesheet e FileProvider
+- Armazenamento criptografado no snapshot (versão 15)
+- Inclusão no backup criptografado

@@ -157,6 +157,24 @@ interface ClinicStore {
     suspend fun revokeInformedConsent(patientId: Long, id: Long, reason: String)
 
     suspend fun createInformedConsentRevision(patientId: Long, id: Long): InformedConsent
+
+    // --- Assinaturas eletrônicas, digitais e integridade documental ---
+
+    suspend fun listDocumentSignatures(patientId: Long): List<DocumentSignatureFile>
+
+    suspend fun getDocumentSignature(patientId: Long, id: Long): DocumentSignature?
+
+    suspend fun saveDocumentSignature(patientId: Long, signature: DocumentSignature): DocumentSignature
+
+    suspend fun deleteDocumentSignature(patientId: Long, id: Long)
+
+    suspend fun listDocumentHashes(patientId: Long): List<DocumentHashFile>
+
+    suspend fun getDocumentHash(patientId: Long, id: Long): DocumentHash?
+
+    suspend fun saveDocumentHash(patientId: Long, hash: DocumentHash): DocumentHash
+
+    suspend fun deleteDocumentHash(patientId: Long, id: Long)
 }
 
 data class SavedRecord(val record: PatientRecord, val visit: VisitRecord)

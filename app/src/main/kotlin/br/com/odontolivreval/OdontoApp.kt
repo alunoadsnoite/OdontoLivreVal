@@ -33,6 +33,11 @@ import br.com.odontolivreval.feature.treatment.TreatmentPlanListScreen
 import br.com.odontolivreval.feature.consent.ConsentFormScreen
 import br.com.odontolivreval.feature.consent.ConsentListScreen
 import br.com.odontolivreval.feature.consent.ConsentPreviewScreen
+import br.com.odontolivreval.feature.signature.SignatureCaptureScreen
+import br.com.odontolivreval.feature.signature.SignatureImportScreen
+import br.com.odontolivreval.feature.signature.SignatureOptionsScreen
+import br.com.odontolivreval.feature.signature.SignaturePreviewScreen
+import br.com.odontolivreval.feature.signature.SignatureViewModel
 
 private enum class Destination(@param:StringRes val label: Int) {
     HOME(R.string.home), PATIENTS(R.string.patients), SCHEDULE(R.string.schedule),
@@ -437,6 +442,92 @@ fun OdontoApp(
                                 }
                             }
                         }
+                        composable("signature_options") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    SignatureOptionsScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        documentType = "document",
+                                        documentId = -1,
+                                        documentVersion = 1,
+                                        documentTitle = "Documento",
+                                        onClose = { nav.popBackStack() },
+                                        onSignatureCreated = { nav.popBackStack() },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("signature_capture") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    SignatureCaptureScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        documentType = "document",
+                                        documentId = -1,
+                                        documentVersion = 1,
+                                        documentTitle = "Documento",
+                                        onClose = { nav.popBackStack() },
+                                        onSignatureCreated = { nav.popBackStack() },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("signature_preview") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    SignaturePreviewScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        documentType = "document",
+                                        documentId = -1,
+                                        documentVersion = 1,
+                                        documentTitle = "Documento",
+                                        documentContent = "Conteúdo do documento",
+                                        onClose = { nav.popBackStack() },
+                                        onSignatureCreated = { nav.popBackStack() },
+                                        onShareSigned = { /* handled internally */ },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
+                        composable("signature_import") {
+                            ScreenContent {
+                                val patient = selectedPatient
+                                if (patient != null) {
+                                    SignatureImportScreen(
+                                        store = demoClinic,
+                                        patient = patient,
+                                        documentType = "document",
+                                        documentId = -1,
+                                        documentVersion = 1,
+                                        documentTitle = "Documento",
+                                        onClose = { nav.popBackStack() },
+                                        onImportCompleted = { nav.popBackStack() },
+                                    )
+                                } else {
+                                    OutlinedButton(onClick = { nav.popBackStack() }) {
+                                        Text(stringResource(R.string.back))
+                                    }
+                                }
+                            }
+                        }
                         composable("protection") {
                             ScreenContent {
                                 protection()
@@ -470,6 +561,7 @@ fun OdontoApp(
                                         onCertificates = { nav.navigate("certificates_list") { launchSingleTop = true } },
                                         onTreatmentPlans = { nav.navigate("treatment_plan_list") { launchSingleTop = true } },
                                         onConsents = { nav.navigate("consent_list") { launchSingleTop = true } },
+                                        onSignatures = { nav.navigate("signature_options") { launchSingleTop = true } },
                                         onClose = { selectedPatient = null; nav.popBackStack() },
                                     )
                                 } else {

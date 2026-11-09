@@ -28,6 +28,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
+import org.json.JSONObject
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.comparisons.compareBy
@@ -1059,6 +1060,220 @@ class DemoClinicStore(context: Context) : ClinicStore {
             ?: throw IOException("Consent missing")
         persist(snapshot.copy(
             informedConsents = snapshot.informedConsents.filterNot {
+                it.file.patientId == patientId && it.file.id == id
+            },
+        ))
+    }
+
+    // --- Assinaturas eletrônicas e digitais ---
+
+    override suspend fun listDocumentSignatures(patientId: Long): List<DocumentSignatureFile> = access {
+        load().documentSignatures.map { it.file }.filter { it.patientId == patientId }
+    }
+
+    override suspend fun getDocumentSignature(patientId: Long, id: Long): DocumentSignature? = access {
+        val stored = load().documentSignatures.find { it.file.patientId == patientId && it.file.id == id }
+            ?: return@access null
+        val file = stored.file
+        val content = try {
+            String(readAttachment(stored.content), StandardCharsets.UTF_8)
+        } catch (_: IOException) {
+            ""
+        }
+        val obj = JSONObject(content)
+        val proofObj = obj.optJSONObject("proof")
+        val modality = if (proofObj?.optString("modality") != null) proofObj!!.optString("modality") else SignatureModality.HANDWRITTEN_ON_PAPER.name
+        val status = if (proofObj?.optString("status") != null) proofObj!!.optString("status") else SignatureStatus.PENDING.name
+        val signedAt = if (proofObj?.optLong("signedAt") != null) proofObj!!.optLong("signedAt") else file.signedAt
+        val identification = proofObj?.optJSONObject("identification")?.let { rep ->
+            SignerIdentification(
+                role = rep.optString("role", ""),
+                name = rep.optString("name", ""),
+                idDocument = rep.optString("idDocument")?.takeIf { it.isNotBlank() },
+                registrationNumber = rep.optString("registrationNumber")?.takeIf { it.isNotBlank() },
+            )
+        }
+        val hasVisualRepresentation = if (proofObj?.optBoolean("hasVisualRepresentation") != null) proofObj!!.optBoolean("hasVisualRepresentation") else false
+        val cryptographicValid = if (proofObj?.optBoolean("cryptographicValid") != null) proofObj!!.optBoolean("cryptographicValid") else false
+        val notes = proofObj?.optString("notes")?.takeIf { it.isNotBlank() }
+        val proof = SignatureProof(
+            modality = SignatureModality.valueOf(modality),
+            status = SignatureStatus.valueOf(status),
+            signedAt = signedAt,
+            identification = identification,
+            hasVisualRepresentation = hasVisualRepresentation,
+            cryptographicValid = cryptographicValid,
+            notes = notes,
+        )
+        DocumentSignature(
+            id = file.id,
+            patientId = file.patientId,
+            documentType = file.documentType,
+            documentId = file.documentId,
+            documentVersion = file.documentVersion,
+            documentHash = obj.optString("documentHash")?.takeIf { it.isNotBlank() },
+            proof = proof,
+        )
+    }
+
+    override suspend fun saveDocumentSignature(patientId: Long, signature: DocumentSignature): DocumentSignature = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val now = System.currentTimeMillis()
+        val existing = snapshot.documentSignatures.find { it.file.patientId == patientId && it.file.id == signature.id }
+        val savedFile = when {
+            existing != null -> {
+                val updatedFile = existing.file.copy(
+                    documentType = signature.documentType,
+                    documentId = signature.documentId,
+                    documentVersion = signature.documentVersion,
+                    modality = signature.proof.modality,
+                    status = signature.proof.status,
+                    signedAt = signature.proof.signedAt,
+                    identificationRole = signature.proof.identification?.role,
+                    identificationName = signature.proof.identification?.name,
+                )
+                val updated = snapshot.documentSignatures.map {
+                    if (it.file.patientId == patientId && it.file.id == signature.id) {
+                        it.copy(file = updatedFile)
+                    } else it
+                }
+                persist(snapshot.copy(documentSignatures = updated))
+                updatedFile
+            }
+            else -> {
+                val newId = nextId(snapshot.documentSignatures.map { it.file.id })
+                val newFile = DocumentSignatureFile(
+                    id = newId,
+                    patientId = patientId,
+                    documentType = signature.documentType,
+                    documentId = signature.documentId,
+                    documentVersion = signature.documentVersion,
+                    modality = signature.proof.modality,
+                    status = signature.proof.status,
+                    signedAt = signature.proof.signedAt,
+                    identificationRole = signature.proof.identification?.role,
+                    identificationName = signature.proof.identification?.name,
+                )
+                val bytes = signature.toJsonBytes()
+                val content = writeNewAttachment(snapshot, bytes)
+                persist(snapshot.copy(
+                    documentSignatures = snapshot.documentSignatures + StoredDocumentSignature(newFile, content),
+                ))
+                newFile
+            }
+        }
+        DocumentSignature(
+            id = savedFile.id,
+            patientId = patientId,
+            documentType = savedFile.documentType,
+            documentId = savedFile.documentId,
+            documentVersion = savedFile.documentVersion,
+            documentHash = signature.documentHash,
+            proof = signature.proof,
+        )
+    }
+
+    override suspend fun deleteDocumentSignature(patientId: Long, id: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.documentSignatures.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Signature missing")
+        persist(snapshot.copy(
+            documentSignatures = snapshot.documentSignatures.filterNot {
+                it.file.patientId == patientId && it.file.id == id
+            },
+        ))
+    }
+
+    // --- Hashes de integridade documental ---
+
+    override suspend fun listDocumentHashes(patientId: Long): List<DocumentHashFile> = access {
+        load().documentHashes.map { it.file }.filter { it.patientId == patientId }
+    }
+
+    override suspend fun getDocumentHash(patientId: Long, id: Long): DocumentHash? = access {
+        val stored = load().documentHashes.find { it.file.patientId == patientId && it.file.id == id }
+            ?: return@access null
+        val file = stored.file
+        val content = try {
+            String(readAttachment(stored.content), StandardCharsets.UTF_8)
+        } catch (_: IOException) {
+            ""
+        }
+        val obj = JSONObject(content)
+        DocumentHash(
+            id = file.id,
+            patientId = file.patientId,
+            documentType = file.documentType,
+            documentId = file.documentId,
+            documentVersion = file.documentVersion,
+            hashAlgorithm = file.hashAlgorithm,
+            hashValue = file.hashValue,
+            calculatedAt = file.calculatedAt,
+            integrityState = file.integrityState,
+        )
+    }
+
+    override suspend fun saveDocumentHash(patientId: Long, hash: DocumentHash): DocumentHash = access {
+        val snapshot = load()
+        requirePatient(snapshot, patientId)
+        val now = System.currentTimeMillis()
+        val existing = snapshot.documentHashes.find { it.file.patientId == patientId && it.file.id == hash.id }
+        val savedFile = when {
+            existing != null -> {
+                val updatedFile = existing.file.copy(
+                    documentVersion = hash.documentVersion,
+                    hashValue = hash.hashValue,
+                    integrityState = hash.integrityState,
+                )
+                val updated = snapshot.documentHashes.map {
+                    if (it.file.patientId == patientId && it.file.id == hash.id) {
+                        it.copy(file = updatedFile)
+                    } else it
+                }
+                persist(snapshot.copy(documentHashes = updated))
+                updatedFile
+            }
+            else -> {
+                val newId = nextId(snapshot.documentHashes.map { it.file.id })
+                val newFile = DocumentHashFile(
+                    id = newId,
+                    patientId = patientId,
+                    documentType = hash.documentType,
+                    documentId = hash.documentId,
+                    documentVersion = hash.documentVersion,
+                    hashAlgorithm = hash.hashAlgorithm,
+                    hashValue = hash.hashValue,
+                    calculatedAt = now,
+                    integrityState = hash.integrityState,
+                )
+                val bytes = hash.toJsonBytes()
+                val content = writeNewAttachment(snapshot, bytes)
+                persist(snapshot.copy(
+                    documentHashes = snapshot.documentHashes + StoredDocumentHash(newFile, content),
+                ))
+                newFile
+            }
+        }
+        DocumentHash(
+            id = savedFile.id,
+            patientId = patientId,
+            documentType = savedFile.documentType,
+            documentId = savedFile.documentId,
+            documentVersion = savedFile.documentVersion,
+            hashAlgorithm = savedFile.hashAlgorithm,
+            hashValue = savedFile.hashValue,
+            calculatedAt = savedFile.calculatedAt,
+            integrityState = savedFile.integrityState,
+        )
+    }
+
+    override suspend fun deleteDocumentHash(patientId: Long, id: Long) = access {
+        val snapshot = load()
+        val existing = snapshot.documentHashes.find { it.file.patientId == patientId && it.file.id == id }
+            ?: throw IOException("Document hash missing")
+        persist(snapshot.copy(
+            documentHashes = snapshot.documentHashes.filterNot {
                 it.file.patientId == patientId && it.file.id == id
             },
         ))

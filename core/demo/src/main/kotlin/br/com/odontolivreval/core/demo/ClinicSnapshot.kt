@@ -57,6 +57,8 @@ internal data class ClinicSnapshot(
     val treatmentProcedures: List<StoredTreatmentProcedure> = emptyList(),
     val treatmentBudgets: List<StoredTreatmentBudget> = emptyList(),
     val informedConsents: List<StoredInformedConsent> = emptyList(),
+    val documentSignatures: List<StoredDocumentSignature> = emptyList(),
+    val documentHashes: List<StoredDocumentHash> = emptyList(),
     val professional: ProfessionalProfile = ProfessionalProfile(),
 ) {
     fun encode(): ByteArray = JSONObject()
@@ -175,6 +177,27 @@ internal data class ClinicSnapshot(
                     .putReference(it.content))
             }
         })
+        .put("documentSignatures", JSONArray().apply {
+            documentSignatures.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.patientId)
+                    .put(it.file.documentType).put(it.file.documentId)
+                    .put(it.file.documentVersion).put(it.file.modality.name)
+                    .put(it.file.status.name).put(it.file.signedAt)
+                    .put(it.file.identificationRole ?: JSONObject.NULL)
+                    .put(it.file.identificationName ?: JSONObject.NULL)
+                    .putReference(it.content))
+            }
+        })
+        .put("documentHashes", JSONArray().apply {
+            documentHashes.forEach {
+                put(JSONArray().put(it.file.id).put(it.file.patientId)
+                    .put(it.file.documentType).put(it.file.documentId)
+                    .put(it.file.documentVersion).put(it.file.hashAlgorithm)
+                    .put(it.file.hashValue).put(it.file.calculatedAt)
+                    .put(it.file.integrityState)
+                    .putReference(it.content))
+            }
+        })
         .toString()
         .toByteArray(Charsets.UTF_8)
 
@@ -185,7 +208,9 @@ internal data class ClinicSnapshot(
             treatmentPlans.map { it.content } +
             treatmentProcedures.map { it.content } +
             treatmentBudgets.map { it.content } +
-            informedConsents.map { it.content }
+            informedConsents.map { it.content } +
+            documentSignatures.map { it.content } +
+            documentHashes.map { it.content }
 
     fun mapAttachments(transform: (AttachmentContent) -> AttachmentContent): ClinicSnapshot = copy(
         radiographs = radiographs.map { it.copy(content = transform(it.content)) },
@@ -197,6 +222,8 @@ internal data class ClinicSnapshot(
         treatmentProcedures = treatmentProcedures.map { it.copy(content = transform(it.content)) },
         treatmentBudgets = treatmentBudgets.map { it.copy(content = transform(it.content)) },
         informedConsents = informedConsents.map { it.copy(content = transform(it.content)) },
+        documentSignatures = documentSignatures.map { it.copy(content = transform(it.content)) },
+        documentHashes = documentHashes.map { it.copy(content = transform(it.content)) },
     )
 
     private fun JSONArray.putReference(content: AttachmentContent): JSONArray {
@@ -265,6 +292,10 @@ internal data class ClinicSnapshot(
             || informedConsents.any { it.file.id <= 0 || it.file.patientId !in patientIds }
             || informedConsents.any { it.file.title.length !in 1..120 }
             || informedConsents.any { !it.content.valid }
+            || documentSignatures.map { it.file.id }.toSet().size != documentSignatures.size
+            || documentSignatures.any { it.file.id <= 0 || it.file.patientId !in patientIds }
+            || documentHashes.map { it.file.id }.toSet().size != documentHashes.size
+            || documentHashes.any { it.file.id <= 0 || it.file.patientId !in patientIds }
             || contents.any { !it.valid }
             || references.map { it.token }.toSet().size != references.size
             || references.sumOf { it.size.toLong() } > maxAttachmentTotal
@@ -498,6 +529,45 @@ internal data class ClinicSnapshot(
                 }
             } else emptyList()
 
+            val documentSignatures = if (version >= 15 && root.has("documentSignatures")) {
+                root.getJSONArray("documentSignatures").rows {
+                    StoredDocumentSignature(
+                        DocumentSignatureFile(
+                            id = it.integer(0),
+                            patientId = it.integer(1),
+                            documentType = it.getString(2),
+                            documentId = it.integer(3),
+                            documentVersion = it.integer(4).toInt(),
+                            modality = SignatureModality.valueOf(it.getString(5)),
+                            status = SignatureStatus.valueOf(it.getString(6)),
+                            signedAt = it.optLong(7, System.currentTimeMillis()),
+                            identificationRole = if (it.isNull(8)) null else it.getString(8),
+                            identificationName = if (it.isNull(9)) null else it.getString(9),
+                        ),
+                        it.attachment(version, 10),
+                    )
+                }
+            } else emptyList()
+
+            val documentHashes = if (version >= 15 && root.has("documentHashes")) {
+                root.getJSONArray("documentHashes").rows {
+                    StoredDocumentHash(
+                        DocumentHashFile(
+                            id = it.integer(0),
+                            patientId = it.integer(1),
+                            documentType = it.getString(2),
+                            documentId = it.integer(3),
+                            documentVersion = it.integer(4).toInt(),
+                            hashAlgorithm = it.getString(5),
+                            hashValue = it.getString(6),
+                            calculatedAt = it.optLong(7, System.currentTimeMillis()),
+                            integrityState = it.getString(8),
+                        ),
+                        it.attachment(version, 9),
+                    )
+                }
+            } else emptyList()
+
             val professional = if (version >= 7 && root.has("professional")) {
                 val json = root.getJSONObject("professional")
                 ProfessionalProfile(
@@ -521,13 +591,14 @@ internal data class ClinicSnapshot(
                 patients, schedule, patientRecords, visits, radiographs, prescriptions,
                 documentPhotos, digitalSignatures, medicalCertificates,
                 treatmentPlans, treatmentProcedures, treatmentBudgets, informedConsents,
+                documentSignatures, documentHashes,
                 professional,
             ).apply { validate() }
         }
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 14
+        private const val currentVersion = 15
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)
