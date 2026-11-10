@@ -6,5 +6,6 @@ local.properties
 **/build/
 *.jks
 *.keystore
+signing.properties
 .externalNativeBuild/
 .cxx/

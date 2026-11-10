@@ -77,10 +77,11 @@ A assinatura é aplicada pelo serviço externo. A interface abre o navegador e a
 
 | Comando | Resultado da candidata 0.13.0 |
 | --- | --- |
-| `./gradlew :app:assembleDebug` | Ver estado atualizado em [docs/ETAPA_15B_RELEASE_READINESS.md](docs/ETAPA_15B_RELEASE_READINESS.md) |
-| `./gradlew test` | Ver estado atualizado em [docs/ETAPA_15B_RELEASE_READINESS.md](docs/ETAPA_15B_RELEASE_READINESS.md) |
-| `./gradlew lint` | Ver estado atualizado em [docs/ETAPA_15B_RELEASE_READINESS.md](docs/ETAPA_15B_RELEASE_READINESS.md) |
-| `./gradlew :app:assembleDebugAndroidTest` | Compila o APK de testes; execução conectada é registrada separadamente |
+| `./gradlew :app:assembleDebug` | ✅ Sucesso — APK debug em `~/Downloads/OdontoLivreVal-0.13.0-debug.apk` |
+| `./gradlew :app:assembleRelease` | ✅ Sucesso — APK release assinado em `~/Downloads/OdontoLivreVal-0.13.0-release.apk` (SHA-256: `ce156993b75d8f6f9e60568ba7097a9c7153f81757c2b501d7e10b614c5f0225`) |
+| `./gradlew test` | ✅ Sucesso — 20 testes unitários passaram |
+| `./gradlew lint` | ✅ Sucesso — sem problemas no código do app (apenas aviso interno `ObsoleteLintCustomCheck` do AndroidX Lifecycle 2.11.0) |
+| `./gradlew :app:assembleDebugAndroidTest` | ✅ Sucesso — APK de testes compilado; execução conectada: 11 testes passaram (Motorola Edge 70 Fusion) |
 
 Os testes instrumentados existentes cobrem cenários específicos com registros fictícios. Em 09/11/2026, a execução conectada no Motorola passou (11 testes); a validação manual ampliada continua no roteiro. Consulte [docs/ROTEIRO_TESTES_MANUAIS.md](docs/ROTEIRO_TESTES_MANUAIS.md) e o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md).
 

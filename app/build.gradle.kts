@@ -1,39 +1,64 @@
 plugins { alias(libs.plugins.android.application); alias(libs.plugins.compose) }
+
+val signingStoreFile = rootProject.file(System.getenv("ODONTO_RELEASE_STORE_FILE") ?: "app/release.keystore")
+val signingStorePassword = System.getenv("ODONTO_RELEASE_STORE_PASSWORD") ?: "odontolivreval123"
+val signingKeyAlias = System.getenv("ODONTO_RELEASE_KEY_ALIAS") ?: "odontolivreval"
+val signingKeyPassword = System.getenv("ODONTO_RELEASE_KEY_PASSWORD") ?: "odontolivreval123"
+
 android {
- namespace = "br.com.odontolivreval"
- compileSdk = 37
- defaultConfig { minSdk = 26
-applicationId = "br.com.odontolivreval"
-targetSdk = 37
-versionCode = 13
-versionName = "0.13.0"
-testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+  namespace = "br.com.odontolivreval"
+  compileSdk = 37
+  defaultConfig {
+    minSdk = 26
+    applicationId = "br.com.odontolivreval"
+    targetSdk = 37
+    versionCode = 13
+    versionName = "0.13.0"
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+  }
+  signingConfigs {
+    create("release") {
+      storeFile = signingStoreFile
+      storePassword = signingStorePassword
+      keyAlias = signingKeyAlias
+      keyPassword = signingKeyPassword
+    }
+  }
+  buildTypes {
+    release {
+      isMinifyEnabled = false
+      signingConfig = signingConfigs.getByName("release")
+    }
+    debug {
+      signingConfig = signingConfigs.getByName("release")
+    }
+  }
+  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+  buildFeatures { compose = true; buildConfig = true }
 }
- compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
-buildFeatures { compose = true; buildConfig = true }
-}
+
 dependencies {
-implementation(platform(libs.compose.bom))
-implementation(libs.compose.ui)
-implementation(libs.compose.foundation.layout)
-implementation(libs.compose.material3)
-implementation(project(":core:model"))
-implementation(project(":core:designsystem"))
-implementation(project(":feature:settings"))
-implementation(project(":feature:patients"))
-implementation(project(":core:demo"))
-implementation(project(":feature:schedule"))
-implementation(project(":feature:documents"))
-implementation(project(":feature:treatment"))
-implementation(project(":feature:consent"))
-implementation(project(":feature:signature"))
-implementation(libs.activity.compose)
-implementation(libs.lifecycle.runtime)
-implementation(libs.lifecycle.viewmodel)
-implementation(libs.navigation)
-androidTestImplementation(platform(libs.compose.bom))
-androidTestImplementation(libs.compose.test)
-androidTestImplementation(libs.android.junit)
-androidTestImplementation(libs.android.runner)
-debugImplementation(libs.compose.test.manifest)
+  implementation(platform(libs.compose.bom))
+  implementation(libs.compose.ui)
+  implementation(libs.compose.foundation.layout)
+  implementation(libs.compose.material3)
+  implementation(project(":core:model"))
+  implementation(project(":core:designsystem"))
+  implementation(project(":feature:settings"))
+  implementation(project(":feature:patients"))
+  implementation(project(":core:demo"))
+  implementation(project(":feature:schedule"))
+  implementation(project(":feature:documents"))
+  implementation(project(":feature:treatment"))
+  implementation(project(":feature:consent"))
+  implementation(project(":feature:signature"))
+  implementation(libs.activity.compose)
+  implementation(libs.lifecycle.runtime)
+  implementation(libs.lifecycle.viewmodel)
+  implementation(libs.navigation)
+  androidTestImplementation(platform(libs.compose.bom))
+  androidTestImplementation(libs.compose.test)
+  androidTestImplementation(libs.android.junit)
+  androidTestImplementation(libs.android.runner)
+  debugImplementation(libs.compose.test.manifest)
 }
