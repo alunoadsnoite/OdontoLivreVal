@@ -1,0 +1,1 @@
+Version 0.13.1: fixed the Gradle Wrapper for F-Droid builds and added real Portuguese screenshots. Still a validation candidate; use test data only.

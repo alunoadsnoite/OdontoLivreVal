@@ -1,0 +1,1 @@
+Versão 0.13.1: corrigido o Gradle Wrapper para o build do F-Droid e adicionadas capturas reais em português. Candidata ainda em validação; use apenas dados fictícios.

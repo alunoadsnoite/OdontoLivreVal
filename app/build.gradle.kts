@@ -22,8 +22,8 @@ android {
     minSdk = 26
     applicationId = "br.com.odontolivreval"
     targetSdk = 37
-    versionCode = 13
-    versionName = "0.13.0"
+    versionCode = 14
+    versionName = "0.13.1"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
   signingConfigs {

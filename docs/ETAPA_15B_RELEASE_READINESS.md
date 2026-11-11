@@ -1,8 +1,15 @@
-# Prontidão de versão — 0.13.0
+# Prontidão de versão — 0.13.1
 
 **Estado:** candidata para validação; build release sem assinatura de desenvolvedor validado para preparação F-Droid.
-**versionCode:** 13  
+**versionCode:** 14  
 **Atualizado:** 11/11/2026
+
+## Atualização da candidata 0.13.1
+
+- Build `:app:assembleDebug` concluído em 11/11/2026; APK versionCode 14 instalado no Motorola Edge 70 Fusion.
+- Corrigido o endereço de distribuição do Gradle Wrapper para uso pelo buildserver do F-Droid.
+- Incluídas três capturas reais em português feitas com instalação limpa e sem dados clínicos.
+- A pipeline do GitLab ainda precisa validar os metadados e o buildserver; os testes funcionais manuais seguem pendentes no roteiro.
 
 ## O que foi preparado
 
@@ -10,7 +17,7 @@
 - Adicionado fluxo de importação de PDF do assinador para arquivamento criptografado por paciente, com hash SHA-256 informativo. Não há validação de assinatura nem vínculo automático com uma versão documental.
 - Tornadas explícitas as limitações da confirmação eletrônica local e da modalidade criptográfica indisponível.
 - Incluídos aviso de privacidade e roteiro de testes manuais com dados fictícios.
-- Definida a versão de desenvolvimento como 0.13.0 / versionCode 13.
+- Atualizada a candidata para 0.13.1 / versionCode 14 após corrigir o Gradle Wrapper para o F-Droid.
 - A permissão de notificações não é mais solicitada na abertura; a Agenda oferece ação explícita para ativar lembretes.
 - Um APK release assinado foi gerado localmente em 10/11. A configuração usava uma senha padrão no código-fonte público; essa senha foi removida em 11/11 e a chave antiga não deve ser usada para distribuição própria. Sem variáveis `ODONTO_RELEASE_*`, o build release não assina o APK, como esperado para a compilação de origem do F-Droid.
 

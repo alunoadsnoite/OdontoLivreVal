@@ -1,6 +1,6 @@
 # OdontoLivreVal
 
-Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A versão de desenvolvimento **0.13.0** (versionCode 13) reúne as etapas 13A–15B; ainda não foi lançada nem submetida ao F-Droid. A inclusão no repositório principal não está elegível até cumprir o período de manutenção previsto na política ou demonstrar uma exceção.
+Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.13.1** (versionCode 14) reúne as etapas 13A–15C e os ajustes para o build do F-Droid. A solicitação !56870 está em análise; a inclusão ainda depende da pipeline e da aprovação dos mantenedores. O app continua em validação com dados fictícios e não está declarado pronto para uso clínico.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 
@@ -75,9 +75,9 @@ A assinatura é aplicada pelo serviço externo. A interface abre o navegador e a
 
 ## Verificações
 
-| Comando | Resultado da candidata 0.13.0 |
+| Comando | Resultado da candidata 0.13.1 e verificações anteriores |
 | --- | --- |
-| `./gradlew :app:assembleDebug` | ✅ Sucesso — APK debug em `~/Downloads/OdontoLivreVal-0.13.0-debug.apk` |
+| `./gradlew :app:assembleDebug` | ✅ Sucesso em 11/11/2026 — APK da candidata 0.13.1 em `app/build/outputs/apk/debug/app-debug.apk`, instalada no Motorola Edge 70 Fusion |
 | `./gradlew :app:assembleRelease` | O build sem variáveis de assinatura gera APK release sem assinatura de desenvolvedor; o F-Droid assina o APK distribuído. Para distribuição própria, configure uma chave segura por variáveis de ambiente. |
 | `./gradlew test` | ✅ Sucesso — 20 testes unitários passaram |
 | `./gradlew lint` | ✅ Sucesso — sem problemas no código do app (apenas aviso interno `ObsoleteLintCustomCheck` do AndroidX Lifecycle 2.11.0) |

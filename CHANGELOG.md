@@ -1,6 +1,12 @@
 # Changelog
 
-`0.13.0` (versionCode 13) é uma versão de desenvolvimento/candidata. Não foi publicada nem submetida ao F-Droid. Recursos nas etapas 14A–15B têm limitações registradas e não equivalem a prontidão para uso clínico.
+`0.13.1` (versionCode 14) é uma candidata para revisão do F-Droid. Continua em validação com dados fictícios e não está pronta para uso clínico.
+
+## 0.13.1 — 2026-11-11 (candidata F-Droid)
+
+- Corrigido o endereço oficial do Gradle Wrapper para permitir a compilação no buildserver do F-Droid.
+- Incluídas capturas reais da interface em português, feitas no Motorola com instalação limpa e sem dados clínicos.
+- Atualizados os metadados da solicitação de inclusão no F-Droid.
 
 # Changelog
 

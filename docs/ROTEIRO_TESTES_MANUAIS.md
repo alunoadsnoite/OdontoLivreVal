@@ -5,7 +5,7 @@ Use exclusivamente pacientes e conteúdo fictícios. Em cada cenário, anote mod
 ## Instalação e atualização
 
 1. Instale o APK debug em um Android 8.0 ou superior e registre a versão exibida em **Sobre**.
-2. Atualize de uma instalação 0.10.0 (versionCode 10) para 0.13.0 (versionCode 13) sem limpar os dados.
+2. Atualize de uma instalação 0.10.0 (versionCode 10) para 0.13.1 (versionCode 14) sem limpar os dados.
 3. Confirme que os registros fictícios, anexos e preferências continuam disponíveis.
 4. Reinicie o aparelho e abra o app; confirme início, bloqueio/desbloqueio e agenda.
 
