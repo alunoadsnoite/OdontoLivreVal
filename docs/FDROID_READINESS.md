@@ -1,7 +1,7 @@
 # F-Droid: preparação e elegibilidade
 
 **Candidata analisada:** 0.13.0, versionCode 13  
-**Estado em 11/11/2026:** metadados descritivos em português e ícone preparados. A exceção de elegibilidade por manter outros apps no F-Droid está comprovada pelo perfil público do mantenedor; a solicitação de inclusão ainda não foi aberta.
+**Estado em 11/11/2026:** metadados descritivos em português e inglês e ícone preparados. A exceção de elegibilidade por manter outros apps no F-Droid está comprovada pelo perfil público do mantenedor; a solicitação de inclusão ainda não foi aberta.
 
 ## Dados de identificação propostos
 
@@ -13,7 +13,7 @@
 
 ## Pendências técnicas
 
-- Os metadados descritivos e o ícone estão em `fastlane/metadata/android/pt-BR`. Ainda faltam capturas de tela reais do app.
+- Os metadados descritivos, changelog e ícone estão em `fastlane/metadata/android/{pt-BR,en-US}`. Ainda faltam capturas de tela reais do app.
 - A submissão ao repositório principal exige um registro em `fdroiddata` (não neste repositório) e uma revisão dos mantenedores. Para `versionCode 13`, a revisão de origem deve apontar para o hash completo do commit que contém esta versão; não usar nome de branch ou tag como `commit`.
 - Confirmar que a compilação do fdroidserver usa apenas dependências disponíveis e não depende de artefatos pré-compilados ou rede durante a fase de build. O build release agora fica sem assinatura de desenvolvedor quando as variáveis `ODONTO_RELEASE_*` não estão configuradas; o F-Droid assina o APK publicado.
 - Validar assinatura/reprodutibilidade e executar a análise de metadados e varreduras do F-Droid.

@@ -29,7 +29,7 @@ Em 11/11/2026, `:app:assembleRelease` concluiu sem as variáveis `ODONTO_RELEASE
 3. Fazer avaliação de segurança, privacidade, retenção e requisitos jurídicos para uso clínico real. Este app não declara conformidade integral com a LGPD.
 4. Resolver a associação entre PDF importado e versão de documento e decidir sobre captura de assinatura manuscrita e validação criptográfica; as funções atuais não substituem assinatura profissional certificada.
 5. Configurar uma chave nova e secreta para qualquer distribuição própria. A configuração de release do F-Droid deve permanecer sem chave de desenvolvedor.
-6. Para F-Droid, finalizar a validação manual e validar o build no ambiente do F-Droid. A exceção de elegibilidade por manter outro app no repositório está documentada; a merge request ainda não foi aberta.
+6. Para F-Droid, finalizar a validação manual e validar o build no ambiente do F-Droid. A exceção de elegibilidade por manter outro app no repositório está documentada; o buildserver oficial ainda precisa confirmar o artefato.
 
 ## Artefatos locais
 

@@ -1,0 +1,3 @@
+Candidate 0.13.0 for validation, with fixes to navigation, professional profile, documents, and reminder permissions.
+Includes improvements to records, appointments, backups, and document workflows.
+Use test data only; not ready for clinical use.

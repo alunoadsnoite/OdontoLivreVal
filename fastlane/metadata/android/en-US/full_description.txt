@@ -1,0 +1,7 @@
+Free, offline dental records app designed for a single device.
+
+Features include patient records, an odontogram, appointments and local reminders, radiographs, documents, treatment plans, estimates, and consent forms. It includes an optional app lock and encrypted backups.
+
+The app does not require an account or send clinical data to a server. It uses the camera and files only when requested by the user. Appointment reminders are local.
+
+DEVELOPMENT STATUS: use test data while validation is in progress. The project has not been declared ready for clinical use and does not claim full LGPD compliance. Typed confirmation in the app is not a certified digital signature. See the project privacy notice and documentation for limitations.
