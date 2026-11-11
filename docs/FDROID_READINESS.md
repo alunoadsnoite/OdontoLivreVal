@@ -1,7 +1,7 @@
 # F-Droid: preparação e elegibilidade
 
 **Candidata analisada:** 0.13.0, versionCode 13  
-**Estado em 11/11/2026:** solicitação de inclusão aberta no GitLab como [!56870](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/56870). A comparação contém somente `metadata/br.com.odontolivreval.yml`; a pipeline do GitLab ainda está em andamento. Metadados descritivos em português e inglês e ícone estão preparados. A exceção de elegibilidade por manter outros apps no F-Droid está comprovada pelo perfil público do mantenedor.
+**Estado em 11/11/2026:** solicitação de inclusão aberta no GitLab como [!56870](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/56870). A pipeline apontou falhas de esquema e reconhecimento do Gradle; a URL do wrapper foi corrigida no código-fonte. Os metadados descritivos em português e inglês, ícone e três capturas reais em português estão preparados. A exceção de elegibilidade por manter outros apps no F-Droid está comprovada pelo perfil público do mantenedor. A revisão e aceitação final continuam a cargo dos mantenedores do F-Droid.
 
 ## Dados de identificação propostos
 
@@ -13,7 +13,7 @@
 
 ## Pendências técnicas
 
-- Os metadados descritivos, changelog e ícone estão em `fastlane/metadata/android/{pt-BR,en-US}`. Ainda faltam capturas de tela reais do app.
+- Os metadados descritivos, changelog, ícone e capturas de tela reais estão em `fastlane/metadata/android/{pt-BR,en-US}`. As capturas em português foram feitas no Motorola Edge 70 Fusion com uma instalação limpa e sem dados clínicos; incluem Início, Pacientes vazio e Agenda vazia.
 - A submissão ao repositório principal exige um registro em `fdroiddata` (não neste repositório) e uma revisão dos mantenedores. Para `versionCode 13`, a revisão de origem deve apontar para o hash completo do commit que contém esta versão; não usar nome de branch ou tag como `commit`.
 - Confirmar que a compilação do fdroidserver usa apenas dependências disponíveis e não depende de artefatos pré-compilados ou rede durante a fase de build. O build release agora fica sem assinatura de desenvolvedor quando as variáveis `ODONTO_RELEASE_*` não estão configuradas; o F-Droid assina o APK publicado.
 - Validar assinatura/reprodutibilidade e executar a análise de metadados e varreduras do F-Droid.
@@ -25,4 +25,4 @@
 
 O guia oficial explica o fluxo de submissão e revisão [Submetendo ao F-Droid](https://fdroid.gitlab.io/jekyll-fdroid/docs/Submitting_to_F-Droid_Quick_Start_Guide/). A política de inclusão pede manutenção ativa por pelo menos três meses, salvo exceções explícitas, além de app funcional, útil e não demonstrativo ([Política de inclusão](https://fdroid.gitlab.io/jekyll-fdroid/en/docs/Inclusion_Policy/)). Os metadados de build ficam no repositório `fdroiddata`, com `commit` apontando para hash completo ([referência de metadados](https://fdroid.gitlab.io/jekyll-fdroid/docs/Build_Metadata_Reference/)).
 
-A solicitação !56870 foi aberta no GitLab. A pipeline ainda precisa terminar e os mantenedores do F-Droid precisam revisar e aceitar a submissão antes de o app entrar no repositório. Capturas de tela do app ainda não foram incluídas. A configuração anterior continha uma senha padrão de assinatura no código; essa credencial foi removida e a chave usada com ela não deve ser reutilizada para distribuição própria.
+A solicitação !56870 foi aberta no GitLab. A pipeline precisa ser repetida após atualizar os metadados e os mantenedores do F-Droid precisam revisar e aceitar a submissão antes de o app entrar no repositório. A configuração anterior continha uma senha padrão de assinatura no código; essa credencial foi removida e a chave usada com ela não deve ser reutilizada para distribuição própria.
