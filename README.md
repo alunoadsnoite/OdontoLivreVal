@@ -78,7 +78,7 @@ A assinatura é aplicada pelo serviço externo. A interface abre o navegador e a
 | Comando | Resultado da candidata 0.13.0 |
 | --- | --- |
 | `./gradlew :app:assembleDebug` | ✅ Sucesso — APK debug em `~/Downloads/OdontoLivreVal-0.13.0-debug.apk` |
-| `./gradlew :app:assembleRelease` | ✅ Sucesso — APK release assinado em `~/Downloads/OdontoLivreVal-0.13.0-release.apk` (SHA-256: `ce156993b75d8f6f9e60568ba7097a9c7153f81757c2b501d7e10b614c5f0225`) |
+| `./gradlew :app:assembleRelease` | O build sem variáveis de assinatura gera APK release sem assinatura de desenvolvedor; o F-Droid assina o APK distribuído. Para distribuição própria, configure uma chave segura por variáveis de ambiente. |
 | `./gradlew test` | ✅ Sucesso — 20 testes unitários passaram |
 | `./gradlew lint` | ✅ Sucesso — sem problemas no código do app (apenas aviso interno `ObsoleteLintCustomCheck` do AndroidX Lifecycle 2.11.0) |
 | `./gradlew :app:assembleDebugAndroidTest` | ✅ Sucesso — APK de testes compilado; execução conectada: 11 testes passaram (Motorola Edge 70 Fusion) |

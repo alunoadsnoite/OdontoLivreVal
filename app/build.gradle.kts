@@ -1,9 +1,19 @@
 plugins { alias(libs.plugins.android.application); alias(libs.plugins.compose) }
 
-val signingStoreFile = rootProject.file(System.getenv("ODONTO_RELEASE_STORE_FILE") ?: "app/release.keystore")
-val signingStorePassword = System.getenv("ODONTO_RELEASE_STORE_PASSWORD") ?: "odontolivreval123"
-val signingKeyAlias = System.getenv("ODONTO_RELEASE_KEY_ALIAS") ?: "odontolivreval"
-val signingKeyPassword = System.getenv("ODONTO_RELEASE_KEY_PASSWORD") ?: "odontolivreval123"
+val releaseSigning = mapOf(
+  "ODONTO_RELEASE_STORE_FILE" to System.getenv("ODONTO_RELEASE_STORE_FILE"),
+  "ODONTO_RELEASE_STORE_PASSWORD" to System.getenv("ODONTO_RELEASE_STORE_PASSWORD"),
+  "ODONTO_RELEASE_KEY_ALIAS" to System.getenv("ODONTO_RELEASE_KEY_ALIAS"),
+  "ODONTO_RELEASE_KEY_PASSWORD" to System.getenv("ODONTO_RELEASE_KEY_PASSWORD"),
+)
+val releaseSigningConfigured = releaseSigning.values.any { !it.isNullOrBlank() }
+require(!releaseSigningConfigured || releaseSigning.values.all { !it.isNullOrBlank() }) {
+  "Configure all ODONTO_RELEASE_* environment variables to sign a release, or leave them unset for an unsigned build."
+}
+val releaseStoreFile = releaseSigning["ODONTO_RELEASE_STORE_FILE"]?.let(rootProject::file)
+if (releaseSigningConfigured) {
+  require(releaseStoreFile?.isFile == true) { "ODONTO_RELEASE_STORE_FILE must point to an existing keystore." }
+}
 
 android {
   namespace = "br.com.odontolivreval"
@@ -17,20 +27,21 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
   signingConfigs {
-    create("release") {
-      storeFile = signingStoreFile
-      storePassword = signingStorePassword
-      keyAlias = signingKeyAlias
-      keyPassword = signingKeyPassword
+    if (releaseSigningConfigured) {
+      create("release") {
+        storeFile = releaseStoreFile
+        storePassword = releaseSigning.getValue("ODONTO_RELEASE_STORE_PASSWORD")
+        keyAlias = releaseSigning.getValue("ODONTO_RELEASE_KEY_ALIAS")
+        keyPassword = releaseSigning.getValue("ODONTO_RELEASE_KEY_PASSWORD")
+      }
     }
   }
   buildTypes {
     release {
       isMinifyEnabled = false
-      signingConfig = signingConfigs.getByName("release")
-    }
-    debug {
-      signingConfig = signingConfigs.getByName("release")
+      if (releaseSigningConfigured) {
+        signingConfig = signingConfigs.getByName("release")
+      }
     }
   }
   compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }

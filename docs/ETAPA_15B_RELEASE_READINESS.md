@@ -1,8 +1,8 @@
 # Prontidão de versão — 0.13.0
 
-**Estado:** candidata para distribuição, APK release assinado gerado.  
+**Estado:** candidata para validação; build release sem assinatura de desenvolvedor validado para preparação F-Droid.
 **versionCode:** 13  
-**Atualizado:** 10/11/2026
+**Atualizado:** 11/11/2026
 
 ## O que foi preparado
 
@@ -12,7 +12,7 @@
 - Incluídos aviso de privacidade e roteiro de testes manuais com dados fictícios.
 - Definida a versão de desenvolvimento como 0.13.0 / versionCode 13.
 - A permissão de notificações não é mais solicitada na abertura; a Agenda oferece ação explícita para ativar lembretes.
-- **APK release assinado gerado** em `app/build/outputs/apk/release/app-release.apk` com keystore `app/release.keystore` (alias `odontolivreval`). SHA-256 do release: `ce156993b75d8f6f9e60568ba7097a9c7153f81757c2b501d7e10b614c5f0225`.
+- Um APK release assinado foi gerado localmente em 10/11. A configuração usava uma senha padrão no código-fonte público; essa senha foi removida em 11/11 e a chave antiga não deve ser usada para distribuição própria. Sem variáveis `ODONTO_RELEASE_*`, o build release não assina o APK, como esperado para a compilação de origem do F-Droid.
 
 ## Evidência automatizada existente
 
@@ -20,20 +20,22 @@ Na compilação final de 10/11/2026, concluíram com sucesso `:app:assembleDebug
 
 Na execução final, os 11 testes instrumentados passaram no Motorola Edge 70 Fusion: 2 de lembretes, 4 de armazenamento e 5 de navegação, perfil e documentos. Nenhuma permissão foi alterada manualmente para os testes. A validação manual ampliada de PDF/assinatura, backup e notificações continua no roteiro.
 
+Em 11/11/2026, `:app:assembleRelease` concluiu sem as variáveis `ODONTO_RELEASE_*` e gerou `app-release-unsigned.apk`. A verificação de assinatura confirmou que está sem assinatura de desenvolvedor, e `fdroid scanner` não encontrou classes proprietárias no APK.
+
 ## Bloqueios antes de uso clínico ou distribuição
 
 1. Executar o roteiro manual em Android real com dados fictícios, incluindo PDF/assinatura externa, backup/restauração, anexos, notificações e acessibilidade.
 2. Revisar resultados e corrigir eventuais falhas encontradas na validação manual.
 3. Fazer avaliação de segurança, privacidade, retenção e requisitos jurídicos para uso clínico real. Este app não declara conformidade integral com a LGPD.
 4. Resolver a associação entre PDF importado e versão de documento e decidir sobre captura de assinatura manuscrita e validação criptográfica; as funções atuais não substituem assinatura profissional certificada.
-5. ✅ Assinatura de release preparada — APK release assinado gerado com keystore próprio. Reprodutibilidade depende do mesmo keystore e senha.
-6. Para F-Droid, cumprir o período de manutenção da política de inclusão (ou demonstrar exceção), finalizar a validação manual e validar o build a partir do código-fonte. Os metadados localizados foram preparados; a solicitação ao repositório principal não foi aberta.
+5. Configurar uma chave nova e secreta para qualquer distribuição própria. A configuração de release do F-Droid deve permanecer sem chave de desenvolvedor.
+6. Para F-Droid, finalizar a validação manual e validar o build no ambiente do F-Droid. A exceção de elegibilidade por manter outro app no repositório está documentada; a merge request ainda não foi aberta.
 
 ## Artefatos locais
 
 - APK debug de desenvolvimento: `app/build/outputs/apk/debug/app-debug.apk` (copiado para `~/Downloads/OdontoLivreVal-0.13.0-debug.apk`, SHA-256: `9e3e2fbe2de9ca815440310f86d16c10947cfb6d1396d2899bebe0e7ab6c75d2`)
-- APK release assinado: `app/build/outputs/apk/release/app-release.apk` (copiado para `~/Downloads/OdontoLivreVal-0.13.0-release.apk`, SHA-256: `ce156993b75d8f6f9e60568ba7097a9c7153f81757c2b501d7e10b614c5f0225`)
+- APK release sem assinatura de desenvolvedor: `app/build/outputs/apk/release/app-release-unsigned.apk`. O APK release assinado anteriormente não deve ser publicado.
 
 ## Submissão
 
-O repositório remoto já contém o código-fonte desta versão. O envio para loja de aplicações (Google Play, F-Droid, etc.) deve ser feito com o APK release assinado e o mesmo keystore para atualizações futuras.
+O repositório remoto contém o código-fonte desta versão. O F-Droid compila a partir do código e assina o APK no repositório; uma distribuição própria exigirá uma nova chave segura e a mesma chave para as atualizações dessa distribuição.
