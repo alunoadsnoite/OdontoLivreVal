@@ -1,7 +1,7 @@
 # F-Droid: preparação e elegibilidade
 
 **Candidata analisada:** 0.13.0, versionCode 13  
-**Estado em 11/11/2026:** metadados descritivos em português e inglês e ícone preparados. A exceção de elegibilidade por manter outros apps no F-Droid está comprovada pelo perfil público do mantenedor; a solicitação de inclusão ainda não foi aberta.
+**Estado em 11/11/2026:** solicitação de inclusão aberta no GitLab como [!56870](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/56870). A comparação contém somente `metadata/br.com.odontolivreval.yml`; a pipeline do GitLab ainda está em andamento. Metadados descritivos em português e inglês e ícone estão preparados. A exceção de elegibilidade por manter outros apps no F-Droid está comprovada pelo perfil público do mantenedor.
 
 ## Dados de identificação propostos
 
@@ -25,4 +25,4 @@
 
 O guia oficial explica o fluxo de submissão e revisão [Submetendo ao F-Droid](https://fdroid.gitlab.io/jekyll-fdroid/docs/Submitting_to_F-Droid_Quick_Start_Guide/). A política de inclusão pede manutenção ativa por pelo menos três meses, salvo exceções explícitas, além de app funcional, útil e não demonstrativo ([Política de inclusão](https://fdroid.gitlab.io/jekyll-fdroid/en/docs/Inclusion_Policy/)). Os metadados de build ficam no repositório `fdroiddata`, com `commit` apontando para hash completo ([referência de metadados](https://fdroid.gitlab.io/jekyll-fdroid/docs/Build_Metadata_Reference/)).
 
-Ainda não foi aberta uma solicitação de inclusão. A sessão local do GitLab não está autenticada; será necessário entrar no GitLab para criar a merge request. A configuração anterior continha uma senha padrão de assinatura no código; essa credencial foi removida e a chave usada com ela não deve ser reutilizada para distribuição própria.
+A solicitação !56870 foi aberta no GitLab. A pipeline ainda precisa terminar e os mantenedores do F-Droid precisam revisar e aceitar a submissão antes de o app entrar no repositório. Capturas de tela do app ainda não foram incluídas. A configuração anterior continha uma senha padrão de assinatura no código; essa credencial foi removida e a chave usada com ela não deve ser reutilizada para distribuição própria.
