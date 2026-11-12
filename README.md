@@ -1,6 +1,6 @@
 # OdontoLivreVal
 
-Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.13.1** (versionCode 14) reúne as etapas 13A–15C e os ajustes para o build do F-Droid. A solicitação !56870 está em análise; a inclusão ainda depende da pipeline e da aprovação dos mantenedores. O app continua em validação com dados fictícios e não está declarado pronto para uso clínico.
+Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.13.1** (versionCode 14) reúne as etapas 13A–15C e os ajustes para o build do F-Droid. O F-Droid encerrou a [solicitação !56870](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/56870) em 12/11/2026 porque o projeto ainda não tinha mais de três meses de manutenção ativa. O app continua em validação com dados fictícios e não está declarado pronto para uso clínico.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 

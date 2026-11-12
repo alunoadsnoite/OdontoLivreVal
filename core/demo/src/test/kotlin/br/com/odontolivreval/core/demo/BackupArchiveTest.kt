@@ -38,4 +38,22 @@ class BackupArchiveTest {
         archive[archive.lastIndex] = (archive.last().toInt() xor 1).toByte()
         assertThrows(GeneralSecurityException::class.java) { read(archive) }
     }
+
+    @Test
+    fun backupRejectsIncorrectPasswordBeforeReturningSnapshot() {
+        val snapshot = byteArrayOf(1, 2, 3)
+        val output = ByteArrayOutputStream()
+        BackupArchive.write(output, password) { writer ->
+            writer.frame(snapshot, ProtectedPayload.maxDataSize)
+        }
+        val archive = output.toByteArray()
+
+        assertThrows(GeneralSecurityException::class.java) {
+            archive.inputStream().buffered().use { input ->
+                BackupArchive.read(input, "senha-de-teste-incorreta".toCharArray()) { reader ->
+                    reader.frame(ProtectedPayload.maxDataSize)
+                }
+            }
+        }
+    }
 }
