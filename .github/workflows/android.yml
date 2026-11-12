@@ -24,7 +24,7 @@ jobs:
           packages: platforms;android-37.0 build-tools;36.0.0 platform-tools
 
       - name: Configurar Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build, testes unitários e lint
         run: ./gradlew :app:assembleDebug test lint :app:assembleDebugAndroidTest --stacktrace
