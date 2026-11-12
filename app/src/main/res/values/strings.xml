@@ -279,10 +279,15 @@
     <string name="security_backup_info">Exporte uma cópia criptografada para restaurar em outro aparelho. A senha da cópia é necessária para restaurar.</string>
     <string name="security_export">Exportar backup</string>
     <string name="security_restore">Restaurar backup</string>
-    <string name="security_password_help">Senha de pelo menos 12 caracteres, com 1 maiuscula, 1 numero e 1 simbolo. Guarde-a em local seguro.</string>
+    <string name="security_password_help">Use pelo menos 12 caracteres, incluindo uma letra maiúscula, um número e um símbolo. Guarde a senha para poder restaurar o backup.</string>
     <string name="security_password">Senha do backup</string>
     <string name="security_password_confirm">Confirme a senha</string>
-    <string name="security_replace_warning">A restauração substitui todos os cadastros e consultas atuais pela cópia selecionada.</string>
+    <string name="security_password_too_short">Use pelo menos 12 caracteres.</string>
+    <string name="security_password_missing_uppercase">Inclua uma letra maiúscula.</string>
+    <string name="security_password_missing_number">Inclua um número.</string>
+    <string name="security_password_missing_symbol">Inclua um símbolo.</string>
+    <string name="security_password_mismatch">As senhas não coincidem.</string>
+    <string name="security_replace_warning">A restauração substitui os dados do consultório neste aparelho, incluindo prontuários, consultas e anexos, pelo conteúdo do backup selecionado. Se quiser guardar os dados atuais, exporte um backup antes de continuar.</string>
     <string name="security_replace">Restaurar e substituir</string>
     <string name="security_cancel">Cancelar</string>
     <string name="security_working">Processando…</string>

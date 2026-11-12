@@ -45,6 +45,7 @@ import br.com.odontolivreval.feature.patients.PatientRadiographs
 import br.com.odontolivreval.feature.settings.SettingsViewModel
 import br.com.odontolivreval.core.demo.ClearingManager
 import java.io.IOException
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
     private lateinit var lock: DeviceLock
@@ -235,7 +236,7 @@ class MainActivity : ComponentActivity() {
                                 ClinicProtectionScreen(
                                     lock = lock,
                                     backup = backup,
-                                    onExport = { exportBackup.launch("OdontoLivreVal.odl") },
+                                    onExport = { exportBackup.launch("OdontoLivreVal-${LocalDate.now()}.odl") },
                                     onRestore = { importBackup.launch(arrayOf("*/*")) },
                                     onPassword = { backupModel.run(odontoApplication.demoClinic, it) },
                                     onDismiss = backupModel::dismiss,
