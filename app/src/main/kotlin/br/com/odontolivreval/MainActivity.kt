@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.odontolivreval.core.designsystem.OdontoTheme
 import br.com.odontolivreval.core.demo.DocumentPhoto
 import br.com.odontolivreval.core.demo.PrescriptionFile
@@ -159,8 +158,11 @@ class MainActivity : ComponentActivity() {
         applyCaptureProtection(lock.enabled)
         enableEdgeToEdge()
         val odontoApplication = application as OdontoApplication
+        themeModel = ViewModelProvider(
+            this,
+            SettingsViewModel.factory(odontoApplication.themes),
+        )[SettingsViewModel::class.java]
         setContent {
-            themeModel = viewModel(factory = SettingsViewModel.factory(odontoApplication.themes))
             val state by themeModel.state.collectAsStateWithLifecycle()
             val backup by backupModel.state.collectAsStateWithLifecycle()
             val radiograph by radiographModel.state.collectAsStateWithLifecycle()
