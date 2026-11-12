@@ -1,5 +1,10 @@
 # Changelog
 
+## Alterações ainda não lançadas
+
+- A exportação de backup sugere um nome com a data e mostra avisos quando a senha ou a confirmação precisam ser corrigidas.
+- O aviso de restauração explica que os dados do consultório neste aparelho, incluindo prontuários, consultas e anexos, serão substituídos.
+
 ## 0.13.1 — 2026-11-11 (candidata; versionCode 14)
 
 Esta versão foi preparada para revisão do F-Droid e continua em validação com dados fictícios.

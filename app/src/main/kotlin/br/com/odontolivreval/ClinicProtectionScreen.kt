@@ -61,16 +61,30 @@ private fun BackupPasswordDialog(
     var password by remember(request) { mutableStateOf("") }
     var confirmation by remember(request) { mutableStateOf("") }
     val exporting = request.action == BackupAction.EXPORT
-    val valid = if (exporting) isBackupPasswordStrong(password) && password == confirmation else password.isNotEmpty()
+    val passwordError = if (exporting) backupPasswordError(password) else null
+    val confirmationError = exporting && !busy && confirmation.isNotEmpty() && password != confirmation
+    val valid = if (exporting) passwordError == null && password == confirmation else password.isNotEmpty()
     AlertDialog(
         onDismissRequest = { if (!busy) onDismiss() },
         title = { Text(stringResource(if (exporting) R.string.security_export else R.string.security_restore)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(if (exporting) R.string.security_password_help else R.string.security_replace_warning))
-                BackupPasswordField(password, { password = it }, R.string.security_password, !busy)
+                BackupPasswordField(
+                    value = password,
+                    update = { password = it },
+                    label = R.string.security_password,
+                    enabled = !busy,
+                    error = if (!busy && password.isNotEmpty()) passwordError else null,
+                )
                 if (exporting) {
-                    BackupPasswordField(confirmation, { confirmation = it }, R.string.security_password_confirm, !busy)
+                    BackupPasswordField(
+                        value = confirmation,
+                        update = { confirmation = it },
+                        label = R.string.security_password_confirm,
+                        enabled = !busy,
+                        error = if (confirmationError) R.string.security_password_mismatch else null,
+                    )
                 }
                 if (busy) Text(stringResource(R.string.security_working))
                 result?.let { Text(stringResource(it.message()), color = MaterialTheme.colorScheme.error) }
@@ -96,13 +110,25 @@ private fun BackupPasswordDialog(
 }
 
 @Composable
-private fun BackupPasswordField(value: String, update: (String) -> Unit, label: Int, enabled: Boolean) {
+private fun BackupPasswordField(
+    value: String,
+    update: (String) -> Unit,
+    label: Int,
+    enabled: Boolean,
+    error: Int?,
+) {
     OutlinedTextField(
         value = value,
         onValueChange = { update(it.take(128)) },
         label = { Text(stringResource(label)) },
         singleLine = true,
         enabled = enabled,
+        isError = error != null,
+        supportingText = if (error != null) {
+            { Text(stringResource(error)) }
+        } else {
+            null
+        },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         visualTransformation = PasswordVisualTransformation(),
         modifier = Modifier.fillMaxWidth(),
@@ -116,19 +142,10 @@ private fun BackupResult.message(): Int = when (this) {
     BackupResult.RESTORE_FAILED -> R.string.security_restore_failed
 }
 
-/**
- * Valida que a senha de backup atende ao requisito mínimo de complexidade:
- * pelo menos 12 caracteres, 1 letra maiuscula, 1 numero e 1 simbolo.
- */
-private fun isBackupPasswordStrong(password: String): Boolean {
-    if (password.length < 12) return false
-    var hasUpper = false
-    var hasDigit = false
-    var hasSymbol = false
-    for (ch in password) {
-        if (ch.isUpperCase()) hasUpper = true
-        else if (ch.isDigit()) hasDigit = true
-        else if (!ch.isLetterOrDigit()) hasSymbol = true
-    }
-    return hasUpper && hasDigit && hasSymbol
+private fun backupPasswordError(password: String): Int? = when {
+    password.length < 12 -> R.string.security_password_too_short
+    password.none { it.isUpperCase() } -> R.string.security_password_missing_uppercase
+    password.none { it.isDigit() } -> R.string.security_password_missing_number
+    password.all { it.isLetterOrDigit() } -> R.string.security_password_missing_symbol
+    else -> null
 }
