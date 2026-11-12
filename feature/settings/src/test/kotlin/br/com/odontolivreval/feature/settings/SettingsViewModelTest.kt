@@ -39,4 +39,27 @@ class SettingsViewModelTest {
             assertEquals(ThemeMode.LIGHT, vm.state.value.theme)
         } finally { Dispatchers.resetMain() }
     }
+
+    @Test fun clearResetsWriteFailure() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val repo = object : ThemeRepository {
+                override val theme = MutableStateFlow(ThemeMode.SYSTEM)
+                var fail = false
+                override suspend fun setTheme(mode: ThemeMode) {
+                    if (fail) throw IOException("test")
+                    theme.value = mode
+                }
+            }
+            val vm = SettingsViewModel(repo)
+            runCurrent()
+            repo.fail = true
+            vm.selectTheme(ThemeMode.LIGHT)
+            runCurrent()
+            assertTrue(vm.state.value.writeFailed)
+            vm.clear()
+            runCurrent()
+            assertFalse(vm.state.value.writeFailed)
+        } finally { Dispatchers.resetMain() }
+    }
 }

@@ -19,6 +19,7 @@
 <string name="home_upcoming_duration">%1$d min</string>
 <string name="home_upcoming_return">Retorno</string>
 <string name="home_upcoming_open">Abrir ficha do paciente</string>
+<string name="home_upcoming_card_description">Consulta de %1$s em %2$s às %3$s. Toque para abrir a ficha do paciente.</string>
 <string name="reminder_channel">Lembretes de consulta</string>
 <string name="reminder_channel_description">Avisos cerca de uma hora antes das consultas agendadas.</string>
 <string name="reminder_title">Consulta em breve</string>

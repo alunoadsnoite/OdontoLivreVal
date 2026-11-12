@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,11 +59,14 @@ fun ConsentListScreen(
             style = MaterialTheme.typography.titleMedium,
         )
 
+        val createLabel = stringResource(R.string.consents_create)
         Button(
             onClick = onCreateConsent,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = createLabel },
         ) {
-            Text(stringResource(R.string.consents_create))
+            Text(createLabel)
         }
 
         when {
@@ -73,8 +78,12 @@ fun ConsentListScreen(
                     text = stringResource(R.string.consents_error),
                     color = MaterialTheme.colorScheme.error,
                 )
-                OutlinedButton(onClick = model::loadConsents) {
-                    Text(stringResource(R.string.consents_retry))
+                val retryLabel = stringResource(R.string.consents_retry)
+                OutlinedButton(
+                    onClick = model::loadConsents,
+                    modifier = Modifier.semantics { contentDescription = retryLabel },
+                ) {
+                    Text(retryLabel)
                 }
             }
             state.consents.isEmpty() -> {
@@ -114,8 +123,12 @@ fun ConsentListScreen(
             )
         }
 
-        OutlinedButton(onClick = onClose) {
-            Text(stringResource(R.string.consents_back))
+        val backLabel = stringResource(R.string.consents_back)
+        OutlinedButton(
+            onClick = onClose,
+            modifier = Modifier.semantics { contentDescription = backLabel },
+        ) {
+            Text(backLabel)
         }
     }
 }
@@ -153,11 +166,19 @@ private fun RevokeDialog(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.consents_revoke_dismiss))
+            val dismissLabel = stringResource(R.string.consents_revoke_dismiss)
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.semantics { contentDescription = dismissLabel },
+            ) {
+                Text(dismissLabel)
             }
-            Button(onClick = { onConfirm(reason) }) {
-                Text(stringResource(R.string.consents_revoke_confirm))
+            val confirmLabel = stringResource(R.string.consents_revoke_confirm)
+            Button(
+                onClick = { onConfirm(reason) },
+                modifier = Modifier.semantics { contentDescription = confirmLabel },
+            ) {
+                Text(confirmLabel)
             }
         }
     }

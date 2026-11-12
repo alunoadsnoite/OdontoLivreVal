@@ -13,6 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,7 +46,20 @@ fun UpcomingAppointmentsPanel(store: ClinicStore, onPatientClick: (DemoPatient) 
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             else -> state.upcoming.forEach { appointment ->
-                Card(Modifier.fillMaxWidth()) {
+                val cardDescription = stringResource(
+                    R.string.home_upcoming_card_description,
+                    appointment.patientName,
+                    appointment.day.format(upcomingDayFormat),
+                    appointment.time.format(upcomingTimeFormat),
+                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = cardDescription
+                            role = Role.Button
+                        },
+                ) {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -71,11 +88,19 @@ fun UpcomingAppointmentsPanel(store: ClinicStore, onPatientClick: (DemoPatient) 
                                 )
                             }
                         }
+                        val openDescription = stringResource(R.string.home_upcoming_open)
                         TextButton(
                             onClick = {
                                 onPatientClick(DemoPatient(appointment.patientId, appointment.patientName))
                             },
-                        ) { Text(stringResource(R.string.home_upcoming_open)) }
+                        ) {
+                            Text(
+                                text = openDescription,
+                                modifier = Modifier.semantics {
+                                    contentDescription = openDescription
+                                },
+                            )
+                        }
                     }
                 }
             }

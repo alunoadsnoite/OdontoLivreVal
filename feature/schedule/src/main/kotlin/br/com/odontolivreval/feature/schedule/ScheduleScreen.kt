@@ -40,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -83,32 +85,49 @@ fun ScheduleScreen(
         ) {
             item {
                 Text(stringResource(R.string.schedule_notification_permission_notice))
-                OutlinedButton(onClick = { notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
-                    Text(stringResource(R.string.schedule_notification_permission_enable))
+                val enableLabel = stringResource(R.string.schedule_notification_permission_enable)
+                OutlinedButton(
+                    onClick = { notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) },
+                    modifier = Modifier.semantics { contentDescription = enableLabel },
+                ) {
+                    Text(enableLabel)
                 }
             }
         }
         item {
+            val viewLabel = stringResource(if (month == null) R.string.schedule_month_view else R.string.schedule_day_view)
             OutlinedButton(
                 onClick = { if (month == null) model.showMonth() else model.showDay() },
                 enabled = !state.writing,
+                modifier = Modifier.semantics { contentDescription = viewLabel },
             ) {
-                Text(stringResource(if (month == null) R.string.schedule_month_view else R.string.schedule_day_view))
+                Text(viewLabel)
             }
         }
         if (month != null) {
             item { MonthNavigation(month, model::showMonth) }
         } else item {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { model.showDay(state.day.minusDays(1)) }, enabled = !state.writing) {
-                    Text(stringResource(R.string.schedule_previous))
+                val prevLabel = stringResource(R.string.schedule_previous)
+                val nextLabel = stringResource(R.string.schedule_next)
+                TextButton(
+                    onClick = { model.showDay(state.day.minusDays(1)) },
+                    enabled = !state.writing,
+                    modifier = Modifier.semantics { contentDescription = prevLabel },
+                ) {
+                    Text(prevLabel)
                 }
                 OutlinedButton(
                     onClick = { pickingDay = true },
                     enabled = !state.writing,
+                    modifier = Modifier.semantics { contentDescription = state.day.format(dateFormat) },
                 ) { Text(state.day.format(dateFormat)) }
-                TextButton(onClick = { model.showDay(state.day.plusDays(1)) }, enabled = !state.writing) {
-                    Text(stringResource(R.string.schedule_next))
+                TextButton(
+                    onClick = { model.showDay(state.day.plusDays(1)) },
+                    enabled = !state.writing,
+                    modifier = Modifier.semantics { contentDescription = nextLabel },
+                ) {
+                    Text(nextLabel)
                 }
             }
         }
@@ -116,7 +135,13 @@ fun ScheduleScreen(
             state.loading -> item { Text(stringResource(R.string.schedule_loading)) }
             state.error == ScheduleError.LOAD -> item {
                 ScheduleErrorText(R.string.schedule_load_error)
-                TextButton(onClick = model::refresh) { Text(stringResource(R.string.schedule_retry)) }
+                val retryLabel = stringResource(R.string.schedule_retry)
+                TextButton(
+                    onClick = model::refresh,
+                    modifier = Modifier.semantics { contentDescription = retryLabel },
+                ) {
+                    Text(retryLabel)
+                }
             }
             month != null -> item {
                 Text(stringResource(R.string.schedule_month_hint), Modifier.padding(bottom = 8.dp))
@@ -129,10 +154,21 @@ fun ScheduleScreen(
                 item {
                     if (state.patients.isEmpty()) {
                         Text(stringResource(R.string.schedule_need_patient))
-                        TextButton(onClick = onPatients) { Text(stringResource(R.string.schedule_open_patients)) }
+                        val openPatientsLabel = stringResource(R.string.schedule_open_patients)
+                        TextButton(
+                            onClick = onPatients,
+                            modifier = Modifier.semantics { contentDescription = openPatientsLabel },
+                        ) {
+                            Text(openPatientsLabel)
+                        }
                     } else {
-                        Button(onClick = { model.open() }, enabled = !state.writing) {
-                            Text(stringResource(R.string.schedule_new))
+                        val newLabel = stringResource(R.string.schedule_new)
+                        Button(
+                            onClick = { model.open() },
+                            enabled = !state.writing,
+                            modifier = Modifier.semantics { contentDescription = newLabel },
+                        ) {
+                            Text(newLabel)
                         }
                     }
                 }
