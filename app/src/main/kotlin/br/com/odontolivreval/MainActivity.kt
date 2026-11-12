@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var radiographModel: RadiographImportViewModel
     private lateinit var prescriptionModel: PrescriptionViewModel
     private lateinit var documentFileModel: DocumentFileExportViewModel
+    private lateinit var themeModel: SettingsViewModel
     private var pendingPrescriptionArchive = false
 
     private val createDocumentPdf = registerForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
@@ -159,7 +160,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val odontoApplication = application as OdontoApplication
         setContent {
-            val themeModel: SettingsViewModel = viewModel(factory = SettingsViewModel.factory(odontoApplication.themes))
+            themeModel = viewModel(factory = SettingsViewModel.factory(odontoApplication.themes))
             val state by themeModel.state.collectAsStateWithLifecycle()
             val backup by backupModel.state.collectAsStateWithLifecycle()
             val radiograph by radiographModel.state.collectAsStateWithLifecycle()
@@ -393,6 +394,14 @@ class MainActivity : ComponentActivity() {
         lock.lock()
         cleanupPendingCaptureFiles()
         ClearingManager.clearAll()
+        // Limpa dados sensíveis dos ViewModels quando o app vai para segundo plano.
+        backupModel.dismiss()
+        radiographModel.clear()
+        pdfModel.clear()
+        prescriptionModel.clear()
+        documentFileModel.clear()
+        documentPhotoModel.clear()
+        themeModel.clear()
         super.onStop()
     }
 

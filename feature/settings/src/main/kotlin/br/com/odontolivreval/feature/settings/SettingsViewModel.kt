@@ -19,6 +19,11 @@ class SettingsViewModel(private val repository: ThemeRepository) : ViewModel() {
             catch (_: IOException) { failed.value = true }
         }
     }
+
+    /** Limpa estado de erro de gravação de tema quando o app vai para segundo plano. */
+    fun clear() {
+        failed.value = false
+    }
     companion object {
         fun factory(repository: ThemeRepository): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {

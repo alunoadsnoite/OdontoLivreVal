@@ -9,3 +9,4 @@ local.properties
 signing.properties
 .externalNativeBuild/
 .cxx/
+gradle/gradle-daemon-jvm.properties
