@@ -8,16 +8,22 @@ import br.com.odontolivreval.core.demo.ClinicStorageException
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.PatientRecord
+import br.com.odontolivreval.core.demo.PatientRecordDraft
 import br.com.odontolivreval.core.demo.VisitRecord
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.time.format.ResolverStyle
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * ViewModel do prontuário do paciente.
@@ -54,20 +60,36 @@ internal class PatientRecordViewModel(
         val dirty: Boolean = false,
         val birthDateError: Boolean = false,
         val phoneError: Boolean = false,
+        val draftRestored: Boolean = false,
+        val draftSaveFailed: Boolean = false,
+        val cleared: Boolean = false,
     )
+
+    private val draftMutex = Mutex()
+    private var loadJob: Job? = null
+    private var draftSaveJob: Job? = null
+    private var recordSaveJob: Job? = null
+    private var clearJob: Job? = null
+    private var memoryGeneration = 0L
+    private var lastSaveSucceeded = false
 
     fun retry() {
         if (state.value.loadFailed) load()
     }
 
+    fun reload() = load()
+
     private fun load() {
-        mutableState.update { it.copy(loading = true, loadFailed = false) }
-        viewModelScope.launch {
+        loadJob?.cancel()
+        mutableState.update { it.copy(loading = true, loadFailed = false, cleared = false) }
+        loadJob = viewModelScope.launch {
+            clearJob?.join()
             try {
-                val record = store.getPatientRecord(patient.id)
+                val draft = store.getPatientRecordDraft(patient.id)
+                val record = draft?.record ?: store.getPatientRecord(patient.id)
                     ?: PatientRecord(id = 0, patientId = patient.id)
                 val visits = store.listVisits(patient.id)
-                val active = visits.firstOrNull()
+                val active = draft?.visit ?: visits.firstOrNull()
                 mutableState.update {
                     it.copy(
                         record = record,
@@ -79,8 +101,10 @@ internal class PatientRecordViewModel(
                         conduct = active?.conduct.orEmpty(),
                         odontogram = active?.odontogram.orEmpty(),
                         loading = false,
-                        dirty = false,
+                        dirty = draft != null,
                         saved = false,
+                        draftRestored = draft != null,
+                        cleared = false,
                     )
                 }
             } catch (_: ClinicStorageException) {
@@ -108,16 +132,19 @@ internal class PatientRecordViewModel(
     fun changeDiagnosis(value: String) {
         if (state.value.saving) return
         mutableState.update { it.copy(diagnosis = value, dirty = true, saved = false) }
+        scheduleDraftSave()
     }
 
     fun changeConduct(value: String) {
         if (state.value.saving) return
         mutableState.update { it.copy(conduct = value, dirty = true, saved = false) }
+        scheduleDraftSave()
     }
 
     fun changeOdontogram(odontogram: Map<String, String>) {
         if (state.value.saving) return
         mutableState.update { it.copy(odontogram = odontogram, dirty = true, saved = false) }
+        scheduleDraftSave()
     }
 
     /** Inicia uma evolução em branco. A ficha permanente é mantida. */
@@ -136,6 +163,7 @@ internal class PatientRecordViewModel(
                 saveFailed = false,
             )
         }
+        scheduleDraftSave()
     }
 
     private fun updateRecord(transform: (PatientRecord) -> PatientRecord) {
@@ -144,6 +172,7 @@ internal class PatientRecordViewModel(
         mutableState.update {
             it.copy(record = transform(record), dirty = true, saved = false, saveFailed = false)
         }
+        scheduleDraftSave()
     }
 
     fun saveRecord() {
@@ -171,10 +200,15 @@ internal class PatientRecordViewModel(
             observations = current.record.observations,
             odontogram = current.odontogram,
         )
+        draftSaveJob?.cancel()
         mutableState.update { it.copy(saving = true, saveFailed = false, saved = false) }
-        viewModelScope.launch {
+        lastSaveSucceeded = false
+        val generation = memoryGeneration
+        recordSaveJob = viewModelScope.launch {
             try {
-                val saved = store.saveRecordAndVisit(current.record, visit)
+                val saved = draftMutex.withLock { store.saveRecordAndVisit(current.record, visit) }
+                lastSaveSucceeded = true
+                if (generation != memoryGeneration) return@launch
                 mutableState.update {
                     val visits = (it.visits.filterNot { visit -> visit.id == saved.visit.id } + saved.visit)
                         .sortedWith(compareByDescending<VisitRecord> { visit -> visit.visitDay }
@@ -195,33 +229,90 @@ internal class PatientRecordViewModel(
                         dirty = false,
                         birthDateError = false,
                         phoneError = false,
+                        draftRestored = false,
+                        draftSaveFailed = false,
                     )
                 }
             } catch (_: ClinicStorageException) {
-                mutableState.update { it.copy(saving = false, saveFailed = true) }
+                lastSaveSucceeded = false
+                if (generation == memoryGeneration) {
+                    mutableState.update { it.copy(saving = false, saveFailed = true) }
+                }
             }
         }
     }
 
-    /** Limpa dados sensíveis do prontuário da memória quando o app vai para segundo plano. */
+    /** Persiste um rascunho criptografado e limpa os campos clínicos da memória. */
     fun clear() {
-        mutableState.update { it.copy(
-            record = PatientRecord(id = 0, patientId = 0),
-            visits = emptyList(),
-            activeVisitId = null,
-            visitDay = null,
-            visitMinute = null,
-            diagnosis = "",
-            conduct = "",
-            odontogram = emptyMap(),
-            dirty = false,
-            saved = false,
-            birthDateError = false,
-            phoneError = false,
-        )}
+        val current = state.value
+        val draft = current.takeIf { it.dirty && !it.loading }?.toDraft(patient.id)
+        val wasSaving = current.saving
+        val pendingDraftJob = draftSaveJob
+        val pendingSaveJob = recordSaveJob
+        val previousClearJob = clearJob
+
+        memoryGeneration++
+        loadJob?.cancel()
+        draftSaveJob = null
+        mutableState.value = PatientRecordState(loading = true, cleared = true)
+
+        clearJob = viewModelScope.launch {
+            previousClearJob?.join()
+            pendingDraftJob?.cancelAndJoin()
+            if (wasSaving) pendingSaveJob?.join()
+            if (draft != null && !(wasSaving && lastSaveSucceeded)) {
+                try {
+                    draftMutex.withLock { store.savePatientRecordDraft(draft) }
+                } catch (_: ClinicStorageException) {
+                    mutableState.update { it.copy(draftSaveFailed = true) }
+                }
+            }
+        }
+    }
+
+    private fun scheduleDraftSave() {
+        val current = state.value
+        if (current.loading || current.saving || !current.dirty) return
+        val draft = current.toDraft(patient.id)
+        draftSaveJob?.cancel()
+        val generation = memoryGeneration
+        draftSaveJob = viewModelScope.launch {
+            delay(DRAFT_SAVE_DELAY_MS)
+            try {
+                draftMutex.withLock { store.savePatientRecordDraft(draft) }
+                if (generation == memoryGeneration) {
+                    mutableState.update { it.copy(draftSaveFailed = false) }
+                }
+            } catch (_: ClinicStorageException) {
+                if (generation == memoryGeneration) {
+                    mutableState.update { it.copy(draftSaveFailed = true) }
+                }
+            }
+        }
+    }
+
+    private fun PatientRecordState.toDraft(patientId: Long): PatientRecordDraft {
+        val now = LocalDateTime.now()
+        return PatientRecordDraft(
+            patientId = patientId,
+            record = record,
+            visit = VisitRecord(
+                id = activeVisitId ?: 0,
+                patientId = patientId,
+                visitDay = visitDay ?: now.toLocalDate().toEpochDay(),
+                visitMinute = visitMinute ?: now.hour * 60 + now.minute,
+                complaint = record.complaint,
+                anamnesis = record.history,
+                diagnosis = diagnosis,
+                conduct = conduct,
+                observations = record.observations,
+                odontogram = odontogram,
+            ),
+        )
     }
 
     companion object {
+        private const val DRAFT_SAVE_DELAY_MS = 500L
         private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/uuuu")
             .withResolverStyle(ResolverStyle.STRICT)
 

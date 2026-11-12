@@ -133,4 +133,6 @@
     <string name="archive_working">Processando PDF…</string>
     <string name="archive_error">Não foi possível acessar ou salvar o PDF.</string>
     <string name="pdf_professional">Profissional: %1$s · CRO %2$s</string>
+    <string name="demo_patient_draft_restored">Rascunho criptografado restaurado. Revise e salve a evolução.</string>
+    <string name="demo_patient_draft_save_failed">Não foi possível salvar o rascunho criptografado. Salve a evolução antes de sair.</string>
 </resources>

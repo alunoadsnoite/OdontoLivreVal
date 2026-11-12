@@ -1,13 +1,23 @@
 package br.com.odontolivreval.core.demo
 
+import java.util.concurrent.CopyOnWriteArraySet
+
 /**
- * Placeholder mantido para compatibilidade. A limpeza de ViewModels não é mais
- * gerenciada centralmente aqui; cada ViewModel expõe seu próprio metodo clear()
- * se necessario.
+ * Coordena a limpeza dos estados sensíveis das telas compostas quando a atividade
+ * é bloqueada ou enviada para segundo plano.
  */
 object ClearingManager {
-    /** Nenhuma operacao necessaria neste momento. */
-    fun register(callback: () -> Unit) {}
-    fun unregister(callback: () -> Unit) {}
-    fun clearAll() {}
+    private val callbacks = CopyOnWriteArraySet<() -> Unit>()
+
+    fun register(callback: () -> Unit) {
+        callbacks.add(callback)
+    }
+
+    fun unregister(callback: () -> Unit) {
+        callbacks.remove(callback)
+    }
+
+    fun clearAll() {
+        callbacks.forEach { callback -> runCatching(callback) }
+    }
 }

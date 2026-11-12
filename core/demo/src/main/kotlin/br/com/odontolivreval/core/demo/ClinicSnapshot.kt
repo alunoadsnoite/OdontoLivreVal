@@ -43,6 +43,12 @@ data class VisitRecord(
     val odontogram: Map<String, String> = emptyMap(),
 )
 
+data class PatientRecordDraft(
+    val patientId: Long,
+    val record: PatientRecord,
+    val visit: VisitRecord,
+)
+
 internal data class ClinicSnapshot(
     val patients: List<DemoPatient> = emptyList(),
     val appointments: List<AppointmentRecord> = emptyList(),
@@ -62,6 +68,7 @@ internal data class ClinicSnapshot(
     val reminders: List<StoredReminder> = emptyList(),
     val reminderSettings: List<StoredReminderSettings> = emptyList(),
     val professional: ProfessionalProfile = ProfessionalProfile(),
+    val patientRecordDrafts: List<PatientRecordDraft> = emptyList(),
 ) {
     fun encode(): ByteArray = JSONObject()
         .put("version", currentVersion)
@@ -96,6 +103,21 @@ internal data class ClinicSnapshot(
                 put(JSONArray().put(it.id).put(it.patientId).put(it.visitDay).put(it.visitMinute)
                     .put(it.complaint).put(it.anamnesis).put(it.diagnosis).put(it.conduct).put(it.observations)
                     .put(JSONArray(it.odontogram.entries.toList().sortedBy { it.key }.map { pair -> JSONArray().put(pair.key).put(pair.value) })))
+            }
+        })
+        .put("patientRecordDrafts", JSONArray().apply {
+            patientRecordDrafts.forEach { draft ->
+                put(JSONArray()
+                    .put(draft.patientId)
+                    .put(draft.record.id).put(draft.record.patientId)
+                    .put(draft.record.birthDate).put(draft.record.phone)
+                    .put(draft.record.complaint).put(draft.record.history).put(draft.record.observations)
+                    .put(draft.visit.id).put(draft.visit.patientId)
+                    .put(draft.visit.visitDay).put(draft.visit.visitMinute)
+                    .put(draft.visit.complaint).put(draft.visit.anamnesis)
+                    .put(draft.visit.diagnosis).put(draft.visit.conduct).put(draft.visit.observations)
+                    .put(JSONArray(draft.visit.odontogram.entries.toList().sortedBy { it.key }
+                        .map { pair -> JSONArray().put(pair.key).put(pair.value) })))
             }
         })
         .put("radiographs", JSONArray().apply {
@@ -284,6 +306,13 @@ internal data class ClinicSnapshot(
                 it.id <= 0 || it.patientId !in patientIds || it.visitDay !in minDay..maxDay ||
                     it.visitMinute !in 0..1439
             }
+            || patientRecordDrafts.map { it.patientId }.toSet().size != patientRecordDrafts.size
+            || patientRecordDrafts.any { draft ->
+                draft.patientId <= 0 || draft.patientId !in patientIds ||
+                    draft.record.patientId != draft.patientId || draft.record.id < 0 ||
+                    draft.visit.patientId != draft.patientId || draft.visit.id < 0 ||
+                    draft.visit.visitDay !in minDay..maxDay || draft.visit.visitMinute !in 0..1439
+            }
             || radiographs.map { it.file.id }.toSet().size != radiographs.size
             || radiographs.any { it.file.id <= 0 || it.file.patientId !in patientIds }
             || prescriptions.map { it.file.id }.toSet().size != prescriptions.size
@@ -414,6 +443,35 @@ internal data class ClinicSnapshot(
             } else {
                 emptyList()
             }
+
+            val patientRecordDrafts = if (version >= 17 && root.has("patientRecordDrafts")) {
+                root.getJSONArray("patientRecordDrafts").rows {
+                    val odontogramArray = it.getJSONArray(17)
+                    val odontogram = buildMap {
+                        for (index in 0 until odontogramArray.length()) {
+                            val pair = odontogramArray.getJSONArray(index)
+                            put(pair.getString(0), pair.getString(1))
+                        }
+                    }
+                    val patientId = it.integer(0)
+                    PatientRecordDraft(
+                        patientId = patientId,
+                        record = PatientRecord(
+                            id = it.integer(1), patientId = it.integer(2),
+                            birthDate = it.getString(3), phone = it.getString(4),
+                            complaint = it.getString(5), history = it.getString(6),
+                            observations = it.getString(7),
+                        ),
+                        visit = VisitRecord(
+                            id = it.integer(8), patientId = it.integer(9),
+                            visitDay = it.integer(10), visitMinute = it.integer(11).toInt(),
+                            complaint = it.getString(12), anamnesis = it.getString(13),
+                            diagnosis = it.getString(14), conduct = it.getString(15),
+                            observations = it.getString(16), odontogram = odontogram,
+                        ),
+                    )
+                }
+            } else emptyList()
 
             val radiographs = if (version >= 3) {
                 root.getJSONArray("radiographs").rows {
@@ -660,13 +718,13 @@ internal data class ClinicSnapshot(
                 documentPhotos, digitalSignatures, medicalCertificates,
                 treatmentPlans, treatmentProcedures, treatmentBudgets, informedConsents,
                 documentSignatures, documentHashes, reminders, reminderSettings,
-                professional,
+                professional, patientRecordDrafts,
             ).apply { validate() }
         }
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 16
+        private const val currentVersion = 17
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)

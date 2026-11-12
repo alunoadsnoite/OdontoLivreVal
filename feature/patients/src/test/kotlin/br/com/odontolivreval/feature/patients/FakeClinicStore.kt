@@ -12,6 +12,7 @@ import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.MedicalCertificate
 import br.com.odontolivreval.core.demo.MedicalCertificateFile
 import br.com.odontolivreval.core.demo.PatientRecord
+import br.com.odontolivreval.core.demo.PatientRecordDraft
 import br.com.odontolivreval.core.demo.Radiograph
 import br.com.odontolivreval.core.demo.PrescriptionFile
 import br.com.odontolivreval.core.demo.ProfessionalProfile
@@ -47,6 +48,7 @@ import kotlin.comparisons.compareBy
 internal class FakeClinicStore : ClinicStore {
     val patients = mutableListOf<DemoPatient>()
     val records = mutableListOf<PatientRecord>()
+    val recordDrafts = mutableListOf<PatientRecordDraft>()
     val visits = mutableListOf<VisitRecord>()
     val medicalCertificates = mutableListOf<MedicalCertificateFile>()
     val informedConsents = mutableListOf<InformedConsentFile>()
@@ -66,6 +68,14 @@ internal class FakeClinicStore : ClinicStore {
     override suspend fun getPatientRecord(patientId: Long): PatientRecord? =
         records.find { it.patientId == patientId }
 
+    override suspend fun getPatientRecordDraft(patientId: Long): PatientRecordDraft? =
+        recordDrafts.find { it.patientId == patientId }
+
+    override suspend fun savePatientRecordDraft(draft: PatientRecordDraft) {
+        recordDrafts.removeAll { it.patientId == draft.patientId }
+        recordDrafts.add(draft)
+    }
+
     override suspend fun savePatientRecord(record: PatientRecord): PatientRecord {
         val saved = record.copy(id = record.id.takeIf { it > 0 } ?: nextRecordId++)
         records.removeAll { it.patientId == saved.patientId }
@@ -77,6 +87,7 @@ internal class FakeClinicStore : ClinicStore {
     override suspend fun saveRecordAndVisit(record: PatientRecord, visit: VisitRecord): SavedRecord {
         val savedRecord = savePatientRecord(record)
         val savedVisit = saveVisit(visit)
+        recordDrafts.removeAll { it.patientId == record.patientId }
         return SavedRecord(savedRecord, savedVisit)
     }
 
@@ -97,6 +108,7 @@ internal class FakeClinicStore : ClinicStore {
         patients.removeAll { it.id == id }
         records.removeAll { it.patientId == id }
         visits.removeAll { it.patientId == id }
+        recordDrafts.removeAll { it.patientId == id }
     }
 
     override suspend fun listAppointments(day: LocalDate): List<DemoAppointment> = emptyList()

@@ -44,6 +44,10 @@ interface ClinicStore {
 
     suspend fun getPatientRecord(patientId: Long): PatientRecord?
 
+    suspend fun getPatientRecordDraft(patientId: Long): PatientRecordDraft?
+
+    suspend fun savePatientRecordDraft(draft: PatientRecordDraft)
+
     suspend fun savePatientRecord(record: PatientRecord): PatientRecord
 
     /**

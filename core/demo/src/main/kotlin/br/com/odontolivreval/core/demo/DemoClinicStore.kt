@@ -195,6 +195,22 @@ class DemoClinicStore(context: Context) : ClinicStore {
         load().patientRecords.find { it.patientId == patientId }
     }
 
+    override suspend fun getPatientRecordDraft(patientId: Long): PatientRecordDraft? = access {
+        load().patientRecordDrafts.find { it.patientId == patientId }
+    }
+
+    override suspend fun savePatientRecordDraft(draft: PatientRecordDraft) = access {
+        val snapshot = load()
+        requirePatient(snapshot, draft.patientId)
+        if (draft.record.patientId != draft.patientId || draft.visit.patientId != draft.patientId) {
+            throw IOException("Draft belongs to a different patient")
+        }
+        persist(snapshot.copy(
+            patientRecordDrafts = snapshot.patientRecordDrafts
+                .filterNot { it.patientId == draft.patientId } + draft,
+        ))
+    }
+
     override suspend fun savePatientRecord(record: PatientRecord): PatientRecord = access {
         val snapshot = load()
         requirePatient(snapshot, record.patientId)
@@ -213,6 +229,9 @@ class DemoClinicStore(context: Context) : ClinicStore {
             snapshot.copy(
                 patientRecords = replaceRecord(snapshot, savedRecord),
                 visits = snapshot.visits.filterNot { it.id == savedVisit.id } + savedVisit,
+                patientRecordDrafts = snapshot.patientRecordDrafts.filterNot {
+                    it.patientId == record.patientId
+                },
             ),
         )
         SavedRecord(savedRecord, savedVisit)
@@ -229,6 +248,7 @@ class DemoClinicStore(context: Context) : ClinicStore {
                 appointments = snapshot.appointments.filter { it.patientId != id },
                 patientRecords = snapshot.patientRecords.filterNot { it.patientId == id },
                 visits = snapshot.visits.filterNot { it.patientId == id },
+                patientRecordDrafts = snapshot.patientRecordDrafts.filterNot { it.patientId == id },
                 radiographs = snapshot.radiographs.filterNot { it.file.patientId == id },
                 prescriptions = snapshot.prescriptions.filterNot { it.file.patientId == id },
                 documentPhotos = snapshot.documentPhotos.filterNot { it.file.patientId == id },
