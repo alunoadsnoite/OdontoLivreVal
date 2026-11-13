@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="schedule_title">Appointment schedule</string>
+    <string name="schedule_demo_notice">Book, track, and reschedule appointments.</string>
+    <string name="schedule_notification_permission_notice">Allow notifications to receive appointment reminders. Reminders omit names and clinical data.</string>
+    <string name="schedule_notification_permission_enable">Enable reminders</string>
+    <string name="schedule_previous">Previous day</string>
+    <string name="schedule_next">Next day</string>
+    <string name="schedule_loading">Loading schedule…</string>
+    <string name="schedule_load_error">Could not load the schedule.</string>
+    <string name="schedule_retry">Try again</string>
+    <string name="schedule_need_patient">Register a patient before scheduling.</string>
+    <string name="schedule_open_patients">Open Patients</string>
+    <string name="schedule_new">New visit</string>
+    <string name="schedule_empty">No appointments on this day.</string>
+    <string name="schedule_entry">%1$s–%2$s · %3$s</string>
+    <string name="schedule_cancelled">Canceled</string>
+    <string name="schedule_edit">Edit appointment</string>
+    <string name="schedule_cancel_appointment">Cancel appointment</string>
+    <string name="schedule_confirm_cancel">Cancel this appointment?</string>
+    <string name="schedule_cancel_error">Could not cancel the appointment.</string>
+    <string name="schedule_choose_patient">Choose patient</string>
+    <string name="schedule_date">Date: %1$s</string>
+    <string name="schedule_time">Time: %1$s</string>
+    <string name="schedule_occupied">This time slot overlaps another appointment.</string>
+    <string name="schedule_save_error">Could not save the appointment.</string>
+    <string name="schedule_save">Save appointment</string>
+    <string name="schedule_back">Back</string>
+    <string name="schedule_view_record">View patient record</string>
+    <string name="schedule_month_view">Month view</string>
+    <string name="schedule_day_view">Back to day view</string>
+    <string name="schedule_previous_month">Previous month</string>
+    <string name="schedule_next_month">Next month</string>
+    <string name="schedule_month_hint">Numbers below the dates show active appointments. Tap a date to open the schedule.</string>
+    <string name="schedule_month_day_description">%1$s, %2$s</string>
+    <plurals name="schedule_month_appointments">
+        <item quantity="one">%d active appointment</item>
+        <item quantity="other">%d active appointments</item>
+    </plurals>
+    <string-array name="schedule_weekdays">
+        <item>Sun</item>
+        <item>Mon</item>
+        <item>Tue</item>
+        <item>Wed</item>
+        <item>Thu</item>
+        <item>Fri</item>
+        <item>Sat</item>
+    </string-array>
+    <string name="schedule_book_return">Schedule follow-up</string>
+    <string name="schedule_return_label">Follow-up</string>
+    <string name="schedule_duration">Duration (minutes)</string>
+    <plurals name="schedule_duration_hint">
+        <item quantity="one">1 to %1$d minute</item>
+        <item quantity="other">1 to %1$d minutes</item>
+    </plurals>
+    <string name="schedule_invalid_duration">Enter a valid duration. The appointment must end on the same day or at midnight.</string>
+    <string name="schedule_return_before_source">The follow-up must start after the original appointment ends.</string>
+    <string name="schedule_return_patient_mismatch">An appointment linked to a follow-up must keep the same patient.</string>
+</resources>

@@ -32,14 +32,18 @@ import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import androidx.compose.ui.platform.LocalConfiguration
+import java.time.format.FormatStyle
 import java.util.Locale
 
 private val portuguese = Locale.forLanguageTag("pt-BR")
-private val monthLabel = DateTimeFormatter.ofPattern("MMMM 'de' uuuu", portuguese)
-private val dayLabel = DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' uuuu", portuguese)
+
 
 @Composable
 internal fun MonthNavigation(month: YearMonth, onMonth: (YearMonth) -> Unit) {
+    val locale = LocalConfiguration.current.locales[0]
+    val pattern = if (locale == Locale.US) "MMMM uuuu" else "MMMM 'de' uuuu"
+    val monthLabel = DateTimeFormatter.ofPattern(pattern, locale)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(month.format(monthLabel), style = MaterialTheme.typography.titleLarge)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -99,6 +103,12 @@ private fun CalendarDay(
     modifier: Modifier,
     onDay: (LocalDate) -> Unit,
 ) {
+    val locale = LocalConfiguration.current.locales[0]
+    val dayLabel = if (locale == portuguese) {
+        DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM 'de' uuuu", locale)
+    } else {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale)
+    }
     val countLabel = pluralStringResource(R.plurals.schedule_month_appointments, count, count)
     val label = stringResource(R.string.schedule_month_day_description, date.format(dayLabel), countLabel)
     Column(

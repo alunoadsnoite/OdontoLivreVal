@@ -200,7 +200,7 @@ private fun ConsentRow(
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                text = "${stringResource(R.string.consents_type, consent.type.name)} · ${stringResource(R.string.consents_status, consent.status.name)}",
+                text = "${stringResource(R.string.consents_type, stringResource(typeLabel(consent.type)))} · ${stringResource(R.string.consents_status, stringResource(consent.status.labelResource))}",
                 style = MaterialTheme.typography.bodySmall,
             )
         }

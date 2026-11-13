@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="consent_export_termo_de_consentimento_livre_e_esclarecido">INFORMED CONSENT FORM</string>
+    <string name="consent_export_tipo">Type: %1$s</string>
+    <string name="consent_export_status">Status: %1$s</string>
+    <string name="consent_export_versao">Version: %1$d</string>
+    <string name="consent_export_data_de_emissao">Date of issue: %1$s</string>
+    <string name="consent_export_local">Place: %1$s</string>
+    <string name="consent_export_paciente">Patient: %1$s</string>
+    <string name="consent_export_procedimento">PROCEDURE: %1$s</string>
+    <string name="consent_export_objetivos">OBJECTIVES: %1$s</string>
+    <string name="consent_export_explicacao">EXPLANATION: %1$s</string>
+    <string name="consent_export_beneficios">BENEFITS: %1$s</string>
+    <string name="consent_export_riscos_e_complicacoes">RISKS AND COMPLICATIONS: %1$s</string>
+    <string name="consent_export_alternativas">ALTERNATIVES: %1$s</string>
+    <string name="consent_export_consequencias_da_nao_realizacao">CONSEQUENCES OF DECLINING TREATMENT: %1$s</string>
+    <string name="consent_export_cuidados_necessarios">REQUIRED CARE: %1$s</string>
+    <string name="consent_export_limitacoes_e_incertezas">LIMITATIONS AND UNCERTAINTIES: %1$s</string>
+    <string name="consent_export_duvidas_do_paciente">PATIENT QUESTIONS: %1$s</string>
+    <string name="consent_export_declaracao_de_esclarecimento">ACKNOWLEDGMENT OF INFORMATION PROVIDED: %1$s</string>
+    <string name="consent_export_decisao_do_paciente">PATIENT DECISION: %1$s</string>
+    <string name="consent_export_metodo_de_comprovacao">EVIDENCE METHOD: %1$s</string>
+    <string name="consent_export_yes">Yes</string>
+    <string name="consent_export_no">No</string>
+    <string name="consent_export_documento_assinado">SIGNED DOCUMENT: %1$s</string>
+    <string name="consent_export_not_provided">Not provided</string>
+    <string name="consent_export_profissional">Professional: %1$s</string>
+    <string name="consent_export_cro_uf_preencha_no_perfil_profissional">CRO/state: Complete in professional profile</string>
+    <string name="consent_export_local_e_data">Place and date: %1$s - %2$s</string>
+    <string name="consent_export_assinatura_do_paciente_ou_representante_legal">Signature of patient or legal representative</string>
+    <string name="consent_export_assinatura_do_cirurgiao_dentista">Dentist signature</string>
+    <string name="consent_export_cro_uf">CRO/state</string>
+    <string name="consent_export_document_title">Informed consent - %1$s</string>
+    <string name="consent_label_draft">Draft</string>
+    <string name="consent_label_presented">Presented</string>
+    <string name="consent_label_pending">Pending</string>
+    <string name="consent_label_accepted">Accepted</string>
+    <string name="consent_label_rejected">Declined</string>
+    <string name="consent_label_revoked">Revoked</string>
+    <string name="consent_label_superseded">Superseded</string>
+</resources>

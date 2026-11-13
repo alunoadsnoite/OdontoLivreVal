@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="consent_export_termo_de_consentimento_livre_e_esclarecido">FORMULARIO DE CONSENTIMIENTO INFORMADO</string>
+    <string name="consent_export_tipo">Tipo: %1$s</string>
+    <string name="consent_export_status">Estado: %1$s</string>
+    <string name="consent_export_versao">Versión: %1$d</string>
+    <string name="consent_export_data_de_emissao">Fecha de emisión: %1$s</string>
+    <string name="consent_export_local">Lugar: %1$s</string>
+    <string name="consent_export_paciente">Paciente: %1$s</string>
+    <string name="consent_export_procedimento">PROCEDIMIENTO: %1$s</string>
+    <string name="consent_export_objetivos">OBJETIVOS: %1$s</string>
+    <string name="consent_export_explicacao">EXPLICACIÓN: %1$s</string>
+    <string name="consent_export_beneficios">BENEFICIOS: %1$s</string>
+    <string name="consent_export_riscos_e_complicacoes">RIESGOS Y COMPLICACIONES: %1$s</string>
+    <string name="consent_export_alternativas">ALTERNATIVAS: %1$s</string>
+    <string name="consent_export_consequencias_da_nao_realizacao">CONSECUENCIAS DE NO REALIZAR EL TRATAMIENTO: %1$s</string>
+    <string name="consent_export_cuidados_necessarios">CUIDADOS NECESARIOS: %1$s</string>
+    <string name="consent_export_limitacoes_e_incertezas">LIMITACIONES E INCERTIDUMBRES: %1$s</string>
+    <string name="consent_export_duvidas_do_paciente">PREGUNTAS DEL PACIENTE: %1$s</string>
+    <string name="consent_export_declaracao_de_esclarecimento">DECLARACIÓN DE INFORMACIÓN RECIBIDA: %1$s</string>
+    <string name="consent_export_decisao_do_paciente">DECISIÓN DEL PACIENTE: %1$s</string>
+    <string name="consent_export_metodo_de_comprovacao">MÉTODO DE ACREDITACIÓN: %1$s</string>
+    <string name="consent_export_yes">Sí</string>
+    <string name="consent_export_no">No</string>
+    <string name="consent_export_documento_assinado">DOCUMENTO FIRMADO: %1$s</string>
+    <string name="consent_export_not_provided">No indicado</string>
+    <string name="consent_export_profissional">Profesional: %1$s</string>
+    <string name="consent_export_cro_uf_preencha_no_perfil_profissional">CRO/estado: Completar en el perfil profesional</string>
+    <string name="consent_export_local_e_data">Lugar y fecha: %1$s - %2$s</string>
+    <string name="consent_export_assinatura_do_paciente_ou_representante_legal">Firma del paciente o representante legal</string>
+    <string name="consent_export_assinatura_do_cirurgiao_dentista">Firma del dentista</string>
+    <string name="consent_export_cro_uf">CRO/estado</string>
+    <string name="consent_export_document_title">Consentimiento informado - %1$s</string>
+    <string name="consent_label_draft">Borrador</string>
+    <string name="consent_label_presented">Presentado</string>
+    <string name="consent_label_pending">Pendiente</string>
+    <string name="consent_label_accepted">Aceptado</string>
+    <string name="consent_label_rejected">Rechazado</string>
+    <string name="consent_label_revoked">Revocado</string>
+    <string name="consent_label_superseded">Sustituido</string>
+</resources>

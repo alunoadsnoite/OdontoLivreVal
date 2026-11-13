@@ -24,4 +24,5 @@
 <string name="profile_retry">Tentar novamente</string>
 <string name="profile_incomplete">Informe o nome e o CRO.</string>
 <string name="profile_save_error">Não foi possível salvar o perfil.</string>
+    <string name="app_language_title">Idioma</string>
 </resources>

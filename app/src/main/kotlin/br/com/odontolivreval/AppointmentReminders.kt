@@ -36,12 +36,13 @@ object AppointmentReminders {
     private const val SYNC_DAYS = 60
 
     fun ensureChannel(context: Context) {
+        val localized = LanguagePreferences.localizedContext(context)
         val channel = NotificationChannel(
             CHANNEL_ID,
-            context.getString(R.string.reminder_channel),
+            localized.getString(R.string.reminder_channel),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = context.getString(R.string.reminder_channel_description)
+            description = localized.getString(R.string.reminder_channel_description)
         }
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
@@ -100,8 +101,11 @@ object AppointmentReminders {
     internal fun notification(context: Context, open: PendingIntent? = null): Notification =
         NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle(context.getString(R.string.reminder_title))
-            .setContentText(context.getString(R.string.reminder_text))
+            .apply {
+                val localized = LanguagePreferences.localizedContext(context)
+                setContentTitle(localized.getString(R.string.reminder_title))
+                setContentText(localized.getString(R.string.reminder_text))
+            }
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .setContentIntent(open)

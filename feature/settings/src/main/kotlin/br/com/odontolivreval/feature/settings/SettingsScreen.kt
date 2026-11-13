@@ -13,12 +13,32 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import br.com.odontolivreval.core.demo.ClinicStore
+import br.com.odontolivreval.core.model.AppLanguage
 import br.com.odontolivreval.core.model.ThemeMode
 
 @Composable
-fun SettingsScreen(store: ClinicStore, state: SettingsState, onTheme: (ThemeMode) -> Unit, onAbout: () -> Unit) {
+fun SettingsScreen(
+    state: SettingsState,
+    onTheme: (ThemeMode) -> Unit,
+    language: AppLanguage,
+    onLanguage: (AppLanguage) -> Unit,
+    onAbout: () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(R.string.app_language_title), style = MaterialTheme.typography.headlineSmall)
+        Column(Modifier.selectableGroup()) {
+            AppLanguage.entries.forEach { option ->
+                Row(
+                    Modifier.fillMaxWidth()
+                        .selectable(language == option, role = Role.RadioButton, onClick = { onLanguage(option) })
+                        .padding(12.dp),
+                ) {
+                    RadioButton(selected = language == option, onClick = null)
+                    Spacer(Modifier.width(12.dp))
+                    Text(option.label)
+                }
+            }
+        }
         Text(stringResource(R.string.appearance), style = MaterialTheme.typography.headlineSmall)
         Column(Modifier.selectableGroup()) {
             ThemeMode.entries.forEach { mode ->

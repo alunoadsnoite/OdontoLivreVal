@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signature_export_termo_documento">FORM / DOCUMENT: %1$s</string>
+    <string name="signature_export_tipo">Type: %1$s</string>
+    <string name="signature_export_versao">Version: %1$d</string>
+    <string name="signature_export_paciente">Patient: %1$s</string>
+    <string name="signature_export_assinatura_do_responsavel">Signature of the responsible person:</string>
+    <string name="signature_export_nome">Name: %1$s</string>
+    <string name="signature_export_funcao">Role: %1$s</string>
+    <string name="signature_export_data_hora">Date/Time: %1$s</string>
+    <string name="signature_export_este_documento_foi_preparado_para_assinatura">This document was prepared for signing.</string>
+    <string name="signature_export_a_assinatura_manuscrita_capturada_e_uma_representacao_visual">The captured handwritten signature is a visual representation.</string>
+    <string name="signature_export_nao_constitui_assinatura_digital_certificada_icp_brasil">It does not constitute an ICP-Brasil certified digital signature.</string>
+    <string name="signature_export_document_title">Signature - %1$s</string>
+    <string name="signature_label_pending">Pending</string>
+    <string name="signature_label_signed">Signed</string>
+    <string name="signature_label_revoked">Revoked</string>
+    <string name="signature_label_electronic_acknowledgement">Electronic acknowledgment</string>
+    <string name="signature_label_handwritten_on_paper">Paper signature</string>
+    <string name="signature_label_handwritten_digital">On-screen handwritten signature</string>
+    <string name="signature_label_cryptographic">Cryptographic signature</string>
+</resources>

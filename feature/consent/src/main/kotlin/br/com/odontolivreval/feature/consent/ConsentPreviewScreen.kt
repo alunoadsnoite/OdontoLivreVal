@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -52,6 +53,7 @@ fun ConsentPreviewScreen(
     val model: ConsentViewModel = viewModel(factory = ConsentViewModel.factory(store, patient.id))
     val formState by model.formState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
 
     var pdfUri by remember { mutableStateOf<Uri?>(null) }
@@ -86,42 +88,42 @@ fun ConsentPreviewScreen(
             try {
                 val file = withContext(Dispatchers.IO) {
                     val content = buildString {
-                        appendLine("TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO")
-                        appendLine("Tipo: ${c.type.name}")
-                        appendLine("Status: ${c.status.name}")
-                        appendLine("Versão: ${c.version}")
-                        appendLine("Data de emissão: ${c.issueDate}")
-                        appendLine("Local: ${c.placeOfIssue}")
+                        appendLine(resources.getString(R.string.consent_export_termo_de_consentimento_livre_e_esclarecido))
+                        appendLine(resources.getString(R.string.consent_export_tipo, resources.getString(typeLabel(c.type))))
+                        appendLine(resources.getString(R.string.consent_export_status, resources.getString(c.status.labelResource)))
+                        appendLine(resources.getString(R.string.consent_export_versao, c.version))
+                        appendLine(resources.getString(R.string.consent_export_data_de_emissao, c.issueDate))
+                        appendLine(resources.getString(R.string.consent_export_local, c.placeOfIssue))
                         appendLine("")
-                        appendLine("Paciente: ${patient.name}")
+                        appendLine(resources.getString(R.string.consent_export_paciente, patient.name))
                         appendLine("")
-                        appendLine("PROCEDIMENTO: ${c.procedure}")
-                        appendLine("OBJETIVOS: ${c.objectives}")
-                        appendLine("EXPLICAÇÃO: ${c.explanation}")
-                        appendLine("BENEFÍCIOS: ${c.benefits}")
-                        appendLine("RISCOS E COMPLICAÇÕES: ${c.risks}")
-                        appendLine("ALTERNATIVAS: ${c.alternatives}")
-                        appendLine("CONSEQUÊNCIAS DA NÃO REALIZAÇÃO: ${c.consequencesOfNotPerforming}")
-                        appendLine("CUIDADOS NECESSÁRIOS: ${c.careInstructions}")
-                        appendLine("LIMITAÇÕES E INCERTEZAS: ${c.limitations}")
-                        appendLine("DÚVIDAS DO PACIENTE: ${c.patientQuestions}")
-                        appendLine("DECLARAÇÃO DE ESCLARECIMENTO: ${c.clarificationStatement}")
+                        appendLine(resources.getString(R.string.consent_export_procedimento, c.procedure))
+                        appendLine(resources.getString(R.string.consent_export_objetivos, c.objectives))
+                        appendLine(resources.getString(R.string.consent_export_explicacao, c.explanation))
+                        appendLine(resources.getString(R.string.consent_export_beneficios, c.benefits))
+                        appendLine(resources.getString(R.string.consent_export_riscos_e_complicacoes, c.risks))
+                        appendLine(resources.getString(R.string.consent_export_alternativas, c.alternatives))
+                        appendLine(resources.getString(R.string.consent_export_consequencias_da_nao_realizacao, c.consequencesOfNotPerforming))
+                        appendLine(resources.getString(R.string.consent_export_cuidados_necessarios, c.careInstructions))
+                        appendLine(resources.getString(R.string.consent_export_limitacoes_e_incertezas, c.limitations))
+                        appendLine(resources.getString(R.string.consent_export_duvidas_do_paciente, c.patientQuestions))
+                        appendLine(resources.getString(R.string.consent_export_declaracao_de_esclarecimento, c.clarificationStatement))
                         appendLine("")
-                        appendLine("DECISÃO DO PACIENTE: ${c.consentProof.patientDecision.orEmpty()}")
-                        appendLine("MÉTODO DE COMPROVAÇÃO: ${c.consentProof.proofMethod.orEmpty()}")
-                        appendLine("DOCUMENTO ASSINADO: ${if (c.consentProof.hasSignedDocument) "Sim" else "Não"}")
+                        appendLine(resources.getString(R.string.consent_export_decisao_do_paciente, c.consentProof.patientDecision.orEmpty()))
+                        appendLine(resources.getString(R.string.consent_export_metodo_de_comprovacao, c.consentProof.proofMethod.orEmpty()))
+                        appendLine(resources.getString(R.string.consent_export_documento_assinado, resources.getString(if (c.consentProof.hasSignedDocument) R.string.consent_export_yes else R.string.consent_export_no)))
                         appendLine("")
-                        appendLine("Profissional: ${c.professionalId ?: "Não informado"}")
-                        appendLine("CRO/UF: Preencha no perfil profissional")
+                        appendLine(resources.getString(R.string.consent_export_profissional, c.professionalId ?: resources.getString(R.string.consent_export_not_provided)))
+                        appendLine(resources.getString(R.string.consent_export_cro_uf_preencha_no_perfil_profissional))
                         appendLine("")
-                        appendLine("Local e data: ${c.placeOfIssue} - ${c.issueDate}")
+                        appendLine(resources.getString(R.string.consent_export_local_e_data, c.placeOfIssue, c.issueDate))
                         appendLine("")
                         appendLine("_________________________")
-                        appendLine("Assinatura do paciente ou representante legal")
+                        appendLine(resources.getString(R.string.consent_export_assinatura_do_paciente_ou_representante_legal))
                         appendLine("_________________________")
-                        appendLine("Assinatura do cirurgião-dentista")
+                        appendLine(resources.getString(R.string.consent_export_assinatura_do_cirurgiao_dentista))
                         appendLine("_________________________")
-                        appendLine("CRO/UF")
+                        appendLine(resources.getString(R.string.consent_export_cro_uf))
                     }
                     val request = DocumentPdfRequest(
                         type = DocumentType.CONSENT,
@@ -129,7 +131,7 @@ fun ConsentPreviewScreen(
                         record = null,
                         profile = ProfessionalProfile(),
                         content = content,
-                        title = "TCLE - ${c.title}",
+                        title = resources.getString(R.string.consent_export_document_title, c.title),
                         labels = ClinicPdf.PdfLabels(
                             cro = croLabel,
                             patient = patientLabel,

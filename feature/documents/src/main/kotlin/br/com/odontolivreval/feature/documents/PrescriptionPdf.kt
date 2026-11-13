@@ -60,57 +60,57 @@ object PrescriptionPdf {
                 textSize = 18f
                 isFakeBoldText = true
             }
-            writer.paragraph("RECEITA ODONTOLÓGICA", titlePaint, 10f)
+            writer.paragraph(context.getString(R.string.documents_export_receita_odontologica), titlePaint, 10f)
 
             // Identificação do paciente
-            writer.paragraph("Paciente: ${patient.name}", body, 2f)
+            writer.paragraph(context.getString(R.string.documents_export_paciente, patient.name), body, 2f)
             if (!patientRecord?.birthDate.isNullOrBlank()) {
-                writer.paragraph("Nascimento: ${patientRecord?.birthDate}", body, 2f)
+                writer.paragraph(context.getString(R.string.documents_export_nascimento, patientRecord?.birthDate), body, 2f)
             }
             if (!patientRecord?.phone.isNullOrBlank()) {
-                writer.paragraph("Telefone: ${patientRecord?.phone}", body, 2f)
+                writer.paragraph(context.getString(R.string.documents_export_telefone, patientRecord?.phone), body, 2f)
             }
 
             // Médicamentos
-            writer.paragraph("Medicamentos:", body, 6f)
+            writer.paragraph(context.getString(R.string.documents_export_medicamentos), body, 6f)
             for (medication in medications) {
                 writer.paragraph("• ${medication.name}", body, 2f)
                 if (medication.presentation.isNotEmpty()) {
-                    writer.paragraph("  Apresentação: ${medication.presentation}", body, 2f)
+                    writer.paragraph("  " + context.getString(R.string.documents_export_apresentacao, medication.presentation), body, 2f)
                 }
                 if (medication.concentration.isNotEmpty()) {
-                    writer.paragraph("  Concentração: ${medication.concentration}", body, 2f)
+                    writer.paragraph("  " + context.getString(R.string.documents_export_concentracao, medication.concentration), body, 2f)
                 }
                 if (medication.posology.isNotEmpty()) {
-                    writer.paragraph("  Posologia: ${medication.posology}", body, 2f)
+                    writer.paragraph("  " + context.getString(R.string.documents_export_posologia, medication.posology), body, 2f)
                 }
                 if (medication.route.isNotEmpty()) {
-                    writer.paragraph("  Via de administração: ${medication.route}", body, 2f)
+                    writer.paragraph("  " + context.getString(R.string.documents_export_via_de_administracao, medication.route), body, 2f)
                 }
                 if (medication.duration.isNotEmpty()) {
-                    writer.paragraph("  Duração: ${medication.duration}", body, 2f)
+                    writer.paragraph("  " + context.getString(R.string.documents_export_duracao, medication.duration), body, 2f)
                 }
                 if (medication.quantity.isNotEmpty()) {
-                    writer.paragraph("  Quantidade: ${medication.quantity}", body, 2f)
+                    writer.paragraph("  " + context.getString(R.string.documents_export_quantidade, medication.quantity), body, 2f)
                 }
                 if (medication.observations.isNotEmpty()) {
-                    writer.paragraph("  Observações: ${medication.observations}", body, 2f)
+                    writer.paragraph("  " + context.getString(R.string.documents_export_observacoes, medication.observations), body, 2f)
                 }
                 writer.gap(4f)
             }
 
             // Instruções adicionais
             if (additionalInstructions.isNotEmpty()) {
-                writer.paragraph("Orientações adicionais:", body, 6f)
+                writer.paragraph(context.getString(R.string.documents_export_orientacoes_adicionais), body, 6f)
                 writer.paragraph(additionalInstructions, body, 12f)
             }
 
             // Data de emissão
             val dateFormat = DateTimeFormatter.ofPattern("dd/MM/uuuu")
-            writer.paragraph("Data de emissão: ${LocalDate.now().format(dateFormat)}", body, 12f)
+            writer.paragraph(context.getString(R.string.documents_export_data_de_emissao, LocalDate.now().format(dateFormat)), body, 12f)
 
             // Validade
-            writer.paragraph("Validade: ${validityDays} dias", body, 12f)
+            writer.paragraph(context.getString(R.string.documents_export_validade, validityDays), body, 12f)
 
             // Rodapé com assinatura
             writer.ensureSpace(60f)
@@ -120,8 +120,8 @@ object PrescriptionPdf {
             if (professional.cro.isNotBlank()) {
                 writer.paragraph("CRO: ${professional.cro}" + (if (professional.croUF.isNotEmpty()) "/${professional.croUF}" else ""), body, 2f)
             }
-            writer.paragraph("Este documento não constitui receita de controle especial.", body, 8f)
-            writer.paragraph("A assinatura digital deve ser realizada em sistema próprio.", body, 4f)
+            writer.paragraph(context.getString(R.string.documents_export_este_documento_nao_constitui_receita_de_controle_especial), body, 8f)
+            writer.paragraph(context.getString(R.string.documents_export_a_assinatura_digital_deve_ser_realizada_em_sistema_proprio), body, 4f)
 
             writer.finish()
 

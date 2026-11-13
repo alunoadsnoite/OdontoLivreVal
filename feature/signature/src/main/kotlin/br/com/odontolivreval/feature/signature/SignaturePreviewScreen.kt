@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -73,6 +74,7 @@ fun SignaturePreviewScreen(
     val formState by model.formState.collectAsStateWithLifecycle()
     val hashState by model.hashState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
 
     var pdfUri by remember { mutableStateOf<Uri?>(null) }
@@ -105,22 +107,22 @@ fun SignaturePreviewScreen(
             try {
                 val file = withContext(Dispatchers.IO) {
                     val content = buildString {
-                        appendLine("TERMO / DOCUMENTO: $documentTitle")
-                        appendLine("Tipo: $documentType")
-                        appendLine("Versão: $documentVersion")
-                        appendLine("Paciente: ${patient.name}")
+                        appendLine(resources.getString(R.string.signature_export_termo_documento, documentTitle))
+                        appendLine(resources.getString(R.string.signature_export_tipo, documentType))
+                        appendLine(resources.getString(R.string.signature_export_versao, documentVersion))
+                        appendLine(resources.getString(R.string.signature_export_paciente, patient.name))
                         appendLine("")
                         appendLine(documentContent)
                         appendLine("")
                         appendLine("---")
-                        appendLine("Assinatura do responsável:")
-                        appendLine("Nome: ${formState.signerName}")
-                        appendLine("Função: ${formState.signerRole}")
-                        appendLine("Data/Hora: ${java.time.LocalDateTime.now()}")
+                        appendLine(resources.getString(R.string.signature_export_assinatura_do_responsavel))
+                        appendLine(resources.getString(R.string.signature_export_nome, formState.signerName))
+                        appendLine(resources.getString(R.string.signature_export_funcao, formState.signerRole))
+                        appendLine(resources.getString(R.string.signature_export_data_hora, java.time.LocalDateTime.now()))
                         appendLine("")
-                        appendLine("Este documento foi preparado para assinatura.")
-                        appendLine("A assinatura manuscrita capturada é uma representação visual.")
-                        appendLine("Não constitui assinatura digital certificada ICP-Brasil.")
+                        appendLine(resources.getString(R.string.signature_export_este_documento_foi_preparado_para_assinatura))
+                        appendLine(resources.getString(R.string.signature_export_a_assinatura_manuscrita_capturada_e_uma_representacao_visual))
+                        appendLine(resources.getString(R.string.signature_export_nao_constitui_assinatura_digital_certificada_icp_brasil))
                     }
                     val request = DocumentPdfRequest(
                         type = DocumentType.CONSENT,
@@ -128,7 +130,7 @@ fun SignaturePreviewScreen(
                         record = null,
                         profile = ProfessionalProfile(),
                         content = content,
-                        title = "Assinatura - $documentTitle",
+                        title = resources.getString(R.string.signature_export_document_title, documentTitle),
                         labels = ClinicPdf.PdfLabels(
                             cro = croLabel,
                             patient = patientLabel,

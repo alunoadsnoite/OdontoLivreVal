@@ -291,4 +291,5 @@
     <string name="security_restored">Backup restaurado.</string>
     <string name="security_export_failed">Não foi possível salvar o backup. Tente novamente.</string>
     <string name="security_restore_failed">Não foi possível restaurar. Confira a senha e se o arquivo é um backup válido.</string>
+    <string name="clinical_record_title">Prontuário clínico</string>
 </resources>

@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
     private var pendingPrescriptionArchive = false
 
     private val createDocumentPdf = registerForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
-        documentFileModel.finish(applicationContext, uri)
+        documentFileModel.finish(LanguagePreferences.localizedContext(applicationContext), uri)
     }
     private lateinit var documentPhotoModel: DocumentPhotoImportViewModel
     private var pendingPrescriptionPatient: Long? = null
@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
         val request = pendingPdf
         pendingPdf = null
         if (uri != null && request != null) {
-            pdfModel.write(applicationContext, (application as OdontoApplication).demoClinic, request, uri)
+            pdfModel.write(LanguagePreferences.localizedContext(applicationContext), (application as OdontoApplication).demoClinic, request, uri)
         }
     }
 
@@ -131,6 +131,10 @@ class MainActivity : ComponentActivity() {
 
     private val importBackup = registerForActivityResult(ActivityResultContracts.OpenDocument()) {
         backupModel.select(BackupAction.RESTORE, it)
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LanguagePreferences.localizedContext(newBase))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -180,8 +184,15 @@ class MainActivity : ComponentActivity() {
                             OdontoApp(
                                 state,
                                 themeModel::selectTheme,
-                                odontoApplication.demoClinic,
-                                backup.revision,
+                                language = LanguagePreferences.selected(this),
+                                onLanguage = { language ->
+                                    if (LanguagePreferences.select(this, language)) {
+                                        AppointmentReminders.ensureChannel(this)
+                                        recreate()
+                                    }
+                                },
+                                demoClinic = odontoApplication.demoClinic,
+                                backupRevision = backup.revision,
                                 exportOdontogram = { patientId, visitId ->
                                     PdfExportControls(
                                         visitId = visitId,

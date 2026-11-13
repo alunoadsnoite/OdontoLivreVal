@@ -134,7 +134,7 @@ private fun SignatureRow(
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
-                text = "${stringResource(R.string.signature_options_modality, signature.modality.name)} · ${stringResource(R.string.signature_options_status, signature.status.name)}",
+                text = "${stringResource(R.string.signature_options_modality, stringResource(signature.modality.labelResource))} · ${stringResource(R.string.signature_options_status, stringResource(signature.status.labelResource))}",
                 style = MaterialTheme.typography.bodySmall,
             )
         }

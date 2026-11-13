@@ -26,8 +26,8 @@ android {
     minSdk = 26
     applicationId = "br.com.odontolivreval"
     targetSdk = 37
-    versionCode = 14
-    versionName = "0.13.1"
+    versionCode = 15
+    versionName = "0.14.0"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     vectorDrawables {
       useSupportLibrary = true

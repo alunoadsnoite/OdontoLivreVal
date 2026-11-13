@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance">Apariencia</string>
+    <string name="system">Sistema</string>
+    <string name="light">Claro</string>
+    <string name="dark">Oscuro</string>
+    <string name="about">Acerca de</string>
+    <string name="save_failed">No se pudo guardar. Inténtalo de nuevo.</string>
+    <string name="contact_title">Contacto</string>
+    <string name="contact_developer">Valdenor Tavares — valdenor.sa@proton.me</string>
+    <string name="contact_email">valdenor.sa@proton.me</string>
+    <string name="contact_send_email">Enviar correo</string>
+    <string name="profile_title">Perfil profesional</string>
+    <string name="profile_notice">Tu nombre y registro CRO aparecen en los documentos generados. Los datos permanecen en el almacenamiento cifrado de la aplicación.</string>
+    <string name="profile_name">Nombre completo</string>
+    <string name="profile_cro">CRO</string>
+    <string name="profile_cro_uf">Estado del CRO</string>
+    <string name="profile_cpf">CPF (opcional)</string>
+    <string name="profile_specialty">Especialidad</string>
+    <string name="profile_clinic">Nombre de la clínica</string>
+    <string name="profile_address">Dirección</string>
+    <string name="profile_phone">Teléfono</string>
+    <string name="profile_email">Correo electrónico profesional</string>
+    <string name="profile_save">Guardar perfil</string>
+    <string name="profile_saving">Guardando…</string>
+    <string name="profile_saved">Perfil guardado.</string>
+    <string name="profile_back">Volver</string>
+    <string name="profile_loading">Cargando perfil…</string>
+    <string name="profile_load_error">No se pudo cargar el perfil.</string>
+    <string name="profile_retry">Reintentar</string>
+    <string name="profile_incomplete">Introduce tu nombre y registro CRO.</string>
+    <string name="profile_save_error">No se pudo guardar el perfil.</string>
+    <string name="app_language_title">Idioma</string>
+</resources>

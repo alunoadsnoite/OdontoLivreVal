@@ -1,0 +1,7 @@
+Aplicación libre de historia clínica odontológica, diseñada para funcionar sin conexión en un solo dispositivo.
+
+Incluye registro de pacientes, odontograma, agenda y recordatorios locales, radiografías, documentos, certificados, planes de tratamiento, presupuestos y formularios de consentimiento. Ofrece bloqueo opcional y copias de seguridad cifradas.
+
+La aplicación funciona sin cuenta. Los datos clínicos permanecen en el dispositivo. La cámara y los archivos se usan cuando la persona usuaria los solicita. Los recordatorios se generan localmente.
+
+ESTADO DEL DESARROLLO: utiliza datos ficticios durante la validación. El proyecto sigue en evaluación para el uso clínico y no afirma cumplir íntegramente la LGPD. La confirmación escrita en la aplicación no equivale a una firma digital certificada. Consulta el aviso de privacidad y la documentación del proyecto.

@@ -94,7 +94,7 @@ private fun BudgetRow(
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                text = "${stringResource(R.string.treatment_budget_revision, budget.revision)} · ${budget.status.name}",
+                text = "${stringResource(R.string.treatment_budget_revision, budget.revision)} · ${stringResource(budget.status.labelResource)}",
                 style = MaterialTheme.typography.bodySmall,
             )
         }
