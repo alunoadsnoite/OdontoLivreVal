@@ -7,6 +7,7 @@
     <string name="demo_patients_edit">Edit patient</string>
     <string name="demo_patients_delete">Delete</string>
     <string name="demo_patients_delete_title">Delete patient</string>
+    <string name="demo_patients_delete_protected">This patient has linked records and was kept.</string>
     <string name="demo_patients_delete_confirm">Delete this patient and all their visits and records? This cannot be undone.</string>
     <string name="demo_patients_name">Patient name</string>
     <string name="demo_patients_save">Save</string>
@@ -29,6 +30,11 @@
     <string name="demo_patient_diagnosis">Diagnosis</string>
     <string name="demo_patient_conduct">Management</string>
     <string name="demo_patient_save_record">Save record</string>
+    <string name="demo_patient_professional_required">Enter the professional's name, CRO number, and state in Settings → Professional profile to save a visit record.</string>
+    <string name="demo_patient_legacy_author">Older record without professional identification.</string>
+    <string name="demo_patient_visit_author">%1$s · CRO-%2$s %3$s</string>
+    <string name="demo_patient_recorded_at">Recorded on %1$s</string>
+    <string name="demo_patient_visit_revision">Revision of an earlier visit record</string>
     <string name="demo_patient_record_saved">Record saved.</string>
     <string name="demo_patient_record_note">The records in this chart stay on the device.</string>
     <string name="demo_patient_visits">Visits</string>
@@ -133,6 +139,7 @@
     <string name="archive_copied">PDF copy saved.</string>
     <string name="archive_working">Processing PDF…</string>
     <string name="archive_error">Could not access or save the PDF.</string>
+    <string name="clinical_attachments_retained">Files attached to the clinical record are kept by the app.</string>
     <string name="pdf_professional">Professional: %1$s · CRO %2$s</string>
     <string name="demo_patient_draft_restored">Encrypted draft restored. Review and save the visit record.</string>
     <string name="demo_patient_draft_save_failed">Could not save the encrypted draft. Save the visit record before leaving.</string>

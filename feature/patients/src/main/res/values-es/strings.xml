@@ -7,6 +7,7 @@
     <string name="demo_patients_edit">Editar paciente</string>
     <string name="demo_patients_delete">Eliminar</string>
     <string name="demo_patients_delete_title">Eliminar paciente</string>
+    <string name="demo_patients_delete_protected">Este paciente tiene registros vinculados y se conservó.</string>
     <string name="demo_patients_delete_confirm">¿Eliminar este paciente y todas sus consultas y fichas? Esta acción es irreversible.</string>
     <string name="demo_patients_name">Nombre del paciente</string>
     <string name="demo_patients_save">Guardar</string>
@@ -29,6 +30,11 @@
     <string name="demo_patient_diagnosis">Diagnóstico</string>
     <string name="demo_patient_conduct">Conducta</string>
     <string name="demo_patient_save_record">Guardar ficha</string>
+    <string name="demo_patient_professional_required">Completa el nombre del profesional, el número CRO y el estado en Configuración → Perfil profesional para guardar una evolución.</string>
+    <string name="demo_patient_legacy_author">Registro anterior sin identificación del profesional.</string>
+    <string name="demo_patient_visit_author">%1$s · CRO-%2$s %3$s</string>
+    <string name="demo_patient_recorded_at">Registrado el %1$s</string>
+    <string name="demo_patient_visit_revision">Revisión de una evolución anterior</string>
     <string name="demo_patient_record_saved">Ficha guardada.</string>
     <string name="demo_patient_record_note">Los registros de esta historia clínica permanecen en el dispositivo.</string>
     <string name="demo_patient_visits">Consultas</string>
@@ -133,6 +139,7 @@
     <string name="archive_copied">Copia del PDF guardada.</string>
     <string name="archive_working">Procesando PDF…</string>
     <string name="archive_error">No se pudo acceder al PDF o guardarlo.</string>
+    <string name="clinical_attachments_retained">La aplicación conserva los archivos adjuntos a la historia clínica.</string>
     <string name="pdf_professional">Profesional: %1$s · CRO %2$s</string>
     <string name="demo_patient_draft_restored">Se restauró el borrador cifrado. Revisa y guarda la evolución.</string>
     <string name="demo_patient_draft_save_failed">No se pudo guardar el borrador cifrado. Guarda la evolución antes de salir.</string>
