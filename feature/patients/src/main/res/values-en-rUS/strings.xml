@@ -30,7 +30,7 @@
     <string name="demo_patient_diagnosis">Diagnosis</string>
     <string name="demo_patient_conduct">Management</string>
     <string name="demo_patient_save_record">Save record</string>
-    <string name="demo_patient_professional_required">Enter the professional's name, CRO number, and state in Settings → Professional profile to save a visit record.</string>
+    <string name="demo_patient_professional_required">Enter the professional name, CRO number, and state in Settings → Professional profile to save a visit record.</string>
     <string name="demo_patient_legacy_author">Older record without professional identification.</string>
     <string name="demo_patient_visit_author">%1$s · CRO-%2$s %3$s</string>
     <string name="demo_patient_recorded_at">Recorded on %1$s</string>
