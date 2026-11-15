@@ -41,6 +41,11 @@ data class VisitRecord(
     val conduct: String = "",
     val observations: String = "",
     val odontogram: Map<String, String> = emptyMap(),
+    val professionalName: String = "",
+    val professionalCro: String = "",
+    val professionalCroUf: String = "",
+    val recordedAtMillis: Long? = null,
+    val previousVisitId: Long? = null,
 )
 
 data class PatientRecordDraft(
@@ -70,6 +75,24 @@ internal data class ClinicSnapshot(
     val professional: ProfessionalProfile = ProfessionalProfile(),
     val patientRecordDrafts: List<PatientRecordDraft> = emptyList(),
 ) {
+    fun hasPatientHistory(patientId: Long): Boolean =
+        appointments.any { it.patientId == patientId } ||
+            patientRecords.any { it.patientId == patientId } ||
+            visits.any { it.patientId == patientId } ||
+            patientRecordDrafts.any { it.patientId == patientId } ||
+            radiographs.any { it.file.patientId == patientId } ||
+            prescriptions.any { it.file.patientId == patientId } ||
+            documentPhotos.any { it.file.patientId == patientId } ||
+            digitalSignatures.any { it.file.patientId == patientId } ||
+            medicalCertificates.any { it.file.patientId == patientId } ||
+            treatmentPlans.any { it.file.patientId == patientId } ||
+            treatmentBudgets.any { it.file.patientId == patientId } ||
+            informedConsents.any { it.file.patientId == patientId } ||
+            documentSignatures.any { it.file.patientId == patientId } ||
+            documentHashes.any { it.file.patientId == patientId } ||
+            reminders.any { it.file.patientId == patientId } ||
+            reminderSettings.any { it.file.patientId == patientId }
+
     fun encode(): ByteArray = JSONObject()
         .put("version", currentVersion)
         .put("professional", JSONObject()
@@ -102,7 +125,9 @@ internal data class ClinicSnapshot(
             visits.forEach {
                 put(JSONArray().put(it.id).put(it.patientId).put(it.visitDay).put(it.visitMinute)
                     .put(it.complaint).put(it.anamnesis).put(it.diagnosis).put(it.conduct).put(it.observations)
-                    .put(JSONArray(it.odontogram.entries.toList().sortedBy { it.key }.map { pair -> JSONArray().put(pair.key).put(pair.value) })))
+                    .put(JSONArray(it.odontogram.entries.toList().sortedBy { it.key }.map { pair -> JSONArray().put(pair.key).put(pair.value) }))
+                    .put(it.professionalName).put(it.professionalCro).put(it.professionalCroUf)
+                    .put(it.recordedAtMillis ?: JSONObject.NULL).put(it.previousVisitId ?: JSONObject.NULL))
             }
         })
         .put("patientRecordDrafts", JSONArray().apply {
@@ -438,6 +463,11 @@ internal data class ClinicSnapshot(
                         it.get(7) as? String ?: "",
                         it.get(8) as? String ?: "",
                         odontogram,
+                        professionalName = it.optString(10, ""),
+                        professionalCro = it.optString(11, ""),
+                        professionalCroUf = it.optString(12, ""),
+                        recordedAtMillis = if (it.isNull(13)) null else it.integer(13),
+                        previousVisitId = if (it.isNull(14)) null else it.integer(14),
                     )
                 }
             } else {
@@ -724,7 +754,7 @@ internal data class ClinicSnapshot(
 
         private val minDay = LocalDate.MIN.toEpochDay()
         private val maxDay = LocalDate.MAX.toEpochDay()
-        private const val currentVersion = 17
+        private const val currentVersion = 18
 
         private fun JSONArray.attachment(version: Int, index: Int): AttachmentContent {
             val value = getString(index)

@@ -247,6 +247,9 @@ fun PatientRecordScreen(
         if (state.saved) {
             Text(stringResource(R.string.demo_patient_record_saved), color = MaterialTheme.colorScheme.primary)
         }
+        if (state.professionalRequired) {
+            Text(stringResource(R.string.demo_patient_professional_required), color = MaterialTheme.colorScheme.error)
+        }
         if (state.saveFailed) {
             Text(stringResource(R.string.demo_patient_save_failed), color = MaterialTheme.colorScheme.error)
         }
@@ -334,6 +337,24 @@ private fun VisitCard(visit: VisitRecord, active: Boolean) {
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
+            }
+            Text(
+                text = if (visit.professionalName.isBlank()) {
+                    stringResource(R.string.demo_patient_legacy_author)
+                } else {
+                    stringResource(R.string.demo_patient_visit_author, visit.professionalName, visit.professionalCroUf, visit.professionalCro)
+                },
+                style = MaterialTheme.typography.bodySmall,
+            )
+            visit.recordedAtMillis?.let { millis ->
+                val recordedAt = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault())
+                Text(
+                    text = stringResource(R.string.demo_patient_recorded_at, visitFormatter.format(recordedAt)),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            if (visit.previousVisitId != null) {
+                Text(stringResource(R.string.demo_patient_visit_revision), style = MaterialTheme.typography.bodySmall)
             }
             Text(
                 text = visit.complaint.ifBlank { stringResource(R.string.demo_patient_no_complaint) },

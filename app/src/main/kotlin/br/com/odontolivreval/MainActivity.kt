@@ -80,7 +80,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private lateinit var pdfModel: OdontogramExportViewModel
-    private var pendingPdf: OdontogramRequest? = null
+    private var pendingPdf: OdontogramRequest?
+        get() = pdfModel.pending
+        set(value) { pdfModel.pending = value }
 
     private val createOdontogramPdf = registerForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
         val request = pendingPdf
@@ -153,7 +155,13 @@ class MainActivity : ComponentActivity() {
         savedInstanceState?.let {
             val patient = it.getLong("pdfPatient")
             val visit = it.getLong("pdfVisit")
-            if (patient > 0 && visit > 0) pendingPdf = OdontogramRequest(patient, visit)
+            if (patient > 0 && pendingPdf == null) {
+                pendingPdf = when (it.getString("pdfKind")) {
+                    "record" -> OdontogramRequest(patient, clinical = ClinicalExport.RecordCopy)
+                    "evolution" -> if (visit > 0) OdontogramRequest(patient, clinical = ClinicalExport.Evolution(visit)) else null
+                    else -> if (visit > 0) OdontogramRequest(patient, visit) else null
+                }
+            }
         }
         pendingRadiographPatient = savedInstanceState?.getLong("radiographPatient")?.takeIf { it > 0 }
         if (pendingRadiographPatient == null && !radiographModel.state.value.busy) captureFile.delete()
@@ -197,7 +205,10 @@ class MainActivity : ComponentActivity() {
                                     PdfExportControls(
                                         visitId = visitId,
                                         result = pdf?.takeIf { it.patientId == patientId }?.result,
-                                        onExport = { launchOdontogramPdf(patientId, it) },
+                                        onExport = { launchPatientPdf(OdontogramRequest(patientId, it), "Odontograma.pdf") },
+                                        onClinicalExport = { request, fileName ->
+                                            launchPatientPdf(OdontogramRequest(patientId, clinical = request), fileName)
+                                        },
                                     )
                                 },
                                 onSaveDocument = ::launchDocumentPdf,
@@ -269,9 +280,16 @@ class MainActivity : ComponentActivity() {
         pendingPrescriptionPatient?.let { outState.putLong("prescriptionPatient", it) }
         outState.putBoolean("prescriptionArchive", pendingPrescriptionArchive)
         pendingPrescriptionCopy?.let { outState.putLongArray("prescriptionCopy", longArrayOf(it.first, it.second)) }
-        pendingPdf?.let {
+        pendingPdf?.takeUnless { it.clinical is ClinicalExport.Receipt }?.let {
             outState.putLong("pdfPatient", it.patientId)
-            outState.putLong("pdfVisit", it.visitId)
+            when (val clinical = it.clinical) {
+                ClinicalExport.RecordCopy -> outState.putString("pdfKind", "record")
+                is ClinicalExport.Evolution -> {
+                    outState.putString("pdfKind", "evolution")
+                    outState.putLong("pdfVisit", clinical.visitId)
+                }
+                else -> it.visitId?.let { id -> outState.putLong("pdfVisit", id) }
+            }
         }
         pendingDocumentPhotoPatient?.let { outState.putLong("documentPhotoPatient", it) }
         super.onSaveInstanceState(outState)
@@ -315,14 +333,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun launchOdontogramPdf(patientId: Long, visitId: Long) {
+    private fun launchPatientPdf(request: OdontogramRequest, fileName: String) {
         if (pendingPdf != null || pdfModel.state.value?.result == OdontogramResult.SAVING) return
-        pendingPdf = OdontogramRequest(patientId, visitId)
+        pendingPdf = request
         try {
-            createOdontogramPdf.launch("Odontograma.pdf")
+            createOdontogramPdf.launch(fileName)
         } catch (_: ActivityNotFoundException) {
             pendingPdf = null
-            pdfModel.fail(patientId)
+            pdfModel.fail(request.patientId)
         }
     }
 
@@ -460,7 +478,12 @@ private fun LockedScreen(lock: DeviceLock, onOpenSettings: () -> Unit) {
 }
 
 @Composable
-private fun PdfExportControls(visitId: Long?, result: OdontogramResult?, onExport: (Long) -> Unit) {
+private fun PdfExportControls(
+    visitId: Long?,
+    result: OdontogramResult?,
+    onExport: (Long) -> Unit,
+    onClinicalExport: (ClinicalExport, String) -> Unit,
+) {
     OutlinedButton(
         onClick = { visitId?.let(onExport) },
         enabled = visitId != null && result != OdontogramResult.SAVING,
@@ -469,6 +492,7 @@ private fun PdfExportControls(visitId: Long?, result: OdontogramResult?, onExpor
         stringResource(if (visitId == null) R.string.odontogram_pdf_save_first else R.string.odontogram_pdf_privacy),
         style = MaterialTheme.typography.bodySmall,
     )
+    ClinicalPdfControls(visitId, result == OdontogramResult.SAVING, onClinicalExport)
     if (result != null) {
         Text(stringResource(when (result) {
             OdontogramResult.SAVING -> R.string.odontogram_pdf_working

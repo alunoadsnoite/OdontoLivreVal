@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -26,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import br.com.odontolivreval.core.demo.ClinicStorageException
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DocumentPhoto
-import kotlinx.coroutines.launch
 
 @Composable
 fun PatientDocumentPhotos(
@@ -37,10 +35,7 @@ fun PatientDocumentPhotos(
 ) {
     var photos by remember(patientId) { mutableStateOf<List<DocumentPhoto>?>(null) }
     var viewing by remember(patientId) { mutableStateOf<DocumentPhoto?>(null) }
-    var removing by remember(patientId) { mutableStateOf<DocumentPhoto?>(null) }
     var error by remember(patientId) { mutableStateOf(false) }
-    var deleting by remember(patientId) { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     LaunchedEffect(store, patientId) {
         try {
             photos = store.listDocumentPhotos(patientId)
@@ -53,10 +48,10 @@ fun PatientDocumentPhotos(
     Text(stringResource(R.string.document_photos_title), style = MaterialTheme.typography.titleMedium)
     Text(stringResource(R.string.document_photos_hint), style = MaterialTheme.typography.bodySmall)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = onPick, enabled = !deleting) {
+        OutlinedButton(onClick = onPick, enabled = true) {
             Text(stringResource(R.string.document_photos_import))
         }
-        OutlinedButton(onClick = onCamera, enabled = !deleting) {
+        OutlinedButton(onClick = onCamera, enabled = true) {
             Text(stringResource(R.string.document_photos_camera))
         }
     }
@@ -67,37 +62,11 @@ fun PatientDocumentPhotos(
             TextButton(onClick = { viewing = photo }) {
                 Text(stringResource(R.string.document_photos_view, index + 1))
             }
-            TextButton(onClick = { removing = photo }, enabled = !deleting) {
-                Text(stringResource(R.string.document_photos_remove))
-            }
         }
     }
     viewing?.let { image -> DocumentPhotoPreview(store, image) { viewing = null } }
-    removing?.let { image ->
-        AlertDialog(
-            onDismissRequest = { removing = null },
-            title = { Text(stringResource(R.string.document_photos_confirm_remove)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    removing = null
-                    deleting = true
-                    scope.launch {
-                        try {
-                            store.removeDocumentPhoto(patientId, image.id)
-                            photos = photos.orEmpty().filterNot { it.id == image.id }
-                            error = false
-                        } catch (_: ClinicStorageException) {
-                            error = true
-                        } finally {
-                            deleting = false
-                        }
-                    }
-                }) { Text(stringResource(R.string.document_photos_remove)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { removing = null }) { Text(stringResource(R.string.demo_patients_cancel)) }
-            },
-        )
+    if (photos?.isNotEmpty() == true) {
+        Text(stringResource(R.string.clinical_attachments_retained), style = MaterialTheme.typography.bodySmall)
     }
 }
 

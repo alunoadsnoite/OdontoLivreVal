@@ -2,9 +2,12 @@ package br.com.odontolivreval
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import br.com.odontolivreval.core.demo.PatientHistoryProtectedException
+import org.junit.Assert.assertEquals
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
+import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 
@@ -79,38 +82,48 @@ class NavigationTest {
         val suffix = UUID.randomUUID().toString().take(8)
         val name = "Paciente Dente $suffix"
         val store = (compose.activity.application as OdontoApplication).demoClinic
+        val profile = runBlocking { store.getProfessionalProfile() }
+        runBlocking { store.saveProfessionalProfile(profile.copy(name = "Profissional fictício", cro = "12345", croUF = "CE")) }
         try {
-        compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
-        compose.waitUntil(5_000) {
-            compose.onAllNodesWithText(text(R.string.demo_patients_new)).fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onNodeWithText(text(R.string.demo_patients_new)).performClick()
-        compose.onNodeWithText(text(R.string.demo_patients_name)).performTextInput(name)
-        compose.onNodeWithText("Salvar").performClick()
-        compose.waitUntil(5_000) {
-            compose.onAllNodesWithText(name).fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onNodeWithText(name).performClick()
-        compose.waitUntil(5_000) {
-            compose.onAllNodesWithText("Odontograma").fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onNodeWithContentDescription("Dente 11: Sem marcação").performScrollTo().performClick()
-        compose.onAllNodesWithText("Canal").onLast().performClick()
-        compose.onNodeWithText("Mesial").performClick()
-        compose.onAllNodesWithText("Cárie").onLast().performClick()
-        compose.onNodeWithText("Concluir").performClick()
-        compose.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
-        compose.onNodeWithText("Descartar alterações?").assertIsDisplayed()
-        compose.onNodeWithText("Continuar editando").performClick()
-        compose.onNodeWithText(text(R.string.demo_patient_save_record)).performScrollTo().performClick()
-        compose.waitUntil(5_000) {
-            compose.onAllNodesWithText(text(R.string.demo_patient_active_visit)).fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onNodeWithContentDescription("Dente 11: Canal. 1 superfície marcada").assertExists()
-        } finally {
-            runBlocking {
-                store.listPatients().filter { suffix in it.name }.forEach { store.deletePatient(it.id) }
+            compose.onAllNodesWithText(text(R.string.patients)).onFirst().performClick()
+            compose.waitUntil(5_000) {
+                compose.onAllNodesWithText(text(R.string.demo_patients_new)).fetchSemanticsNodes().isNotEmpty()
             }
+            compose.onNodeWithText(text(R.string.demo_patients_new)).performClick()
+            compose.onNodeWithText(text(R.string.demo_patients_name)).performTextInput(name)
+            compose.onNodeWithText("Salvar").performClick()
+            compose.waitUntil(5_000) {
+                compose.onAllNodesWithText(name).fetchSemanticsNodes().isNotEmpty()
+            }
+            compose.onNodeWithText(name).performClick()
+            compose.waitUntil(5_000) {
+                compose.onAllNodesWithText("Odontograma").fetchSemanticsNodes().isNotEmpty()
+            }
+            compose.onNodeWithContentDescription("Dente 11: Sem marcação").performScrollTo().performClick()
+            compose.onAllNodesWithText("Canal").onLast().performClick()
+            compose.onNodeWithText("Mesial").performClick()
+            compose.onAllNodesWithText("Cárie").onLast().performClick()
+            compose.onNodeWithText("Concluir").performClick()
+            compose.activityRule.scenario.onActivity { it.onBackPressedDispatcher.onBackPressed() }
+            compose.onNodeWithText("Descartar alterações?").assertIsDisplayed()
+            compose.onNodeWithText("Continuar editando").performClick()
+            compose.onNodeWithText(text(R.string.demo_patient_save_record)).performScrollTo().performClick()
+            compose.waitUntil(5_000) {
+                compose.onAllNodesWithText(text(R.string.demo_patient_active_visit)).fetchSemanticsNodes().isNotEmpty()
+            }
+            compose.onNodeWithContentDescription("Dente 11: Canal. 1 superfície marcada").assertExists()
+            val patient = runBlocking { store.listPatients().single { it.name == name } }
+            assertThrows(PatientHistoryProtectedException::class.java) {
+                runBlocking { store.deletePatient(patient.id) }
+            }
+            val visit = runBlocking { store.listVisits(patient.id).single() }
+            assertEquals("Profissional fictício", visit.professionalName)
+            assertEquals("12345", visit.professionalCro)
+            val revision = runBlocking { store.saveVisit(visit.copy(diagnosis = "Revisão fictícia")) }
+            assertEquals(visit.id, revision.previousVisitId)
+            assertEquals(listOf(revision, visit), runBlocking { store.listVisits(patient.id) })
+        } finally {
+            runBlocking { store.saveProfessionalProfile(profile) }
         }
     }
 

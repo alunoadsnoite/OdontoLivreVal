@@ -164,6 +164,12 @@ fun PatientsScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.demo_patients_delete_confirm))
+                    if (state.deleteProtected) {
+                        Text(
+                            stringResource(R.string.demo_patients_delete_protected),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                     if (state.deleteFailed) {
                         Text(
                             stringResource(R.string.demo_patients_save_failed),
@@ -173,7 +179,7 @@ fun PatientsScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = model::confirmDelete, enabled = !state.deleting) {
+                TextButton(onClick = model::confirmDelete, enabled = !state.deleting && !state.deleteProtected) {
                     Text(stringResource(R.string.demo_patients_delete))
                 }
             },

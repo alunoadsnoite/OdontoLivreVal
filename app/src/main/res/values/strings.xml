@@ -283,7 +283,7 @@
     <string name="security_password_help">Senha de pelo menos 12 caracteres, com 1 maiuscula, 1 numero e 1 simbolo. Guarde-a em local seguro.</string>
     <string name="security_password">Senha do backup</string>
     <string name="security_password_confirm">Confirme a senha</string>
-    <string name="security_replace_warning">A restauração substitui todos os cadastros e consultas atuais pela cópia selecionada.</string>
+    <string name="security_replace_warning">A restauração substitui todos os dados locais, inclusive prontuários e anexos. Antes de continuar, exporte e confira um backup dos dados que precisam ser preservados.</string>
     <string name="security_replace">Restaurar e substituir</string>
     <string name="security_cancel">Cancelar</string>
     <string name="security_working">Processando…</string>

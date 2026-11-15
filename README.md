@@ -11,7 +11,7 @@ Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista p
 - **Segurança e backup** em Configurações, com bloqueio opcional e exportação ou restauração de uma cópia criptografada.
 - **Perfil profissional** com nome, CRO e dados da clínica.
 - **Sobre** com a versão instalada e a licença.
-- **Pacientes** com cadastro, busca sem distinção de acentos, edição e exclusão confirmada. Os registros de teste continuam salvos após fechar o app.
+- **Pacientes** com cadastro, busca sem distinção de acentos, edição e exclusão confirmada de cadastros sem registros vinculados. Os registros de teste continuam salvos após fechar o app.
 - **Prontuário** ao tocar no nome do paciente: ficha com nascimento, telefone, queixa, anamnese e observações; diagnóstico e conduta por consulta; histórico de evoluções.
 - **Odontograma** dentro do prontuário, com dentições permanente e decídua. Aceita marcação no dente inteiro e cárie ou restauração em faces individuais. A evolução salva pode ser exportada em PDF.
 - **Radiografias** no prontuário, importadas em JPG/PNG ou fotografadas, com visualização e remoção.

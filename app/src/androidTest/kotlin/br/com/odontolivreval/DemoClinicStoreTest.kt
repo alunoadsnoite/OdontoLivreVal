@@ -39,6 +39,9 @@ class DemoClinicStoreTest {
         }
         try {
             val store = DemoClinicStore(isolatedContext)
+            store.saveProfessionalProfile(store.getProfessionalProfile().copy(
+                name = "Profissional fictício", cro = "12345", croUF = "CE",
+            ))
             val first = store.savePatient(null, "Paciente Um")
             val second = store.savePatient(null, "Paciente Dois")
             val firstRecord = store.saveRecordAndVisit(
@@ -154,9 +157,26 @@ class DemoClinicStoreTest {
             store.addRadiograph(patient.id, Uri.fromFile(image), fromCamera = false)
             assertEquals(16, store.previewRadiograph(patient.id, store.listRadiographs(patient.id).single().id)!!.width)
 
+            store.saveProfessionalProfile(store.getProfessionalProfile().copy(
+                name = "Profissional fictício", cro = "12345", croUF = "CE",
+            ))
             val marks = mapOf("11" to "E", "11:M" to "C", "12" to "R", "55:O" to "R")
             val visit = store.saveVisit(VisitRecord(0, patient.id, 20_000, 600, odontogram = marks))
             assertEquals(marks, DemoClinicStore(isolatedContext).listVisits(patient.id).single().odontogram)
+            val clinicalCopy = ClinicalPdf.text(store, patient, ClinicalExport.RecordCopy)
+            assertTrue(clinicalCopy.contains("Evolução nº ${visit.id}"))
+            assertTrue(clinicalCopy.contains("CRO-CE 12345"))
+            val evolution = ClinicalPdf.text(store, patient, ClinicalExport.Evolution(visit.id))
+            assertTrue(evolution.contains("55:O: R"))
+            val receipt = ClinicalPdf.text(store, patient,
+                ClinicalExport.Receipt("Paciente fictício, titular", "Cópia da ficha e das evoluções"))
+            assertTrue(receipt.contains("Cópia da ficha e das evoluções"))
+            assertTrue(receipt.contains("Assinatura do destinatário"))
+            val receiptPdf = directory.resolve("recibo.pdf")
+            receiptPdf.outputStream().use { ClinicalPdf.write(receipt, it) }
+            PdfRenderer(ParcelFileDescriptor.open(receiptPdf, ParcelFileDescriptor.MODE_READ_ONLY)).use {
+                assertEquals(1, it.pageCount)
+            }
             val pdf = directory.resolve("odontograma.pdf")
             pdf.outputStream().use { OdontogramPdf.write(app, patient.name, visit, it) }
             PdfRenderer(ParcelFileDescriptor.open(pdf, ParcelFileDescriptor.MODE_READ_ONLY)).use { renderer ->
@@ -174,15 +194,20 @@ class DemoClinicStoreTest {
             val backup = Uri.fromFile(backupFile)
             val password = "senha-de-teste-longa".toCharArray()
             store.exportBackup(backup, password)
-            store.removePrescription(patient.id, recipe.id)
-            store.removePrescription(patient.id, archived.id)
-            store.removeRadiograph(patient.id, store.listRadiographs(patient.id).single().id)
+            val radiograph = store.listRadiographs(patient.id).single()
+            for (remove in listOf<suspend () -> Unit>(
+                { store.removePrescription(patient.id, recipe.id) },
+                { store.removePrescription(patient.id, archived.id) },
+                { store.removeRadiograph(patient.id, radiograph.id) },
+            )) {
+                assertTrue(runCatching { remove() }.exceptionOrNull() is ClinicStorageException)
+            }
             val truncated = directory.resolve("incompleto.odl")
             truncated.writeBytes(backupFile.readBytes().dropLast(1).toByteArray())
             val failed = runCatching { store.restoreBackup(Uri.fromFile(truncated), password) }
             assertTrue(failed.exceptionOrNull() is ClinicStorageException)
-            assertTrue(store.listRadiographs(patient.id).isEmpty())
-            assertTrue(store.listPrescriptions(patient.id).isEmpty())
+            assertEquals(listOf(radiograph), store.listRadiographs(patient.id))
+            assertEquals(listOf(recipe), store.listPrescriptions(patient.id))
             store.restoreBackup(backup, password)
             assertEquals(marks, store.listVisits(patient.id).single().odontogram)
             assertEquals(1, store.listRadiographs(patient.id).size)

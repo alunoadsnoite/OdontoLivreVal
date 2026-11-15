@@ -5,6 +5,7 @@ import br.com.odontolivreval.core.demo.VisitRecord
 import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -113,6 +114,7 @@ class PatientRecordViewModelTest {
         assertTrue(model.state.value.phoneError)
         assertFalse(model.state.value.saving)
         assertEquals(0, store.saves)
+        advanceUntilIdle()
     }
 
     @Test

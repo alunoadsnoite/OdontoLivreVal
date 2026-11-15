@@ -13,6 +13,7 @@ import br.com.odontolivreval.core.demo.VisitRecord
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import br.com.odontolivreval.core.demo.VisitProfessionalRequiredException
 import java.time.format.DateTimeParseException
 import java.time.format.ResolverStyle
 import kotlinx.coroutines.Job
@@ -56,6 +57,7 @@ internal class PatientRecordViewModel(
         val loadFailed: Boolean = false,
         val saving: Boolean = false,
         val saveFailed: Boolean = false,
+        val professionalRequired: Boolean = false,
         val saved: Boolean = false,
         val dirty: Boolean = false,
         val birthDateError: Boolean = false,
@@ -201,7 +203,7 @@ internal class PatientRecordViewModel(
             odontogram = current.odontogram,
         )
         draftSaveJob?.cancel()
-        mutableState.update { it.copy(saving = true, saveFailed = false, saved = false) }
+        mutableState.update { it.copy(saving = true, saveFailed = false, professionalRequired = false, saved = false) }
         lastSaveSucceeded = false
         val generation = memoryGeneration
         recordSaveJob = viewModelScope.launch {
@@ -232,6 +234,10 @@ internal class PatientRecordViewModel(
                         draftRestored = false,
                         draftSaveFailed = false,
                     )
+                }
+            } catch (_: VisitProfessionalRequiredException) {
+                if (generation == memoryGeneration) {
+                    mutableState.update { it.copy(saving = false, professionalRequired = true) }
                 }
             } catch (_: ClinicStorageException) {
                 lastSaveSucceeded = false

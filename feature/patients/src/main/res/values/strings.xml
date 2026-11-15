@@ -6,7 +6,8 @@
     <string name="demo_patients_edit">Editar paciente</string>
     <string name="demo_patients_delete">Excluir</string>
     <string name="demo_patients_delete_title">Excluir paciente</string>
-    <string name="demo_patients_delete_confirm">Excluir este paciente e todas as suas consultas/fichas? Esta ação não pode ser desfeita.</string>
+    <string name="demo_patients_delete_protected">Este cadastro tem registros vinculados e foi preservado.</string>
+    <string name="demo_patients_delete_confirm">Excluir este cadastro? Só é possível excluir cadastros sem consultas ou outros registros vinculados.</string>
     <string name="demo_patients_name">Nome do paciente</string>
     <string name="demo_patients_save">Salvar</string>
     <string name="demo_patients_cancel">Cancelar</string>
@@ -28,6 +29,11 @@
     <string name="demo_patient_diagnosis">Diagnóstico</string>
     <string name="demo_patient_conduct">Conduta</string>
     <string name="demo_patient_save_record">Salvar ficha</string>
+    <string name="demo_patient_professional_required">Preencha nome, número do CRO e UF em Configurações → Perfil profissional para salvar a evolução.</string>
+    <string name="demo_patient_legacy_author">Registro antigo sem identificação do profissional.</string>
+    <string name="demo_patient_visit_author">%1$s · CRO-%2$s %3$s</string>
+    <string name="demo_patient_recorded_at">Registrado em %1$s</string>
+    <string name="demo_patient_visit_revision">Revisão de uma evolução anterior</string>
     <string name="demo_patient_record_saved">Ficha salva com sucesso.</string>
     <string name="demo_patient_record_note">Os registros deste prontuário ficam no aparelho.</string>
     <string name="demo_patient_visits">Consultas</string>
@@ -135,4 +141,5 @@
     <string name="pdf_professional">Profissional: %1$s · CRO %2$s</string>
     <string name="demo_patient_draft_restored">Rascunho criptografado restaurado. Revise e salve a evolução.</string>
     <string name="demo_patient_draft_save_failed">Não foi possível salvar o rascunho criptografado. Salve a evolução antes de sair.</string>
+    <string name="clinical_attachments_retained">Os arquivos anexados ao prontuário são preservados pelo app.</string>
 </resources>
