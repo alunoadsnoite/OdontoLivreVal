@@ -1,6 +1,6 @@
 # OdontoLivreVal
 
-Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.14.0** (versionCode 15) adiciona português brasileiro, inglês e espanhol em **Configurações → Idioma**. A preferência fica salva no aparelho. A solicitação de inclusão !56870 foi encerrada, e o pacote ainda não está disponível no catálogo oficial do F-Droid. O app continua em validação com dados fictícios e não está declarado pronto para uso clínico.
+Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.14.0** (versionCode 15) adiciona português brasileiro, inglês e espanhol em **Configurações → Idioma**. A preferência fica salva no aparelho. Os testes manuais foram concluídos com aprovação, conforme confirmação do usuário. A solicitação de inclusão !56870 foi encerrada por causa do período mínimo de manutenção; o pacote ainda não está no catálogo do F-Droid. O app não está declarado pronto para uso clínico.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 
@@ -83,7 +83,7 @@ A assinatura é aplicada pelo serviço externo. A interface abre o navegador e a
 | `./gradlew lint` | ✅ Sucesso — sem problemas no código do app (apenas aviso interno `ObsoleteLintCustomCheck` do AndroidX Lifecycle 2.11.0) |
 | `./gradlew :app:assembleDebugAndroidTest` | ✅ Sucesso — APK de testes compilado; execução conectada: 11 testes passaram (Motorola Edge 70 Fusion) |
 
-Os testes instrumentados existentes cobrem cenários específicos com registros fictícios. Em 09/11/2026, a execução conectada no Motorola passou (11 testes); a validação manual ampliada continua no roteiro. Consulte [docs/ROTEIRO_TESTES_MANUAIS.md](docs/ROTEIRO_TESTES_MANUAIS.md) e o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md).
+Os testes instrumentados existentes cobrem cenários específicos com registros fictícios. Em 09/11/2026, a execução conectada no Motorola passou (11 testes). O usuário confirmou que todos os cenários do roteiro manual foram concluídos e aprovados; o registro está em [docs/ROTEIRO_TESTES_MANUAIS.md](docs/ROTEIRO_TESTES_MANUAIS.md). Consulte também o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md).
 
 ## Estrutura do código
 
