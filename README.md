@@ -1,5 +1,16 @@
 # OdontoLivreVal
 
+**Organização odontológica offline, em desenvolvimento e validação.**
+
+`Kotlin · Jetpack Compose`
+
+[Reportar problema](https://github.com/alunoadsnoite/OdontoLivreVal/issues) · [Licença](LICENSE) · [Privacidade](PRIVACY.md)
+
+## Veja o aplicativo
+
+<img src="fastlane/metadata/android/pt-BR/images/phoneScreenshots/1.png" alt="Tela 1 do OdontoLivreVal" width="240">
+<img src="fastlane/metadata/android/pt-BR/images/phoneScreenshots/2.png" alt="Tela 2 do OdontoLivreVal" width="240">
+
 Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.14.0** (versionCode 15) adiciona português brasileiro, inglês e espanhol em **Configurações → Idioma**. A preferência fica salva no aparelho. Os testes manuais foram concluídos com aprovação, conforme confirmação do usuário. A solicitação de inclusão !56870 foi encerrada por causa do período mínimo de manutenção; o pacote ainda não está no catálogo do F-Droid. O app não está declarado pronto para uso clínico.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
@@ -115,3 +126,7 @@ Consulte a [arquitetura](docs/ARCHITECTURE.md), as [decisões de segurança](doc
 O código do OdontoLivreVal é licenciado sob a [GNU General Public License v3.0 ou posterior](LICENSE) (`GPL-3.0-or-later`). As dependências mantêm suas próprias licenças.
 
 O emoji 🦷 do ícone foi adaptado de [Twemoji](https://github.com/jdecked/twemoji/blob/main/assets/svg/1f9b7.svg), de Twitter e colaboradores, sob a licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). A arte foi convertida em um vetor Android e recebeu um fundo roxo.
+
+## Como contribuir
+
+Sugestões, traduções e relatos de problemas são bem-vindos. Abra uma issue com o contexto e o comportamento esperado. Para alterações de código, explique a mudança e os testes realizados no pull request. Use dados fictícios nos exemplos e nas capturas.
