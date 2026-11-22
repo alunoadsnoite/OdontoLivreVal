@@ -16,6 +16,7 @@ import androidx.navigation.compose.*
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.SignatureModality
+import br.com.odontolivreval.core.model.AppLanguage
 import br.com.odontolivreval.core.model.ThemeMode
 import br.com.odontolivreval.feature.documents.CertificateFormScreen
 import br.com.odontolivreval.feature.documents.CertificateListScreen
@@ -56,6 +57,8 @@ private val PatientSaver = listSaver<DemoPatient?, Any>(
 fun OdontoApp(
     state: SettingsState,
     onTheme: (ThemeMode) -> Unit,
+    language: AppLanguage,
+    onLanguage: (AppLanguage) -> Unit,
     demoClinic: ClinicStore,
     backupRevision: Int,
     exportOdontogram: @Composable (Long, Long?) -> Unit,
@@ -141,9 +144,10 @@ fun OdontoApp(
                                     Text(stringResource(R.string.profile_title))
                                 }
                                 SettingsScreen(
-                                    demoClinic,
                                     state,
                                     onTheme,
+                                    language,
+                                    onLanguage,
                                     onAbout = { nav.navigate("about") { launchSingleTop = true } },
                                 )
                                 OutlinedButton(onClick = { nav.navigate("protection") { launchSingleTop = true } }) {
@@ -454,7 +458,7 @@ fun OdontoApp(
                                         documentType = "patient_record",
                                         documentId = patient.id,
                                         documentVersion = 1,
-                                        documentTitle = "Prontuário clínico",
+                                        documentTitle = stringResource(R.string.clinical_record_title),
                                         onClose = { nav.popBackStack() },
                                         onCapture = { modality ->
                                             requestedSignatureModality = modality.name
@@ -481,7 +485,7 @@ fun OdontoApp(
                                         documentType = "patient_record",
                                         documentId = patient.id,
                                         documentVersion = 1,
-                                        documentTitle = "Prontuário clínico",
+                                        documentTitle = stringResource(R.string.clinical_record_title),
                                         initialModality = runCatching { SignatureModality.valueOf(requestedSignatureModality) }
                                             .getOrDefault(SignatureModality.HANDWRITTEN_DIGITAL),
                                         onClose = { nav.popBackStack() },
@@ -504,7 +508,7 @@ fun OdontoApp(
                                         documentType = "patient_record",
                                         documentId = patient.id,
                                         documentVersion = 1,
-                                        documentTitle = "Prontuário clínico",
+                                        documentTitle = stringResource(R.string.clinical_record_title),
                                         documentContent = "Conteúdo do documento",
                                         onClose = { nav.popBackStack() },
                                         onSignatureCreated = { nav.popBackStack() },

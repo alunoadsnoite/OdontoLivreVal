@@ -14,11 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-internal data class OdontogramRequest(val patientId: Long, val visitId: Long)
+internal data class OdontogramRequest(val patientId: Long, val visitId: Long? = null, val clinical: ClinicalExport? = null)
 internal enum class OdontogramResult { SAVING, EXPORTED, FAILED }
 internal data class OdontogramExport(val patientId: Long, val result: OdontogramResult)
 
 internal class OdontogramExportViewModel : ViewModel() {
+    var pending: OdontogramRequest? = null
     private val mutableState = MutableStateFlow<OdontogramExport?>(null)
     val state = mutableState.asStateFlow()
 
@@ -32,13 +33,20 @@ internal class OdontogramExportViewModel : ViewModel() {
             try {
                 val patient = store.listPatients().firstOrNull { it.id == request.patientId }
                     ?: throw IOException("Patient missing")
-                val visit = store.listVisits(request.patientId).firstOrNull { it.id == request.visitId }
-                    ?: throw IOException("Visit missing")
-                val profile = store.getProfessionalProfile()
+                val clinical = request.clinical
+                val text = clinical?.let { ClinicalPdf.text(store, patient, it) }
+                val visit = request.visitId?.let { id ->
+                    store.listVisits(request.patientId).firstOrNull { it.id == id }
+                        ?: throw IOException("Visit missing")
+                }
+                val profile = if (visit != null) store.getProfessionalProfile() else null
                 withContext(Dispatchers.IO) {
                     val stream = context.contentResolver.openOutputStream(uri, "wt")
                         ?: throw IOException("Cannot open PDF destination")
-                    stream.use { OdontogramPdf.write(context, patient.name, visit, it, profile) }
+                    stream.use {
+                        if (text != null) ClinicalPdf.write(text, it)
+                        else OdontogramPdf.write(context, patient.name, requireNotNull(visit), it, profile)
+                    }
                 }
                 mutableState.value = OdontogramExport(request.patientId, OdontogramResult.EXPORTED)
             } catch (_: ClinicStorageException) {

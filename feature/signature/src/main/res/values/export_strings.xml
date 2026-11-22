@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="signature_export_termo_documento">TERMO / DOCUMENTO: %1$s</string>
+    <string name="signature_export_tipo">Tipo: %1$s</string>
+    <string name="signature_export_versao">Versão: %1$d</string>
+    <string name="signature_export_paciente">Paciente: %1$s</string>
+    <string name="signature_export_assinatura_do_responsavel">Assinatura do responsável:</string>
+    <string name="signature_export_nome">Nome: %1$s</string>
+    <string name="signature_export_funcao">Função: %1$s</string>
+    <string name="signature_export_data_hora">Data/Hora: %1$s</string>
+    <string name="signature_export_este_documento_foi_preparado_para_assinatura">Este documento foi preparado para assinatura.</string>
+    <string name="signature_export_a_assinatura_manuscrita_capturada_e_uma_representacao_visual">A assinatura manuscrita capturada é uma representação visual.</string>
+    <string name="signature_export_nao_constitui_assinatura_digital_certificada_icp_brasil">Não constitui assinatura digital certificada ICP-Brasil.</string>
+    <string name="signature_export_document_title">Assinatura - %1$s</string>
+    <string name="signature_label_pending">Pendente</string>
+    <string name="signature_label_signed">Assinado</string>
+    <string name="signature_label_revoked">Revogado</string>
+    <string name="signature_label_electronic_acknowledgement">Confirmação eletrônica</string>
+    <string name="signature_label_handwritten_on_paper">Assinatura em papel</string>
+    <string name="signature_label_handwritten_digital">Assinatura manuscrita na tela</string>
+    <string name="signature_label_cryptographic">Assinatura criptográfica</string>
+</resources>

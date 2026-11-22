@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="documents_export_receita_odontologica">RECETA ODONTOLÓGICA</string>
+    <string name="documents_export_paciente">Paciente: %1$s</string>
+    <string name="documents_export_nascimento">Nacimiento: %1$s</string>
+    <string name="documents_export_telefone">Teléfono: %1$s</string>
+    <string name="documents_export_medicamentos">Medicamentos:</string>
+    <string name="documents_export_apresentacao">Presentación: %1$s</string>
+    <string name="documents_export_concentracao">Concentración: %1$s</string>
+    <string name="documents_export_posologia">Posología: %1$s</string>
+    <string name="documents_export_via_de_administracao">Vía de administración: %1$s</string>
+    <string name="documents_export_duracao">Duración: %1$s</string>
+    <string name="documents_export_quantidade">Cantidad: %1$s</string>
+    <string name="documents_export_observacoes">Observaciones: %1$s</string>
+    <string name="documents_export_orientacoes_adicionais">Indicaciones adicionales:</string>
+    <string name="documents_export_data_de_emissao">Fecha de emisión: %1$s</string>
+    <string name="documents_export_validade">Validez: %1$d días</string>
+    <string name="documents_export_este_documento_nao_constitui_receita_de_controle_especial">Este documento no constituye una receta brasileña de control especial.</string>
+    <string name="documents_export_a_assinatura_digital_deve_ser_realizada_em_sistema_proprio">Usa un sistema específico para firmar digitalmente.</string>
+</resources>

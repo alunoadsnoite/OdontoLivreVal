@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import br.com.odontolivreval.core.demo.ClinicStorageException
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.DemoPatient
+import br.com.odontolivreval.core.demo.PatientHistoryProtectedException
 import br.com.odontolivreval.core.demo.clinicSearchKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +31,7 @@ internal data class PatientsState(
     val deleteTarget: Long? = null,
     val deleting: Boolean = false,
     val deleteFailed: Boolean = false,
+    val deleteProtected: Boolean = false,
 )
 
 internal class PatientsViewModel(private val store: ClinicStore) : ViewModel() {
@@ -94,20 +96,22 @@ internal class PatientsViewModel(private val store: ClinicStore) : ViewModel() {
     /** Abre a confirmação de exclusão. A exclusão só ocorre em [confirmDelete]. */
     fun requestDelete(id: Long) {
         if (state.value.deleting || state.value.deleteTarget != null) return
-        mutableState.update { it.copy(deleteTarget = id, deleteFailed = false) }
+        mutableState.update { it.copy(deleteTarget = id, deleteFailed = false, deleteProtected = false) }
     }
 
     fun confirmDelete() {
         val target = state.value.deleteTarget ?: return
         if (state.value.deleting) return
-        mutableState.update { it.copy(deleting = true, deleteFailed = false) }
+        mutableState.update { it.copy(deleting = true, deleteFailed = false, deleteProtected = false) }
         viewModelScope.launch {
             try {
                 store.deletePatient(target)
                 mutableState.update {
-                    it.copy(deleteTarget = null, deleting = false, deleteFailed = false)
+                    it.copy(deleteTarget = null, deleting = false, deleteFailed = false, deleteProtected = false)
                 }
                 load()
+            } catch (_: PatientHistoryProtectedException) {
+                mutableState.update { it.copy(deleting = false, deleteProtected = true) }
             } catch (_: ClinicStorageException) {
                 mutableState.update { it.copy(deleting = false, deleteFailed = true) }
             }
@@ -116,7 +120,7 @@ internal class PatientsViewModel(private val store: ClinicStore) : ViewModel() {
 
     fun cancelDelete() {
         if (state.value.deleting) return
-        mutableState.update { it.copy(deleteTarget = null, deleteFailed = false) }
+        mutableState.update { it.copy(deleteTarget = null, deleteFailed = false, deleteProtected = false) }
     }
 
     /** Limpa dados de pacientes da memória quando o app vai para segundo plano. */

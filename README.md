@@ -1,8 +1,19 @@
 # OdontoLivreVal
 
-Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.13.1** (versionCode 14) reúne as etapas 13A–15C e os ajustes para o build do F-Droid. O F-Droid encerrou a [solicitação !56870](https://gitlab.com/fdroid/fdroiddata/-/merge_requests/56870) em 12/11/2026 porque o projeto ainda não tinha mais de três meses de manutenção ativa. O app continua em validação com dados fictícios e não está declarado pronto para uso clínico.
+**Organização odontológica offline, em desenvolvimento e validação.**
 
-[Baixar APK de teste 0.10.0 (debug)](https://github.com/alunoadsnoite/OdontoLivreVal/releases/download/v0.10.0/OdontoLivreVal-0.10.0-debug.apk) · Versão anterior, para testes com dados fictícios.
+`Kotlin · Jetpack Compose`
+
+[Reportar problema](https://github.com/alunoadsnoite/OdontoLivreVal/issues) · [Licença](LICENSE) · [Privacidade](PRIVACY.md)
+
+## Veja o aplicativo
+
+<img src="fastlane/metadata/android/pt-BR/images/phoneScreenshots/1.png" alt="Tela 1 do OdontoLivreVal" width="240">
+<img src="fastlane/metadata/android/pt-BR/images/phoneScreenshots/2.png" alt="Tela 2 do OdontoLivreVal" width="240">
+
+Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.14.0** (versionCode 15) adiciona português brasileiro, inglês e espanhol em **Configurações → Idioma**. A preferência fica salva no aparelho. Os testes manuais foram concluídos com aprovação, conforme confirmação do usuário. A solicitação de inclusão !56870 foi encerrada por causa do período mínimo de manutenção; o pacote ainda não está no catálogo do F-Droid. O app não está declarado pronto para uso clínico.
+
+[Baixar APK de teste 0.10.0 (debug)](https://github.com/alunoadsnoite/OdontoLivreVal/releases/download/v0.10.0/OdontoLivreVal-0.10.0-debug.apk) · Versão anterior à candidata atual; use apenas dados fictícios.
 
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 
@@ -13,7 +24,7 @@ Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista p
 - **Segurança e backup** em Configurações, com bloqueio opcional e exportação ou restauração de uma cópia criptografada.
 - **Perfil profissional** com nome, CRO e dados da clínica.
 - **Sobre** com a versão instalada e a licença.
-- **Pacientes** com cadastro, busca sem distinção de acentos, edição e exclusão confirmada. Os registros de teste continuam salvos após fechar o app.
+- **Pacientes** com cadastro, busca sem distinção de acentos, edição e exclusão confirmada de cadastros sem registros vinculados. Os registros de teste continuam salvos após fechar o app.
 - **Prontuário** ao tocar no nome do paciente: ficha com nascimento, telefone, queixa, anamnese e observações; diagnóstico e conduta por consulta; histórico de evoluções.
 - **Odontograma** dentro do prontuário, com dentições permanente e decídua. Aceita marcação no dente inteiro e cárie ou restauração em faces individuais. A evolução salva pode ser exportada em PDF.
 - **Radiografias** no prontuário, importadas em JPG/PNG ou fotografadas, com visualização e remoção.
@@ -85,7 +96,7 @@ A assinatura é aplicada pelo serviço externo. A interface abre o navegador e a
 | `./gradlew lint` | ✅ Sucesso — sem problemas no código do app (apenas aviso interno `ObsoleteLintCustomCheck` do AndroidX Lifecycle 2.11.0) |
 | `./gradlew :app:assembleDebugAndroidTest` | ✅ Sucesso — APK de testes compilado; execução conectada: 11 testes passaram (Motorola Edge 70 Fusion) |
 
-Os testes instrumentados existentes cobrem cenários específicos com registros fictícios. Em 09/11/2026, a execução conectada no Motorola passou (11 testes); a validação manual ampliada continua no roteiro. Consulte [docs/ROTEIRO_TESTES_MANUAIS.md](docs/ROTEIRO_TESTES_MANUAIS.md) e o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md).
+Os testes instrumentados existentes cobrem cenários específicos com registros fictícios. Em 09/11/2026, a execução conectada no Motorola passou (11 testes). O usuário confirmou que todos os cenários do roteiro manual foram concluídos e aprovados; o registro está em [docs/ROTEIRO_TESTES_MANUAIS.md](docs/ROTEIRO_TESTES_MANUAIS.md). Consulte também o [estado de prontidão](docs/ETAPA_15B_RELEASE_READINESS.md).
 
 ## Estrutura do código
 
@@ -117,3 +128,7 @@ Consulte a [arquitetura](docs/ARCHITECTURE.md), as [decisões de segurança](doc
 O código do OdontoLivreVal é licenciado sob a [GNU General Public License v3.0 ou posterior](LICENSE) (`GPL-3.0-or-later`). As dependências mantêm suas próprias licenças.
 
 O emoji 🦷 do ícone foi adaptado de [Twemoji](https://github.com/jdecked/twemoji/blob/main/assets/svg/1f9b7.svg), de Twitter e colaboradores, sob a licença [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). A arte foi convertida em um vetor Android e recebeu um fundo roxo.
+
+## Como contribuir
+
+Sugestões, traduções e relatos de problemas são bem-vindos. Abra uma issue com o contexto e o comportamento esperado. Para alterações de código, explique a mudança e os testes realizados no pull request. Use dados fictícios nos exemplos e nas capturas.

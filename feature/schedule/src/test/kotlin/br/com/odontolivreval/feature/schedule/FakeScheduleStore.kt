@@ -25,6 +25,7 @@ import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.MedicalCertificate
 import br.com.odontolivreval.core.demo.MedicalCertificateFile
 import br.com.odontolivreval.core.demo.PatientRecord
+import br.com.odontolivreval.core.demo.PatientRecordDraft
 import br.com.odontolivreval.core.demo.Radiograph
 import br.com.odontolivreval.core.demo.PrescriptionFile
 import br.com.odontolivreval.core.demo.ProfessionalProfile
@@ -139,6 +140,10 @@ internal class FakeScheduleStore : ClinicStore {
     override suspend fun savePatient(id: Long?, name: String): DemoPatient = error("Not used")
 
     override suspend fun getPatientRecord(patientId: Long): PatientRecord? = error("Not used")
+
+    override suspend fun getPatientRecordDraft(patientId: Long): PatientRecordDraft? = error("Not used")
+
+    override suspend fun savePatientRecordDraft(draft: PatientRecordDraft) = error("Not used")
 
     override suspend fun savePatientRecord(record: PatientRecord): PatientRecord = error("Not used")
 

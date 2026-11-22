@@ -1,0 +1,69 @@
+# OdontoLivreVal — Detekt static analysis configuration
+# Build: ./gradlew detekt
+# Baseline: ./gradPts detektAllBaseline
+
+build:
+  maxIssues: 0
+  excludeTrees:
+    - "**/build/**"
+    - ".gradle/"
+    - ".idea/"
+
+config:
+  validation: false
+
+rules:
+  # Complexity — keep functions and classes maintainable
+  LongMethod:
+    threshold: 60
+  LargeClass:
+    threshold: 400
+  TooManyFunctions:
+    threshold: 30
+  TooManyParameters:
+    threshold: 6
+  ComplexMethod:
+    threshold: 15
+
+  # Naming — project uses Portuguese, so allow it
+  NamingRules:
+    include: []
+    exclude: []
+    pattern: "^[a-zA-ZÀ-ÿ0-9_]*$"
+    privateInstancePattern: "^[a-z][a-zA-Z0-9]*$"
+
+  # Comments — require meaningful documentation on public APIs
+  KDocOnPublicFunctions: false
+  KDocOnPublicProperty: false
+
+  # Potential bugs
+  MagicNumber:
+    exclude:
+      - br.com.odontolivreval.feature.patients.PatientRecordViewModel
+      - br.com.odontolivreval.feature.schedule.ScheduleViewModel
+    ignoredNumbers:
+      - -1
+      - 0
+      - 1
+      - 2
+      - 24
+      - 60
+      - 100
+      - 365
+      - 600000
+
+  # Style
+  WildcardImport: false
+  ImportOrder: false
+  NoUnusedImports: true
+
+  # Nullability
+  UnnecessarySafeCall: false
+  UnnecessaryNotNull: false
+
+  # Exclude generated and test code from strict rules
+  exclude:
+    - "**/build/**"
+    - "**/generated/**"
+    - "androidTest/**"
+    - "test/**"

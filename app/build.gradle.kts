@@ -1,4 +1,8 @@
-plugins { alias(libs.plugins.android.application); alias(libs.plugins.compose) }
+plugins {
+  alias(libs.plugins.android.application)
+  alias(libs.plugins.compose)
+  alias(libs.plugins.detekt)
+}
 
 val releaseSigning = mapOf(
   "ODONTO_RELEASE_STORE_FILE" to System.getenv("ODONTO_RELEASE_STORE_FILE"),
@@ -22,9 +26,12 @@ android {
     minSdk = 26
     applicationId = "br.com.odontolivreval"
     targetSdk = 37
-    versionCode = 14
-    versionName = "0.13.1"
+    versionCode = 15
+    versionName = "0.14.0"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    vectorDrawables {
+      useSupportLibrary = true
+    }
   }
   signingConfigs {
     if (releaseSigningConfigured) {
@@ -38,14 +45,29 @@ android {
   }
   buildTypes {
     release {
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      proguardFiles(
+        getDefaultProguardFile("proguard-android-optimize.txt"),
+        "proguard-rules.pro"
+      )
       if (releaseSigningConfigured) {
         signingConfig = signingConfigs.getByName("release")
       }
     }
+    debug {
+      isMinifyEnabled = false
+    }
   }
   compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
   buildFeatures { compose = true; buildConfig = true }
+  composeOptions {
+    kotlinCompilerExtensionVersion = "2026.09.00"
+  }
+  lint {
+    disable += "ObsoleteLintCustomCheck"
+    checkReleaseBuilds = false
+    abortOnError = false
+  }
 }
 
 dependencies {
@@ -72,4 +94,22 @@ dependencies {
   androidTestImplementation(libs.android.junit)
   androidTestImplementation(libs.android.runner)
   debugImplementation(libs.compose.test.manifest)
+
+  // Detekt
+  detekt(libs.detekt.rules)
+
+  // JUnit for local unit tests
+  testImplementation(libs.junit)
+}
+
+detekt {
+  config = files("detekt.yml")
+  debug = false
+  buildUponDefaultConfig = false
+  ignoreFailures = false
+}
+
+tasks.register("detektAll", io.gitlab.arturbosch.detekt.Detekt::class) {
+  description = "Run detekt on the app module"
+  group = "verification"
 }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="treatment_export_orcamento_odontologico">DENTAL ESTIMATE</string>
+    <string name="treatment_export_numero">Number: %1$s</string>
+    <string name="treatment_export_revisao">Revision: %1$d</string>
+    <string name="treatment_export_data_de_emissao">Date of issue: %1$s</string>
+    <string name="treatment_export_validade">Validity: %1$d days</string>
+    <string name="treatment_export_paciente">Patient: %1$s</string>
+    <string name="treatment_export_plano_de_tratamento_id">Treatment plan ID: %1$d</string>
+    <string name="treatment_export_procedimentos">PROCEDURES:</string>
+    <string name="treatment_export_dente">Tooth: %1$s</string>
+    <string name="treatment_export_quantidade">Quantity: %1$d</string>
+    <string name="treatment_export_valor_unitario">Unit price: %1$s</string>
+    <string name="treatment_export_subtotal">Subtotal: %1$s</string>
+    <string name="treatment_export_total_bruto">Gross total: %1$s.toPlainString()}</string>
+    <string name="treatment_export_desconto">Discount: %1$s</string>
+    <string name="treatment_export_total_final">Final total: %1$s - b.discount).toPlainString()}</string>
+    <string name="treatment_export_condicoes_de_pagamento">Payment terms: %1$s</string>
+    <string name="treatment_export_observacoes">Notes: %1$s</string>
+    <string name="treatment_export_status">Status: %1$s</string>
+    <string name="treatment_export_document_title">Dental estimate - %1$s</string>
+    <string name="treatment_label_draft">Draft</string>
+    <string name="treatment_label_presented">Presented</string>
+    <string name="treatment_label_approved">Approved</string>
+    <string name="treatment_label_rejected">Declined</string>
+    <string name="treatment_label_expired">Expired</string>
+    <string name="treatment_label_cancelled">Canceled</string>
+</resources>

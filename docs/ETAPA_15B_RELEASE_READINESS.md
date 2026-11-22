@@ -1,6 +1,8 @@
 # Prontidão de versão — 0.13.1
 
-**Estado:** candidata para validação; build release sem assinatura de desenvolvedor validado para preparação F-Droid.
+> Registro histórico da candidata 0.13.1. A candidata atual é 0.14.0 (versionCode 15); veja a atualização de 16/11/2026 ao final deste documento.
+
+**Estado histórico da 0.13.1:** candidata para validação; build release sem assinatura de desenvolvedor validado para preparação F-Droid.
 **versionCode:** 14  
 **Atualizado:** 11/11/2026
 
@@ -46,3 +48,10 @@ Em 11/11/2026, `:app:assembleRelease` concluiu sem as variáveis `ODONTO_RELEASE
 ## Submissão
 
 O repositório remoto contém o código-fonte desta versão. O F-Droid compila a partir do código e assina o APK no repositório; uma distribuição própria exigirá uma nova chave segura e a mesma chave para as atualizações dessa distribuição.
+
+## Atualização em 16/11/2026
+
+- O usuário confirmou que todos os cenários do [roteiro de testes manuais](ROTEIRO_TESTES_MANUAIS.md) foram concluídos e aprovados usando dados fictícios. O modelo do aparelho, a versão exata instalada, logs e capturas não foram registrados nesta confirmação.
+- A candidata atual no código é 0.14.0 (versionCode 15), com traduções em português, inglês e espanhol.
+- A solicitação F-Droid !56870 foi fechada em 12/11/2026 porque os mantenedores entenderam que o projeto não cumpria o período mínimo de manutenção de três meses. A exceção solicitada em 13/11 ainda não tem resposta registrada. Sem exceção, a referência de três meses pelo histórico local é 07/02/2027; confirmar com os mantenedores antes de nova submissão.
+- A aprovação dos testes não equivale a uma declaração de prontidão para uso clínico. Revisão jurídica e de segurança independente continua pendente.

@@ -17,6 +17,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,8 +30,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.odontolivreval.core.demo.ClinicStore
+import br.com.odontolivreval.core.demo.ClearingManager
 import br.com.odontolivreval.core.demo.DemoPatient
 import br.com.odontolivreval.core.demo.VisitRecord
 import java.time.LocalDate
@@ -58,6 +64,21 @@ fun PatientRecordScreen(
     val model: PatientRecordViewModel = viewModel(factory = PatientRecordViewModel.factory(store, patient))
     val collected = model.state.collectAsStateWithLifecycle()
     val state = collected.value
+    val clearCallback = remember(model) { { model.clear() } }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var activityStarted by remember(lifecycleOwner) {
+        mutableStateOf(lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+    }
+
+    DisposableEffect(clearCallback) {
+        ClearingManager.register(clearCallback)
+        onDispose { ClearingManager.unregister(clearCallback) }
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) { activityStarted = true }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { activityStarted = false }
+    LaunchedEffect(state.cleared, activityStarted) {
+        if (state.cleared && activityStarted) model.reload()
+    }
 
     if (state.loading) {
         PatientRecordMessage(stringResource(R.string.demo_patients_loading))
@@ -111,6 +132,18 @@ fun PatientRecordScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (state.draftRestored) {
+                Text(
+                    text = stringResource(R.string.demo_patient_draft_restored),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            if (state.draftSaveFailed) {
+                Text(
+                    text = stringResource(R.string.demo_patient_draft_save_failed),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
 
         OutlinedTextField(
@@ -214,6 +247,9 @@ fun PatientRecordScreen(
         if (state.saved) {
             Text(stringResource(R.string.demo_patient_record_saved), color = MaterialTheme.colorScheme.primary)
         }
+        if (state.professionalRequired) {
+            Text(stringResource(R.string.demo_patient_professional_required), color = MaterialTheme.colorScheme.error)
+        }
         if (state.saveFailed) {
             Text(stringResource(R.string.demo_patient_save_failed), color = MaterialTheme.colorScheme.error)
         }
@@ -301,6 +337,24 @@ private fun VisitCard(visit: VisitRecord, active: Boolean) {
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
+            }
+            Text(
+                text = if (visit.professionalName.isBlank()) {
+                    stringResource(R.string.demo_patient_legacy_author)
+                } else {
+                    stringResource(R.string.demo_patient_visit_author, visit.professionalName, visit.professionalCroUf, visit.professionalCro)
+                },
+                style = MaterialTheme.typography.bodySmall,
+            )
+            visit.recordedAtMillis?.let { millis ->
+                val recordedAt = java.time.Instant.ofEpochMilli(millis).atZone(java.time.ZoneId.systemDefault())
+                Text(
+                    text = stringResource(R.string.demo_patient_recorded_at, visitFormatter.format(recordedAt)),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            if (visit.previousVisitId != null) {
+                Text(stringResource(R.string.demo_patient_visit_revision), style = MaterialTheme.typography.bodySmall)
             }
             Text(
                 text = visit.complaint.ifBlank { stringResource(R.string.demo_patient_no_complaint) },

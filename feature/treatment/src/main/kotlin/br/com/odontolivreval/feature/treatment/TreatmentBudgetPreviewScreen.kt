@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -54,6 +55,7 @@ fun TreatmentBudgetPreviewScreen(
     val model: TreatmentBudgetViewModel = viewModel(factory = TreatmentBudgetViewModel.factory(store, patient.id))
     val formState by model.formState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
 
     var pdfUri by remember { mutableStateOf<Uri?>(null) }
@@ -88,32 +90,32 @@ fun TreatmentBudgetPreviewScreen(
             try {
                 val file = withContext(Dispatchers.IO) {
                     val content = buildString {
-                        appendLine("ORÇAMENTO ODONTOLÓGICO")
-                        appendLine("Número: ${b.budgetNumber}")
-                        appendLine("Revisão: ${b.revision}")
-                        appendLine("Data de emissão: ${b.issueDate}")
-                        appendLine("Validade: ${b.validityDays} dias")
+                        appendLine(resources.getString(R.string.treatment_export_orcamento_odontologico))
+                        appendLine(resources.getString(R.string.treatment_export_numero, b.budgetNumber))
+                        appendLine(resources.getString(R.string.treatment_export_revisao, b.revision))
+                        appendLine(resources.getString(R.string.treatment_export_data_de_emissao, b.issueDate))
+                        appendLine(resources.getString(R.string.treatment_export_validade, b.validityDays))
                         appendLine("")
-                        appendLine("Paciente: ${patient.name}")
-                        appendLine("Plano de tratamento ID: ${b.planId}")
+                        appendLine(resources.getString(R.string.treatment_export_paciente, patient.name))
+                        appendLine(resources.getString(R.string.treatment_export_plano_de_tratamento_id, b.planId))
                         appendLine("")
-                        appendLine("PROCEDIMENTOS:")
+                        appendLine(resources.getString(R.string.treatment_export_procedimentos))
                         b.items.forEachIndexed { index, item ->
                             appendLine("${index + 1}. ${item.description}")
-                            if (item.tooth != null) appendLine("   Dente: ${item.tooth}")
-                            appendLine("   Quantidade: ${item.quantity}")
-                            appendLine("   Valor unitário: ${item.unitValue.toPlainString()}")
-                            appendLine("   Subtotal: ${item.totalValue.toPlainString()}")
+                            if (item.tooth != null) appendLine("   " + resources.getString(R.string.treatment_export_dente, item.tooth))
+                            appendLine("   " + resources.getString(R.string.treatment_export_quantidade, item.quantity))
+                            appendLine("   " + resources.getString(R.string.treatment_export_valor_unitario, item.unitValue.toPlainString()))
+                            appendLine("   " + resources.getString(R.string.treatment_export_subtotal, item.totalValue.toPlainString()))
                             appendLine("")
                         }
-                        appendLine("Total bruto: ${b.items.sumOf { it.totalValue }.toPlainString()}")
-                        appendLine("Desconto: ${b.discount.toPlainString()}")
-                        appendLine("Total final: ${(b.items.sumOf { it.totalValue } - b.discount).toPlainString()}")
+                        appendLine(resources.getString(R.string.treatment_export_total_bruto, b.items.sumOf { it.totalValue }.toPlainString()))
+                        appendLine(resources.getString(R.string.treatment_export_desconto, b.discount.toPlainString()))
+                        appendLine(resources.getString(R.string.treatment_export_total_final, (b.items.sumOf { it.totalValue } - b.discount).toPlainString()))
                         appendLine("")
-                        appendLine("Condições de pagamento: ${b.paymentConditions}")
-                        appendLine("Observações: ${b.observations}")
+                        appendLine(resources.getString(R.string.treatment_export_condicoes_de_pagamento, b.paymentConditions))
+                        appendLine(resources.getString(R.string.treatment_export_observacoes, b.observations))
                         appendLine("")
-                        appendLine("Status: ${b.status.name}")
+                        appendLine(resources.getString(R.string.treatment_export_status, resources.getString(b.status.labelResource)))
                     }
                     val request = DocumentPdfRequest(
                         type = DocumentType.BUDGET,
@@ -121,7 +123,7 @@ fun TreatmentBudgetPreviewScreen(
                         record = null,
                         profile = ProfessionalProfile(),
                         content = content,
-                        title = "Orçamento Odontológico - ${b.budgetNumber}",
+                        title = resources.getString(R.string.treatment_export_document_title, b.budgetNumber),
                         labels = ClinicPdf.PdfLabels(
                             cro = croLabel,
                             patient = patientLabel,

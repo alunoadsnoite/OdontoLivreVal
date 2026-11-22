@@ -50,3 +50,9 @@ Use exclusivamente pacientes e conteúdo fictícios. Em cada cenário, anote mod
 ## Evidência
 
 Registre para cada caso: aparelho/Android, passo, esperado, observado, resultado e log sem dados pessoais. Não copie nomes, CPF, CRO, anamnese ou documentos reais para o relatório.
+
+## Rodada concluída em 16/11/2026
+
+- **Resultado informado pelo usuário:** todos os cenários deste roteiro foram concluídos e aprovados, usando somente dados fictícios.
+- **Detalhes não registrados nesta confirmação:** modelo/versão do aparelho, versão exata instalada, logs e capturas de evidência.
+- A aprovação desta rodada não declara o aplicativo pronto para uso clínico nem substitui revisão jurídica ou de segurança independente.

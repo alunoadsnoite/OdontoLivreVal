@@ -26,6 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -67,8 +70,14 @@ fun PatientsScreen(
             }
             else -> {
                 item {
-                    Button(onClick = { model.openForm() }) {
-                        Text(stringResource(R.string.demo_patients_new))
+                    val newPatientLabel = stringResource(R.string.demo_patients_new)
+                    Button(
+                        onClick = { model.openForm() },
+                        modifier = Modifier.semantics {
+                            contentDescription = newPatientLabel
+                        },
+                    ) {
+                        Text(newPatientLabel)
                     }
                 }
                 item {
@@ -155,6 +164,12 @@ fun PatientsScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.demo_patients_delete_confirm))
+                    if (state.deleteProtected) {
+                        Text(
+                            stringResource(R.string.demo_patients_delete_protected),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                     if (state.deleteFailed) {
                         Text(
                             stringResource(R.string.demo_patients_save_failed),
@@ -164,7 +179,7 @@ fun PatientsScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = model::confirmDelete, enabled = !state.deleting) {
+                TextButton(onClick = model::confirmDelete, enabled = !state.deleting && !state.deleteProtected) {
                     Text(stringResource(R.string.demo_patients_delete))
                 }
             },
@@ -189,24 +204,40 @@ private fun PatientCard(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            val openLabel = stringResource(R.string.demo_patient_open_record, patient.name)
+            val editLabel = stringResource(R.string.demo_patients_edit_named, patient.name)
+            val deleteLabel = stringResource(R.string.demo_patients_delete)
             Text(
                 text = patient.name,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .semantics {
+                        contentDescription = openLabel
+                        role = Role.Button
+                    }
                     .clickable(
-                        role = Role.Button,
-                        onClickLabel = stringResource(R.string.demo_patient_open_record),
+                        onClickLabel = openLabel,
                         onClick = onOpen,
                     )
                     .padding(vertical = 8.dp),
             )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onEdit) {
-                    Text(stringResource(R.string.demo_patients_edit_named, patient.name))
+                OutlinedButton(
+                    onClick = onEdit,
+                    modifier = Modifier.semantics {
+                        contentDescription = editLabel
+                    },
+                ) {
+                    Text(editLabel)
                 }
-                OutlinedButton(onClick = onDelete) {
-                    Text(stringResource(R.string.demo_patients_delete))
+                OutlinedButton(
+                    onClick = onDelete,
+                    modifier = Modifier.semantics {
+                        contentDescription = deleteLabel
+                    },
+                ) {
+                    Text(deleteLabel)
                 }
             }
         }

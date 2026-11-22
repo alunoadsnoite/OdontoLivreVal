@@ -56,9 +56,8 @@ internal class DocumentFileExportViewModel : ViewModel() {
         }
     }
 
-    /** Limpa dados de exportação de documento da memória quando o app vai para segundo plano. */
+    /** Limpa o resultado exibido; mantém a solicitação enquanto o seletor de arquivos está aberto. */
     fun clear() {
-        pending = null
         mutableState.value = null
     }
 }

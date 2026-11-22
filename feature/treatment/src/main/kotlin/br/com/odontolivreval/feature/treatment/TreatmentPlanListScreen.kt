@@ -15,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -45,11 +47,14 @@ fun TreatmentPlanListScreen(
             style = MaterialTheme.typography.titleMedium,
         )
 
+        val createLabel = stringResource(R.string.treatment_plans_create)
         Button(
             onClick = onCreatePlan,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = createLabel },
         ) {
-            Text(stringResource(R.string.treatment_plans_create))
+            Text(createLabel)
         }
 
         when {
@@ -61,8 +66,12 @@ fun TreatmentPlanListScreen(
                     text = stringResource(R.string.treatment_plans_error),
                     color = MaterialTheme.colorScheme.error,
                 )
-                OutlinedButton(onClick = model::loadPlans) {
-                    Text(stringResource(R.string.treatment_plans_retry))
+                val retryLabel = stringResource(R.string.treatment_plans_retry)
+                OutlinedButton(
+                    onClick = model::loadPlans,
+                    modifier = Modifier.semantics { contentDescription = retryLabel },
+                ) {
+                    Text(retryLabel)
                 }
             }
             state.plans.isEmpty() -> {
@@ -82,8 +91,12 @@ fun TreatmentPlanListScreen(
             }
         }
 
-        OutlinedButton(onClick = onClose) {
-            Text(stringResource(R.string.treatment_plans_back))
+        val backLabel = stringResource(R.string.treatment_plans_back)
+        OutlinedButton(
+            onClick = onClose,
+            modifier = Modifier.semantics { contentDescription = backLabel },
+        ) {
+            Text(backLabel)
         }
     }
 }
@@ -106,8 +119,12 @@ private fun PlanRow(
                 style = MaterialTheme.typography.bodySmall,
             )
         }
-        FilledTonalButton(onClick = onClick) {
-            Text(stringResource(R.string.treatment_plans_open))
+        val openLabel = stringResource(R.string.treatment_plans_open)
+        FilledTonalButton(
+            onClick = onClick,
+            modifier = Modifier.semantics { contentDescription = openLabel },
+        ) {
+            Text(openLabel)
         }
     }
 }

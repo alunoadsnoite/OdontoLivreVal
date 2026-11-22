@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="documents_export_receita_odontologica">RECEITA ODONTOLÓGICA</string>
+    <string name="documents_export_paciente">Paciente: %1$s</string>
+    <string name="documents_export_nascimento">Nascimento: %1$s</string>
+    <string name="documents_export_telefone">Telefone: %1$s</string>
+    <string name="documents_export_medicamentos">Medicamentos:</string>
+    <string name="documents_export_apresentacao">Apresentação: %1$s</string>
+    <string name="documents_export_concentracao">Concentração: %1$s</string>
+    <string name="documents_export_posologia">Posologia: %1$s</string>
+    <string name="documents_export_via_de_administracao">Via de administração: %1$s</string>
+    <string name="documents_export_duracao">Duração: %1$s</string>
+    <string name="documents_export_quantidade">Quantidade: %1$s</string>
+    <string name="documents_export_observacoes">Observações: %1$s</string>
+    <string name="documents_export_orientacoes_adicionais">Orientações adicionais:</string>
+    <string name="documents_export_data_de_emissao">Data de emissão: %1$s</string>
+    <string name="documents_export_validade">Validade: %1$d dias</string>
+    <string name="documents_export_este_documento_nao_constitui_receita_de_controle_especial">Este documento não constitui receita de controle especial.</string>
+    <string name="documents_export_a_assinatura_digital_deve_ser_realizada_em_sistema_proprio">A assinatura digital deve ser realizada em sistema próprio.</string>
+</resources>

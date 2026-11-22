@@ -351,7 +351,7 @@ private fun SectionField(
     }
 }
 
-private fun typeLabel(type: ConsentType): Int = when (type) {
+internal fun typeLabel(type: ConsentType): Int = when (type) {
     ConsentType.GENERAL_TREATMENT -> R.string.consent_type_general
     ConsentType.TOOTH_EXTRACTION -> R.string.consent_type_extraction
     ConsentType.ENDODONTIC_TREATMENT -> R.string.consent_type_endodontic

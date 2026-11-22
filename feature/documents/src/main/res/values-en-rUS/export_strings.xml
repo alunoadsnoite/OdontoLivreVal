@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="documents_export_receita_odontologica">DENTAL PRESCRIPTION</string>
+    <string name="documents_export_paciente">Patient: %1$s</string>
+    <string name="documents_export_nascimento">Birth date: %1$s</string>
+    <string name="documents_export_telefone">Phone: %1$s</string>
+    <string name="documents_export_medicamentos">Medications:</string>
+    <string name="documents_export_apresentacao">Dosage form: %1$s</string>
+    <string name="documents_export_concentracao">Strength: %1$s</string>
+    <string name="documents_export_posologia">Dosage: %1$s</string>
+    <string name="documents_export_via_de_administracao">Route of administration: %1$s</string>
+    <string name="documents_export_duracao">Duration: %1$s</string>
+    <string name="documents_export_quantidade">Quantity: %1$s</string>
+    <string name="documents_export_observacoes">Notes: %1$s</string>
+    <string name="documents_export_orientacoes_adicionais">Additional instructions:</string>
+    <string name="documents_export_data_de_emissao">Date of issue: %1$s</string>
+    <string name="documents_export_validade">Validity: %1$d days</string>
+    <string name="documents_export_este_documento_nao_constitui_receita_de_controle_especial">This document is not a Brazilian special-control prescription.</string>
+    <string name="documents_export_a_assinatura_digital_deve_ser_realizada_em_sistema_proprio">Use a dedicated system to sign digitally.</string>
+</resources>

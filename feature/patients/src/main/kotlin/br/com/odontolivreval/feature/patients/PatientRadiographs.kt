@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
@@ -26,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import br.com.odontolivreval.core.demo.ClinicStorageException
 import br.com.odontolivreval.core.demo.ClinicStore
 import br.com.odontolivreval.core.demo.Radiograph
-import kotlinx.coroutines.launch
 
 @Composable
 fun PatientRadiographs(
@@ -40,10 +38,7 @@ fun PatientRadiographs(
 ) {
     var images by remember(patientId) { mutableStateOf<List<Radiograph>?>(null) }
     var viewing by remember(patientId) { mutableStateOf<Radiograph?>(null) }
-    var removing by remember(patientId) { mutableStateOf<Radiograph?>(null) }
     var error by remember(patientId) { mutableStateOf(false) }
-    var deleting by remember(patientId) { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
     LaunchedEffect(store, patientId, importRevision) {
         try {
             images = store.listRadiographs(patientId)
@@ -56,10 +51,10 @@ fun PatientRadiographs(
     Text(stringResource(R.string.radiographs_title), style = MaterialTheme.typography.titleMedium)
     Text(stringResource(R.string.radiographs_hint), style = MaterialTheme.typography.bodySmall)
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = onPick, enabled = !importing && !deleting) {
+        OutlinedButton(onClick = onPick, enabled = !importing) {
             Text(stringResource(R.string.radiographs_import))
         }
-        OutlinedButton(onClick = onCamera, enabled = !importing && !deleting) {
+        OutlinedButton(onClick = onCamera, enabled = !importing) {
             Text(stringResource(R.string.radiographs_camera))
         }
     }
@@ -74,37 +69,11 @@ fun PatientRadiographs(
             TextButton(onClick = { viewing = image }) {
                 Text(stringResource(R.string.radiographs_view, index + 1))
             }
-            TextButton(onClick = { removing = image }, enabled = !importing && !deleting) {
-                Text(stringResource(R.string.radiographs_remove))
-            }
         }
     }
     viewing?.let { image -> RadiographPreview(store, image) { viewing = null } }
-    removing?.let { image ->
-        AlertDialog(
-            onDismissRequest = { removing = null },
-            title = { Text(stringResource(R.string.radiographs_confirm_remove)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    removing = null
-                    deleting = true
-                    scope.launch {
-                        try {
-                            store.removeRadiograph(patientId, image.id)
-                            images = images.orEmpty().filterNot { it.id == image.id }
-                            error = false
-                        } catch (_: ClinicStorageException) {
-                            error = true
-                        } finally {
-                            deleting = false
-                        }
-                    }
-                }) { Text(stringResource(R.string.radiographs_remove)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { removing = null }) { Text(stringResource(R.string.demo_patients_cancel)) }
-            },
-        )
+    if (images?.isNotEmpty() == true) {
+        Text(stringResource(R.string.clinical_attachments_retained), style = MaterialTheme.typography.bodySmall)
     }
 }
 

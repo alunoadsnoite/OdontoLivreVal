@@ -53,4 +53,38 @@ class PatientsViewModelTest {
     fun searchKeyIgnoresCaseAndAccents() {
         assertTrue("Paciente Ágata".clinicSearchKey().contains("agata"))
     }
+
+    @Test
+    fun clearRemovesPatientsAndForm() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val store = FakeClinicStore().apply {
+                patients += DemoPatient(1, "Ágata")
+            }
+            val model = PatientsViewModel(store)
+            runCurrent()
+            assertEquals(1, model.state.value.patients.size)
+
+            model.openForm()
+            model.changeName("Zeca")
+            model.save()
+            runCurrent()
+            assertEquals(2, model.state.value.patients.size)
+            // Após salvar com sucesso, o form é limpo automaticamente
+            assertNull(model.state.value.form)
+
+            // Reabre o form para testar o clear
+            model.openForm(DemoPatient(1, "Ágata"))
+            runCurrent()
+            assertNotNull(model.state.value.form)
+
+            model.clear()
+            runCurrent()
+            assertTrue(model.state.value.patients.isEmpty())
+            assertNull(model.state.value.form)
+            assertNull(model.state.value.deleteTarget)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
 }

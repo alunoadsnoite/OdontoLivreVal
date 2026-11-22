@@ -53,6 +53,10 @@ enum class AppointmentSaveResult {
 
 class ClinicStorageException(cause: Exception) : Exception(cause)
 
+class PatientHistoryProtectedException : Exception()
+
+class VisitProfessionalRequiredException : Exception()
+
 class DemoClinicStore(context: Context) : ClinicStore {
     private val app = context.applicationContext
     private val legacyFile = app.noBackupFilesDir.resolve("demo-patients.db")
@@ -195,6 +199,22 @@ class DemoClinicStore(context: Context) : ClinicStore {
         load().patientRecords.find { it.patientId == patientId }
     }
 
+    override suspend fun getPatientRecordDraft(patientId: Long): PatientRecordDraft? = access {
+        load().patientRecordDrafts.find { it.patientId == patientId }
+    }
+
+    override suspend fun savePatientRecordDraft(draft: PatientRecordDraft) = access {
+        val snapshot = load()
+        requirePatient(snapshot, draft.patientId)
+        if (draft.record.patientId != draft.patientId || draft.visit.patientId != draft.patientId) {
+            throw IOException("Draft belongs to a different patient")
+        }
+        persist(snapshot.copy(
+            patientRecordDrafts = snapshot.patientRecordDrafts
+                .filterNot { it.patientId == draft.patientId } + draft,
+        ))
+    }
+
     override suspend fun savePatientRecord(record: PatientRecord): PatientRecord = access {
         val snapshot = load()
         requirePatient(snapshot, record.patientId)
@@ -212,7 +232,10 @@ class DemoClinicStore(context: Context) : ClinicStore {
         persist(
             snapshot.copy(
                 patientRecords = replaceRecord(snapshot, savedRecord),
-                visits = snapshot.visits.filterNot { it.id == savedVisit.id } + savedVisit,
+                visits = snapshot.visits + savedVisit,
+                patientRecordDrafts = snapshot.patientRecordDrafts.filterNot {
+                    it.patientId == record.patientId
+                },
             ),
         )
         SavedRecord(savedRecord, savedVisit)
@@ -221,25 +244,8 @@ class DemoClinicStore(context: Context) : ClinicStore {
     override suspend fun deletePatient(id: Long) = access {
         val snapshot = load()
         if (snapshot.patients.none { it.id == id }) throw IOException("Patient missing")
-        // Backup automático antes de operação destrutiva para permitir recuperação
-        val backupFile = autoBackup()
-        try {
-            persist(snapshot.copy(
-                patients = snapshot.patients.filterNot { it.id == id },
-                appointments = snapshot.appointments.filter { it.patientId != id },
-                patientRecords = snapshot.patientRecords.filterNot { it.patientId == id },
-                visits = snapshot.visits.filterNot { it.patientId == id },
-                radiographs = snapshot.radiographs.filterNot { it.file.patientId == id },
-                prescriptions = snapshot.prescriptions.filterNot { it.file.patientId == id },
-                documentPhotos = snapshot.documentPhotos.filterNot { it.file.patientId == id },
-                digitalSignatures = snapshot.digitalSignatures.filterNot { it.file.patientId == id },
-                medicalCertificates = snapshot.medicalCertificates.filterNot { it.file.patientId == id },
-            ))
-        } catch (error: Exception) {
-            backupFile.deleteRecursively()
-            throw error
-        }
-        backupFile.deleteRecursively()
+        if (snapshot.hasPatientHistory(id)) throw PatientHistoryProtectedException()
+        persist(snapshot.copy(patients = snapshot.patients.filterNot { it.id == id }))
         Unit
     }
 
@@ -1455,7 +1461,7 @@ class DemoClinicStore(context: Context) : ClinicStore {
         val snapshot = load()
         requirePatient(snapshot, visit.patientId)
         val saved = withVisitId(snapshot, visit)
-        persist(snapshot.copy(visits = snapshot.visits.filterNot { it.id == saved.id } + saved))
+        persist(snapshot.copy(visits = snapshot.visits + saved))
         saved
     }
 
@@ -1500,12 +1506,11 @@ class DemoClinicStore(context: Context) : ClinicStore {
         persist(snapshot.copy(radiographs = snapshot.radiographs + record))
     }
 
-    override suspend fun removeRadiograph(patientId: Long, id: Long) = access {
-        val snapshot = load()
-        if (snapshot.radiographs.none { it.file.patientId == patientId && it.file.id == id }) {
-            throw IOException("Radiograph missing")
+    override suspend fun removeRadiograph(patientId: Long, id: Long): Unit = access {
+        if (load().radiographs.none { it.file.patientId == patientId && it.file.id == id }) {
+            throw IOException("Attachment missing")
         }
-        persist(snapshot.copy(radiographs = snapshot.radiographs.filterNot { it.file.id == id }))
+        throw IOException("Clinical attachment is retained")
     }
 
     override suspend fun listPrescriptions(patientId: Long, archivedDocuments: Boolean): List<PrescriptionFile> = access {
@@ -1542,11 +1547,11 @@ class DemoClinicStore(context: Context) : ClinicStore {
         }
     }
 
-    override suspend fun removePrescription(patientId: Long, id: Long) = access {
-        val snapshot = load()
-        val file = snapshot.prescriptions.find { it.file.patientId == patientId && it.file.id == id }
-            ?: throw IOException("Prescription missing")
-        persist(snapshot.copy(prescriptions = snapshot.prescriptions - file))
+    override suspend fun removePrescription(patientId: Long, id: Long): Unit = access {
+        if (load().prescriptions.none { it.file.patientId == patientId && it.file.id == id }) {
+            throw IOException("Attachment missing")
+        }
+        throw IOException("Clinical attachment is retained")
     }
 
     override suspend fun listDocumentPhotos(patientId: Long): List<DocumentPhoto> = access {
@@ -1584,12 +1589,11 @@ class DemoClinicStore(context: Context) : ClinicStore {
         }
     }
 
-    override suspend fun removeDocumentPhoto(patientId: Long, id: Long) = access {
-        val snapshot = load()
-        if (snapshot.documentPhotos.none { it.file.patientId == patientId && it.file.id == id }) {
-            throw IOException("Document photo missing")
+    override suspend fun removeDocumentPhoto(patientId: Long, id: Long): Unit = access {
+        if (load().documentPhotos.none { it.file.patientId == patientId && it.file.id == id }) {
+            throw IOException("Attachment missing")
         }
-        persist(snapshot.copy(documentPhotos = snapshot.documentPhotos.filterNot { it.file.id == id }))
+        throw IOException("Clinical attachment is retained")
     }
 
     override suspend fun listDigitalSignatures(patientId: Long?): List<DigitalSignature> = access {
@@ -1862,13 +1866,22 @@ class DemoClinicStore(context: Context) : ClinicStore {
     }
 
     private fun withVisitId(snapshot: ClinicSnapshot, visit: VisitRecord): VisitRecord {
-        if (visit.id <= 0) {
-            return visit.copy(id = nextId(snapshot.visits.map { it.id }))
+        val profile = snapshot.professional
+        if (profile.name.isBlank() || profile.cro.isBlank() || profile.croUF.isBlank()) {
+            throw VisitProfessionalRequiredException()
         }
-        val existing = snapshot.visits.find { it.id == visit.id }
-            ?: throw IOException("Visit missing")
-        if (existing.patientId != visit.patientId) throw IOException("Visit belongs to another patient")
-        return visit
+        val previousVisitId = visit.id.takeIf { it > 0 }
+        if (previousVisitId != null && snapshot.visits.none { it.id == previousVisitId && it.patientId == visit.patientId }) {
+            throw IOException("Visit missing or belongs to another patient")
+        }
+        return visit.copy(
+            id = nextId(snapshot.visits.map { it.id }),
+            professionalName = profile.name,
+            professionalCro = profile.cro,
+            professionalCroUf = profile.croUF,
+            recordedAtMillis = System.currentTimeMillis(),
+            previousVisitId = previousVisitId,
+        )
     }
 
     private fun nextId(ids: List<Long>): Long {

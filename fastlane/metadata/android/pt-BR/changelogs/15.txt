@@ -1,0 +1,1 @@
+Idioma selecionável nas configurações: português brasileiro, inglês e espanhol. A preferência fica salva no aparelho.

@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -95,8 +97,20 @@ fun DocumentsScreen(
             state.loading -> Text(stringResource(R.string.documents_loading))
             state.failed -> {
                 Text(stringResource(R.string.documents_load_error), color = MaterialTheme.colorScheme.error)
-                OutlinedButton(onClick = model::load) { Text(stringResource(R.string.documents_retry)) }
-                OutlinedButton(onClick = onClose) { Text(stringResource(R.string.documents_back)) }
+                val retryLabel = stringResource(R.string.documents_retry)
+                OutlinedButton(
+                    onClick = model::load,
+                    modifier = Modifier.semantics { contentDescription = retryLabel },
+                ) {
+                    Text(retryLabel)
+                }
+                val backLabel = stringResource(R.string.documents_back)
+                OutlinedButton(
+                    onClick = onClose,
+                    modifier = Modifier.semantics { contentDescription = backLabel },
+                ) {
+                    Text(backLabel)
+                }
             }
             else -> {
                 if (state.profileReady) {
@@ -109,8 +123,12 @@ fun DocumentsScreen(
                         stringResource(R.string.documents_profile_missing),
                         color = MaterialTheme.colorScheme.error,
                     )
-                    OutlinedButton(onClick = onOpenProfile) {
-                        Text(stringResource(R.string.documents_open_profile))
+                    val openProfileLabel = stringResource(R.string.documents_open_profile)
+                    OutlinedButton(
+                        onClick = onOpenProfile,
+                        modifier = Modifier.semantics { contentDescription = openProfileLabel },
+                    ) {
+                        Text(openProfileLabel)
                     }
                 }
 
@@ -177,10 +195,14 @@ fun DocumentsScreen(
                 }
 
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { if (model.validate()) onSaveDocument(request()) }) {
-                        Text(stringResource(R.string.documents_save_pdf))
+                    val saveLabel = stringResource(R.string.documents_save_pdf)
+                    Button(
+                        onClick = { if (model.validate()) onSaveDocument(request()) },
+                        modifier = Modifier.semantics { contentDescription = saveLabel },
+                    ) {
+                        Text(saveLabel)
                     }
-                    val buttonText = if (encryptPdf) stringResource(R.string.documents_share_encrypted) else stringResource(R.string.documents_generate)
+                    val shareLabel = if (encryptPdf) stringResource(R.string.documents_share_encrypted) else stringResource(R.string.documents_generate)
                     OutlinedButton(
                         enabled = !sharing,
                         onClick = {
@@ -212,7 +234,8 @@ fun DocumentsScreen(
                                 }
                             }
                         },
-                    ) { Text(buttonText) }                }
+                        modifier = Modifier.semantics { contentDescription = shareLabel },
+                    ) { Text(shareLabel) }                }
                 exportStatus?.let { Text(it) }
                 if (shareFailed) Text(stringResource(R.string.documents_pdf_error), color = MaterialTheme.colorScheme.error)
 
@@ -220,20 +243,38 @@ fun DocumentsScreen(
                 Text(stringResource(R.string.signature_flow))
                 Text(stringResource(R.string.signature_provider_notice), style = MaterialTheme.typography.bodySmall)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { openPortal("https://assinador.iti.br/") }) {
-                        Text(stringResource(R.string.signature_gov))
+                    val govLabel = stringResource(R.string.signature_gov)
+                    OutlinedButton(
+                        onClick = { openPortal("https://assinador.iti.br/") },
+                        modifier = Modifier.semantics { contentDescription = govLabel },
+                    ) {
+                        Text(govLabel)
                     }
-                    OutlinedButton(onClick = { openPortal("https://prescricao.cfo.org.br/index") }) {
-                        Text(stringResource(R.string.signature_cfo))
+                    val cfoLabel = stringResource(R.string.signature_cfo)
+                    OutlinedButton(
+                        onClick = { openPortal("https://prescricao.cfo.org.br/index") },
+                        modifier = Modifier.semantics { contentDescription = cfoLabel },
+                    ) {
+                        Text(cfoLabel)
                     }
-                    OutlinedButton(onClick = { openPortal("https://validar.iti.gov.br/") }) {
-                        Text(stringResource(R.string.signature_validate))
+                    val validateLabel = stringResource(R.string.signature_validate)
+                    OutlinedButton(
+                        onClick = { openPortal("https://validar.iti.gov.br/") },
+                        modifier = Modifier.semantics { contentDescription = validateLabel },
+                    ) {
+                        Text(validateLabel)
                     }
                 }
                 if (portalFailed) Text(stringResource(R.string.signature_portal_error), color = MaterialTheme.colorScheme.error)
                 archive()
 
-                OutlinedButton(onClick = onClose) { Text(stringResource(R.string.documents_back)) }
+                val closeLabel = stringResource(R.string.documents_back)
+                OutlinedButton(
+                    onClick = onClose,
+                    modifier = Modifier.semantics { contentDescription = closeLabel },
+                ) {
+                    Text(closeLabel)
+                }
             }
         }
     }
