@@ -13,6 +13,8 @@
 
 Aplicativo Android livre e gratuito, projetado para que um cirurgião-dentista possa trabalhar offline em um único dispositivo. A candidata **0.14.0** (versionCode 15) adiciona português brasileiro, inglês e espanhol em **Configurações → Idioma**. A preferência fica salva no aparelho. Os testes manuais foram concluídos com aprovação, conforme confirmação do usuário. A solicitação de inclusão !56870 foi encerrada por causa do período mínimo de manutenção; o pacote ainda não está no catálogo do F-Droid. O app não está declarado pronto para uso clínico.
 
+[Baixar APK de teste 0.10.0 (debug)](https://github.com/alunoadsnoite/OdontoLivreVal/releases/download/v0.10.0/OdontoLivreVal-0.10.0-debug.apk) · Versão anterior à candidata atual; use apenas dados fictícios.
+
 > **Versão de desenvolvimento.** Use apenas nomes fictícios. O app segue em validação com dados fictícios.
 
 ## O que funciona hoje

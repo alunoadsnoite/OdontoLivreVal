@@ -291,4 +291,9 @@
     <string name="security_export_failed">No se pudo guardar la copia. Inténtalo de nuevo.</string>
     <string name="security_restore_failed">No se pudo restaurar la copia. Comprueba la contraseña y que el archivo sea una copia válida.</string>
     <string name="clinical_record_title">Historia clínica</string>
+    <string name="security_password_too_short">Usa al menos 12 caracteres.</string>
+    <string name="security_password_missing_uppercase">Incluye una letra mayúscula.</string>
+    <string name="security_password_missing_number">Incluye un número.</string>
+    <string name="security_password_missing_symbol">Incluye un símbolo.</string>
+    <string name="security_password_mismatch">Las contraseñas no coinciden.</string>
 </resources>

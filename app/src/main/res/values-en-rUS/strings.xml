@@ -291,4 +291,9 @@
     <string name="security_export_failed">Could not save the backup. Try again.</string>
     <string name="security_restore_failed">Could not restore the backup. Check the password and that the file is a valid backup.</string>
     <string name="clinical_record_title">Clinical record</string>
+    <string name="security_password_too_short">Use at least 12 characters.</string>
+    <string name="security_password_missing_uppercase">Include an uppercase letter.</string>
+    <string name="security_password_missing_number">Include a number.</string>
+    <string name="security_password_missing_symbol">Include a symbol.</string>
+    <string name="security_password_mismatch">The passwords do not match.</string>
 </resources>

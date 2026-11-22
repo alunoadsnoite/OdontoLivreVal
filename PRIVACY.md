@@ -1,7 +1,7 @@
 # Privacidade — OdontoLivreVal
 
-**Versão documentada:** 0.13.1 (desenvolvimento; versionCode 14)
-**Atualizado em:** 15/11/2026
+**Versão documentada:** 0.14.0 (desenvolvimento; versionCode 15)
+**Atualizado em:** 22/11/2026
 
 O OdontoLivreVal foi desenvolvido para uso local em um único aparelho. Esta explicação descreve o comportamento observado no código desta versão candidata; não é uma declaração de conformidade jurídica nem substitui a avaliação do profissional responsável.
 
@@ -11,13 +11,13 @@ O app pode armazenar nomes e contatos de pacientes, dados de anamnese e prontuá
 
 ## Onde ficam os dados e como são protegidos
 
-Os registros e anexos ficam em arquivos privados do aplicativo e são protegidos por criptografia autenticada AES-256-GCM. A chave local é protegida pelo Android Keystore. Os arquivos clínicos são excluídos do backup automático do Android. A preferência de aparência fica no armazenamento local do Android.
+Os registros e anexos ficam em arquivos privados do aplicativo e são protegidos por criptografia autenticada AES-256-GCM. A chave local é protegida pelo Android Keystore. Os arquivos clínicos são excluídos do backup automático do Android. As preferências de aparência e de bloqueio do app ficam no armazenamento local. Quando ativado, o bloqueio usa a credencial do aparelho ou, em versões compatíveis do Android, biometria forte.
 
 A chave do Keystore é específica desta instalação. Desinstalar o app ou perder a chave pode tornar os dados locais irrecuperáveis. O app não oferece recuperação remota.
 
 ## Backup e restauração
 
-O usuário pode exportar manualmente um backup criptografado com senha. O formato atual usa AES-256-GCM e derivação de chave PBKDF2-HMAC-SHA256. A senha não é guardada pelo aplicativo; sem ela, o backup não pode ser restaurado. Guarde a senha e o arquivo em local seguro. A restauração substitui o conjunto de dados local após confirmação.
+O usuário pode exportar manualmente um backup criptografado com senha. O formato atual usa AES-256-GCM e derivação de chave PBKDF2-HMAC-SHA256. A senha não é guardada pelo aplicativo; sem ela, o backup não pode ser restaurado. Guarde a senha e o arquivo em local seguro. A restauração substitui o conjunto de dados local após confirmação. O app também cria uma cópia temporária no cache privado antes de restaurar um backup ou excluir um paciente. Essa cópia usa uma senha fixa definida pelo app e é removida no fluxo normal da operação. Uma interrupção pode deixá-la no cache.
 
 ## Guarda do prontuário
 
@@ -27,7 +27,7 @@ As evoluções salvas registram o nome e o CRO/UF do perfil profissional, junto 
 
 ## PDFs, arquivos compartilhados e portais externos
 
-Ao salvar um PDF por meio do seletor Android, o arquivo fica no destino escolhido pelo usuário e fora da criptografia do armazenamento interno do app. Ao compartilhar, o app cria uma cópia temporária privada e concede acesso ao destinatário escolhido pelo sistema. Cópias de PDF no cache podem permanecer por até 24 horas antes da limpeza seguinte.
+Ao salvar um PDF por meio do seletor Android, o arquivo fica no destino escolhido pelo usuário e fora da criptografia do armazenamento interno do app. Ao compartilhar, o app cria uma cópia temporária privada e concede acesso ao destinatário escolhido pelo sistema. A rotina de compartilhamento de documentos tenta remover PDFs do seu diretório de cache com mais de 24 horas ao preparar outro arquivo para compartilhar. Sem essa limpeza, cópias podem permanecer no cache por mais tempo.
 
 Os atalhos de assinatura abrem sites externos no navegador somente quando acionados pelo usuário. O destino externo pode receber dados que o usuário digitar ou anexar nele; o OdontoLivreVal não controla a política de privacidade desse serviço. Arquivar um PDF no prontuário copia seus bytes para o armazenamento criptografado, mas não valida a assinatura nem a vincula automaticamente a uma versão documental específica.
 
